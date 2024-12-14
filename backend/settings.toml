@@ -1,0 +1,6 @@
+dynaconf_merge = true
+cache_path = "./cache/"
+log_level = "info"
+
+[limit]
+batch_items = 10
