@@ -10,3 +10,11 @@ def validate_q_length(q: List[str] = Query(default=[])):
             detail=f"Query parameter 'q' cannot have more than {settings.limit.batch_items} items."
         )
     return q
+
+def validate_limit(limit: int = Query(default=10)):
+    if limit > settings.limit.sql_limit:
+        raise HTTPException(
+            status_code=422, 
+            detail=f"Query parameter 'limit' cannot be more than {settings.limit.sql_limit}."
+        )
+    return limit

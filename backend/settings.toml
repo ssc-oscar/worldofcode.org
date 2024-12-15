@@ -4,3 +4,8 @@ log_level = "info"
 
 [limit]
 batch_items = 10
+sql_limit = 100
+
+[clickhouse]
+table_commits = "commits_all"
+table_deps = " b2cPtaPkgR_all"

@@ -15,11 +15,12 @@ fastapi = "^0.115.6"
 uvicorn = {extras = ["standard"], version = "^0.32.1"}
 flask = "^3.0.3"
 httpx = {extras = ["http2"], version = "^0.28.1"}
-beanie = "^1.28.0"
 fastapi-pagination = "^0.12.32"
 loguru = "^0.7.3"
 websockets = ">=11.0"
 dynaconf = "^3.2.6"
+beanie = ">=1.26.0,<1.27.0"
+clickhouse-driver = "^0.2.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
