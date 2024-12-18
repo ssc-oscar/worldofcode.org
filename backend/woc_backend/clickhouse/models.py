@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 from enum import Enum
 
+
 class ClickhouseCommit(BaseModel):
     hash: str
     timestamp: int
@@ -11,6 +12,7 @@ class ClickhouseCommit(BaseModel):
     comment: str
     content: str
 
+
 class ClickhouseBlobDeps(BaseModel):
     blob: str
     commit: str
@@ -19,6 +21,7 @@ class ClickhouseBlobDeps(BaseModel):
     author: str
     language: "ClickhouseLanguage"
     deps: List[str]
+
 
 class ClickhouseLanguage(str, Enum):
     Java = "Java"

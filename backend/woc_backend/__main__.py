@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
     # close clickhouse
     app.state.ch_client.disconnect()
 
+
 app = FastAPI(title="woc-backend", version="0.1.0", lifespan=lifespan)
 app.include_router(lookup_api, prefix="/lookup")
 app.include_router(mongo_api, prefix="/mongo")

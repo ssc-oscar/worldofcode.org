@@ -5,6 +5,7 @@ from ..models import WocResponse
 
 api = APIRouter()
 
+
 @api.get("/author/search", response_model=WocResponse[List[MongoAuthor]])
 async def search_author(q: str, limit: int = 10):
     """
@@ -12,7 +13,7 @@ async def search_author(q: str, limit: int = 10):
     """
     results = await MongoAuthor.find({"$text": {"$search": q}}).limit(limit).to_list()
     return WocResponse[List[MongoAuthor]](data=results)
-    
+
 
 @api.get("/author/{q}", response_model=WocResponse[MongoAuthor])
 async def get_author(q: str):
@@ -24,6 +25,7 @@ async def get_author(q: str):
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
 
+
 @api.get("/project/search", response_model=WocResponse[List[MongoProject]])
 async def search_project(q: str, limit: int = 10):
     """
@@ -32,17 +34,21 @@ async def search_project(q: str, limit: int = 10):
     results = await MongoProject.find({"$text": {"$search": q}}).limit(limit).to_list()
     return WocResponse[List[MongoProject]](data=results)
 
+
 @api.get("/project/{q}", response_model=WocResponse[MongoProject])
 async def get_project(q: str):
     """
     Get project information by name.
     """
-    print('getting project', q)
+    print("getting project", q)
     try:
-        return WocResponse[MongoProject](data=await MongoProject.find_one({"ProjectID": q}))
+        return WocResponse[MongoProject](
+            data=await MongoProject.find_one({"ProjectID": q})
+        )
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
-    
+
+
 @api.get("/api/search", response_model=WocResponse[List[MongoAPI]])
 async def search_api(q: str, limit: int = 10):
     """
@@ -50,6 +56,7 @@ async def search_api(q: str, limit: int = 10):
     """
     results = await MongoAPI.find({"$text": {"$search": q}}).limit(limit).to_list()
     return WocResponse[List[MongoAPI]](data=results)
+
 
 @api.get("/api/{q}", response_model=WocResponse[MongoAPI])
 async def get_api(q: str):

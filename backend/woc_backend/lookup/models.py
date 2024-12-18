@@ -4,18 +4,23 @@ from datetime import datetime
 from beanie import Document
 from enum import Enum
 
+
 class _GitObject(BaseModel):
     hash: str
-    
+
+
 class _NamedObject(BaseModel):
     name: str
-    
+
+
 class Author(_NamedObject):
     email: str
+
 
 class Blob(_GitObject):
     length: int
     content: str
+
 
 class Commit(_GitObject):
     author: Author
@@ -26,11 +31,14 @@ class Commit(_GitObject):
     parents: List[str]
     message: str
 
+
 class File(_NamedObject):
     path: str
 
+
 class Tree(_GitObject):
     entries: List[Union[str, Union[str, "Tree"]]]
+
 
 class ObjectName(str, Enum):
     blob = "blob"

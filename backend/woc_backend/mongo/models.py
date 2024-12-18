@@ -4,6 +4,7 @@ from datetime import datetime
 from beanie import Document
 from enum import Enum
 
+
 class MongoLanguage(str, Enum):
     IPython = "ipy"
     Ruby = "Ruby"
@@ -38,6 +39,7 @@ class MongoLanguage(str, Enum):
     def __str__(self):
         return self.value
 
+
 class MongoAuthor(Document, BaseModel):
     Alias: List[str] = Field(default_factory=list)
     AuthorID: str = ""
@@ -57,6 +59,7 @@ class MongoAuthor(Document, BaseModel):
     class Settings:
         name = "A_metadata.V3"
 
+
 class MongoAPI(Document, BaseModel):
     API: str = ""
     EarliestCommitDate: int = -1
@@ -68,6 +71,7 @@ class MongoAPI(Document, BaseModel):
 
     class Settings:
         name = "API_metadata.V"
+
 
 class MongoProject(Document, BaseModel):
     CommunitySize: int = -1
