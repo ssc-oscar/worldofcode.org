@@ -21,9 +21,9 @@ class ClickhouseBlobDeps(BaseModel):
     deps: List[str]
 
 class ClickhouseLanguage(str, Enum):
-    Java = "java"
+    Java = "Java"
     Ruby = "rb"
-    Csharp = "Cs"
+    CSharp = "Cs"
     Perl = "pl"
     Python = "PY"
     Go = "Go"
@@ -35,7 +35,7 @@ class ClickhouseLanguage(str, Enum):
     Rust = "Rust"
     Dart = "Dart"
     Kotlin = "Kotlin"
-    C = "C"
+    C_CPP = "C"
     R = "R"
     TypeScript = "TypeScript"
 

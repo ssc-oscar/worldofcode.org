@@ -4,15 +4,49 @@ from datetime import datetime
 from beanie import Document
 from enum import Enum
 
+class MongoLanguage(str, Enum):
+    IPython = "ipy"
+    Ruby = "Ruby"
+    TypeScript = "TypeScript"
+    SQL = "Sql"
+    Swift = "Swift"
+    Cobol = "Cobol"
+    OCaml = "OCaml"
+    Kotlin = "Kotlin"
+    Ada = "Ada"
+    Erlang = "Erlang"
+    Perl = "Perl"
+    Julia = "Julia"
+    FML = "fml"
+    Basic = "Basic"
+    Dart = "Dart"
+    C_CPP = "C/C++"
+    Lisp = "Lisp"
+    Java = "Java"
+    JavaScript = "JavaScript"
+    Other = "other"
+    Python = "Python"
+    Clojure = "Clojure"
+    Rust = "Rust"
+    PHP = "PHP"
+    R = "R"
+    Go = "Go"
+    Fortran = "Fortran"
+    Lua = "Lua"
+    Scala = "Scala"
+
+    def __str__(self):
+        return self.value
+
 class MongoAuthor(Document, BaseModel):
     Alias: List[str] = Field(default_factory=list)
     AuthorID: str = ""
     EarliestCommitDate: int = -1
-    FileInfo: Dict[str, Any] = Field(default_factory=dict)
+    FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
     Gender: Optional[str] = None
     LatestCommitDate: int = -1
-    MonNcm: Dict[str, Any] = Field(default_factory=dict)
-    MonNprj: Dict[str, Any] = Field(default_factory=dict)
+    MonNcm: Dict[str, int] = Field(default_factory=dict)
+    MonNprj: Dict[str, int] = Field(default_factory=dict)
     NumActiveMon: int = -1
     NumAlias: int = -1
     NumCommits: int = -1
@@ -26,7 +60,7 @@ class MongoAuthor(Document, BaseModel):
 class MongoAPI(Document, BaseModel):
     API: str = ""
     EarliestCommitDate: int = -1
-    FileInfo: Dict[str, Any] = Field(default_factory=dict)
+    FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
     LatestCommitDate: int = -1
     NumAuthors: int = -1
     NumCommits: int = -1
@@ -39,10 +73,10 @@ class MongoProject(Document, BaseModel):
     CommunitySize: int = -1
     Core: Dict[str, Any] = Field(default_factory=dict)
     EarliestCommitDate: int = -1
-    FileInfo: Dict[str, Any] = Field(default_factory=dict)
+    FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
     LatestCommitDate: int = -1
-    MonNauth: Dict[str, Any] = Field(default_factory=dict)
-    MonNcm: Dict[str, Any] = Field(default_factory=dict)
+    MonNauth: Dict[str, int] = Field(default_factory=dict)
+    MonNcm: Dict[str, int] = Field(default_factory=dict)
     NumActiveMon: int = -1
     NumAuthors: int = -1
     NumBlobs: int = -1
