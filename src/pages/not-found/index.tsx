@@ -1,4 +1,4 @@
-import { useRouter } from '@/routes/hooks';
+import { useRouter } from '@/hooks/use-router';
 import { Button } from '@/components/ui/button';
 
 export default function NotFound() {

@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { useRouter } from '@/routes/hooks';
+import { useRouter } from '@/hooks/use-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Suspense } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
-import { BrowserRouter } from 'react-router-dom';
+// import { BrowserRouter } from 'react-router-dom';
 import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
 
@@ -16,7 +16,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
   console.log('error', error);
   return (
     <div
-      className="flex h-screen w-screen flex-col items-center  justify-center text-red-500"
+      className="flex h-screen w-screen flex-col items-center justify-center text-red-500"
       role="alert"
     >
       <h2 className="text-2xl font-semibold">
@@ -39,16 +39,14 @@ export default function AppProvider({
   return (
     <Suspense>
       <HelmetProvider>
-        <BrowserRouter>
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <QueryClientProvider client={queryClient}>
-              <ReactQueryDevtools />
-              <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <SidebarProvider>{children}</SidebarProvider>
-              </ThemeProvider>
-            </QueryClientProvider>
-          </ErrorBoundary>
-        </BrowserRouter>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <QueryClientProvider client={queryClient}>
+            <ReactQueryDevtools />
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <SidebarProvider>{children}</SidebarProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </HelmetProvider>
     </Suspense>
   );

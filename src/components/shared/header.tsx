@@ -1,5 +1,5 @@
 import { navItems } from '@/constants/data';
-import { usePathname } from '@/routes/hooks';
+import { usePathname } from '@/hooks/use-pathname';
 import Heading from './heading';
 import UserNav from './user-nav';
 import { ModeToggle } from './theme-toggle';
