@@ -6,7 +6,7 @@ from ..models import WocResponse
 api = APIRouter()
 
 
-@api.get("/author/search", response_model=WocResponse[List[MongoAuthor]])
+@api.get("/author/search", response_model=WocResponse[List[MongoAuthor]], response_model_exclude_none=True)
 async def search_author(q: str, limit: int = 10):
     """
     Search for authors by email address.
@@ -15,7 +15,7 @@ async def search_author(q: str, limit: int = 10):
     return WocResponse[List[MongoAuthor]](data=results)
 
 
-@api.get("/author/{q}", response_model=WocResponse[MongoAuthor])
+@api.get("/author/{q}", response_model=WocResponse[MongoAuthor], response_model_exclude_none=True)
 async def get_author(q: str):
     """
     Get author information by email address.
@@ -26,7 +26,7 @@ async def get_author(q: str):
         raise HTTPException(status_code=404, detail=e.args[0])
 
 
-@api.get("/project/search", response_model=WocResponse[List[MongoProject]])
+@api.get("/project/search", response_model=WocResponse[List[MongoProject]], response_model_exclude_none=True)
 async def search_project(q: str, limit: int = 10):
     """
     Search for projects by name.
@@ -35,7 +35,7 @@ async def search_project(q: str, limit: int = 10):
     return WocResponse[List[MongoProject]](data=results)
 
 
-@api.get("/project/{q}", response_model=WocResponse[MongoProject])
+@api.get("/project/{q}", response_model=WocResponse[MongoProject], response_model_exclude_none=True)
 async def get_project(q: str):
     """
     Get project information by name.
@@ -49,7 +49,7 @@ async def get_project(q: str):
         raise HTTPException(status_code=404, detail=e.args[0])
 
 
-@api.get("/api/search", response_model=WocResponse[List[MongoAPI]])
+@api.get("/api/search", response_model=WocResponse[List[MongoAPI]], response_model_exclude_none=True)
 async def search_api(q: str, limit: int = 10):
     """
     Search for APIs by name.
@@ -58,7 +58,7 @@ async def search_api(q: str, limit: int = 10):
     return WocResponse[List[MongoAPI]](data=results)
 
 
-@api.get("/api/{q}", response_model=WocResponse[MongoAPI])
+@api.get("/api/{q}", response_model=WocResponse[MongoAPI], response_model_exclude_none=True)
 async def get_api(q: str):
     """
     Get API information by name.

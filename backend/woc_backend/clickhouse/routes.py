@@ -58,6 +58,7 @@ def _build_commits_query(**kwargs: Any) -> str:
 @api.get(
     "/commits",
     response_model=WocResponse[List[ClickhouseCommit]],
+    response_model_exclude_none=True,
     dependencies=[Depends(validate_limit)],
 )
 def get_commits(
@@ -118,7 +119,7 @@ def get_commits(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api.get("/commits/count", response_model=WocResponse[int])
+@api.get("/commits/count", response_model=WocResponse[int],response_model_exclude_none=True,)
 def count_commits(
     request: Request,
     start: int = Query(None, ge=0),
@@ -199,6 +200,7 @@ def _build_deps_query(**kwargs: Any) -> str:
 @api.get(
     "/deps",
     response_model=WocResponse[List[ClickhouseBlobDeps]],
+    response_model_exclude_none=True,
     dependencies=[Depends(validate_limit)],
 )
 def get_deps(
@@ -267,7 +269,7 @@ def get_deps(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api.get("/deps/count", response_model=WocResponse[int])
+@api.get("/deps/count", response_model=WocResponse[int], response_model_exclude_none=True,)
 def count_deps(
     request: Request,
     start: int = Query(None, ge=0),

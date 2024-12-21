@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "woc-backend"
-version = "0.2.2"
+version = "0.1.0"
 description = "Next gen backend of worldofcode.org"
 authors = ["Runzhi He <rzhe@pku.edu.cn>"]
 license = "MIT"
@@ -9,7 +9,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.8"
-python-woc = "^0.2.2"
+python-woc = "^0.2.5"
 tqdm = "^4.65.0"
 fastapi = "^0.115.6"
 uvicorn = {extras = ["standard"], version = "^0.32.1"}

@@ -18,7 +18,7 @@ from .clickhouse.routes import api as clickhouse_api
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # init woc
-    app.state.woc = WocMapsLocal(exclude_larges=True)
+    app.state.woc = WocMapsLocal(on_large='head')
     # init mongo
     app.state.mongo_client = AsyncIOMotorClient(settings.mongo.url)
     await init_beanie(

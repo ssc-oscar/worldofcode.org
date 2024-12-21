@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Union, Dict
 from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
-from woc.local import decode_str, decomp_or_raw
+from woc.local import decode_str, decomp_or_raw, decode_value
 
 from ..models import WocResponse
 from .models import ObjectName
@@ -21,6 +21,7 @@ def _show_content(woc: "WocMapsLocal", type_: ObjectName, key: str, raw: bool = 
 @api.get(
     "/object/{type_}",
     response_model=WocResponse[dict],
+    response_model_exclude_none=True,
     dependencies=[Depends(validate_q_length)],
 )
 def show_contents(
@@ -44,7 +45,8 @@ def show_contents(
 
 
 @api.get(
-    "/object/{type_}/{key}", response_model=Union[WocResponse[Union[str, list]], str]
+    "/object/{type_}/{key}", response_model=Union[WocResponse[Union[str, list]], str],
+    response_model_exclude_none=True,
 )
 def show_content(request: Request, type_: ObjectName, key: str, raw: bool = False):
     """
@@ -65,11 +67,16 @@ def show_content(request: Request, type_: ObjectName, key: str, raw: bool = Fals
     except ValueError as e:
         raise HTTPException(status_code=400, detail=e.args[0])
 
+def _get_values_with_cursor(woc: "WocMapsLocal", map_name: str, key: str, cursor: int=0):
+    _bytes, decode_dtype, next_cursor = woc._get_tch_bytes(map_name, key, cursor)
+    _decoded = decode_value(_bytes, decode_dtype)
+    return _decoded, next_cursor
 
 @api.get(
     "/map/{map_}",
     dependencies=[Depends(validate_q_length)],
     response_model=WocResponse[Dict[str, list]],
+    response_model_exclude_none=True,
 )
 def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     """
@@ -87,14 +94,17 @@ def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     errors = {}
     for key in q:
         try:
-            ret[key] = woc.get_values(str(map_), key)
+            ret[key], next_cursor = _get_values_with_cursor(woc, str(map_), key)
+            if next_cursor is not None:
+                errors[key] = f"Warning: {key} is a large object,"
+                f"use /map/{map_}/{key}?cursor={next_cursor} to get the rest of the content."
         except (KeyError, ValueError) as e:
             errors[key] = e.args[0]
     return WocResponse[Dict[str, list]](data=ret, errors=errors if errors else None)
 
 
-@api.get("/map/{map_}/{key}", response_model=WocResponse[list])
-def get_value(request: Request, map_: str, key: str):
+@api.get("/map/{map_}/{key}", response_model=WocResponse[list], response_model_exclude_none=True,)
+def get_value(request: Request, map_: str, key: str, cursor: int = 0):
     """
     Get the value of a key from a map.
 
@@ -103,12 +113,11 @@ def get_value(request: Request, map_: str, key: str):
     a2c P2c P2p c2P p2P A2c A2P P2A a2p A2b A2fb P2b P2fb c2b p2c
     Check https://github.com/woc-hack/tutorial for the complete list.
 
-    :param key: Object key to show.
+    :param cursor: Cursor of the large object.
     """
     woc: WocMapsLocal = request.app.state.woc
     try:
-        return WocResponse[list](data=woc.get_values(str(map_), key))
-    except KeyError as e:
+        ret, next_cursor = _get_values_with_cursor(woc, str(map_), key, cursor)
+        return WocResponse[list](data=ret, nextCursor=next_cursor)
+    except (KeyError, ValueError) as e:
         raise HTTPException(status_code=404, detail=e.args[0])
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=e.args[0])
