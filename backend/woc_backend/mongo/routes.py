@@ -1,17 +1,29 @@
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List, Optional, Union, Dict, Any
 from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
+
+from woc_backend.common import validate_limit
 from .models import MongoAPI, MongoAuthor, MongoProject
 from ..models import WocResponse
 
 api = APIRouter()
 
 
-@api.get("/author/search", response_model=WocResponse[List[MongoAuthor]], response_model_exclude_none=True)
+@api.get("/author/search", response_model=WocResponse[List[MongoAuthor]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
 async def search_author(q: str, limit: int = 10):
     """
     Search for authors by email address.
     """
     results = await MongoAuthor.find({"$text": {"$search": q}}).limit(limit).to_list()
+    return WocResponse[List[MongoAuthor]](data=results)
+
+@api.get("/author/sample", response_model=WocResponse[List[MongoAuthor]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
+async def sample_author(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+    """
+    Get a random sample of authors.
+    """
+    if filter is None:
+        filter = {}
+    results = await MongoAuthor.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
     return WocResponse[List[MongoAuthor]](data=results)
 
 
@@ -26,7 +38,7 @@ async def get_author(q: str):
         raise HTTPException(status_code=404, detail=e.args[0])
 
 
-@api.get("/project/search", response_model=WocResponse[List[MongoProject]], response_model_exclude_none=True)
+@api.get("/project/search", response_model=WocResponse[List[MongoProject]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
 async def search_project(q: str, limit: int = 10):
     """
     Search for projects by name.
@@ -34,6 +46,16 @@ async def search_project(q: str, limit: int = 10):
     results = await MongoProject.find({"$text": {"$search": q}}).limit(limit).to_list()
     return WocResponse[List[MongoProject]](data=results)
 
+@api.get("/project/sample", response_model=WocResponse[List[MongoProject]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
+async def sample_project(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+    """
+    Get a sample of projects.
+
+    :param limit: Maximum number of projects to return.
+    :param filter: Optional MongoDB filter. e.g. {"NumCommits" : {"$gt": 100}}
+    """
+    results = await MongoProject.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
+    return WocResponse[List[MongoProject]](data=results)
 
 @api.get("/project/{q}", response_model=WocResponse[MongoProject], response_model_exclude_none=True)
 async def get_project(q: str):
@@ -49,12 +71,24 @@ async def get_project(q: str):
         raise HTTPException(status_code=404, detail=e.args[0])
 
 
-@api.get("/api/search", response_model=WocResponse[List[MongoAPI]], response_model_exclude_none=True)
+@api.get("/api/search", response_model=WocResponse[List[MongoAPI]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
 async def search_api(q: str, limit: int = 10):
     """
     Search for APIs by name.
     """
     results = await MongoAPI.find({"$text": {"$search": q}}).limit(limit).to_list()
+    return WocResponse[List[MongoAPI]](data=results)
+
+
+@api.get("/api/sample", response_model=WocResponse[List[MongoAPI]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
+async def sample_api(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+    """
+    Get a sample of APIs.
+
+    :param limit: Maximum number of APIs to return.
+    :param filter: Optional MongoDB filter. e.g. {"NumCommits" : {"$gt": 100}}
+    """
+    results = await MongoAPI.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
     return WocResponse[List[MongoAPI]](data=results)
 
 

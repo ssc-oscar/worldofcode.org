@@ -11,12 +11,21 @@ if TYPE_CHECKING:
 
 api = APIRouter()
 
+def _traverse_tree(woc: "WocMapsLocal", key: str):
+    _ret = []
+    for mode, fname, sha in woc.show_content('tree', key):
+        if mode != "40000":
+            _ret.append(mode, fname, sha)
+        else:
+            _ret.append((mode, fname, _traverse_tree(woc, sha)))
+    return _ret
 
-def _show_content(woc: "WocMapsLocal", type_: ObjectName, key: str, raw: bool = False):
+def _show_content(woc: "WocMapsLocal", type_: ObjectName, key: str, raw: bool = False, traverse: bool = False):
     if type_ != ObjectName.blob and raw:
         return decode_str(decomp_or_raw(woc._get_tch_bytes(type_, key)[0]))
+    if type == ObjectName.tree and traverse:
+        return _traverse_tree(woc, key)
     return woc.show_content(str(type_), key)
-
 
 @api.get(
     "/object/{type_}",
@@ -48,12 +57,13 @@ def show_contents(
     "/object/{type_}/{key}", response_model=Union[WocResponse[Union[str, list]], str],
     response_model_exclude_none=True,
 )
-def show_content(request: Request, type_: ObjectName, key: str, raw: bool = False):
+def show_content(request: Request, type_: ObjectName, key: str, raw: bool = False, traverse: bool = False):
     """
     Show the content of a single object of a commit, tree, or blob.
 
     :param key: Object key to show.
     :param raw: If True, return the raw object; otherwise, return the parsed content in tuples.
+    :param traverse: If True, traverse the tree object. won't work for raw trees.
     """
     woc: WocMapsLocal = request.app.state.woc
     try:
@@ -61,7 +71,7 @@ def show_content(request: Request, type_: ObjectName, key: str, raw: bool = Fals
             return Response(
                 content=_show_content(woc, type_, key, raw=True), media_type="text/plain"
             )
-        return WocResponse[Union[str, list]](data=woc.show_content(str(type_), key))
+        return WocResponse[Union[str, list]](data=_show_content(woc, type_, key, raw=False, traverse=traverse))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
     except ValueError as e:
