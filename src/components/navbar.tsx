@@ -1,10 +1,10 @@
-import Logo from '@/components/shared/logo';
+import Logo from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { usePathname } from '@/hooks/use-pathname';
 import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import type { Dispatch, SetStateAction } from 'react';
-import { Icons } from '../ui/icons';
+import { Icons } from './ui/icons';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 
 interface NavProps {

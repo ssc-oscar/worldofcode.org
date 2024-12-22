@@ -1,9 +1,9 @@
-import PageHead from '@/components/shared/page-head';
+import PageHead from '@/components/page-head';
 import { useGetStudents } from './queries/queries';
 import StudentsTable from './components/students-table';
 import { useSearchParams } from 'react-router-dom';
-import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
-import { Breadcrumbs } from '@/components/shared/breadcrumbs';
+import { DataTableSkeleton } from '@/components/data-table-skeleton';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 
 export default function StudentPage() {
   const [searchParams] = useSearchParams();

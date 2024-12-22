@@ -1,4 +1,4 @@
-import DataTable from '@/components/shared/data-table';
+import DataTable from '@/components/data-table';
 import { columns } from './columns';
 import StudentTableActions from './student-table-action';
 

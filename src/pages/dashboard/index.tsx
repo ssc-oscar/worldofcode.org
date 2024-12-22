@@ -1,4 +1,4 @@
-import PageHead from '@/components/shared/page-head.jsx';
+import PageHead from '@/components/page-head.js';
 import {
   Card,
   CardContent,

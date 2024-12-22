@@ -1,4 +1,4 @@
-import Heading from '@/components/shared/heading';
+import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -73,7 +73,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your firstname"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -89,7 +89,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your lastname"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -105,7 +105,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your username"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -121,7 +121,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your school"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -137,7 +137,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your email"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -153,7 +153,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your phone"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -171,7 +171,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your password"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -187,7 +187,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
                     <Input
                       placeholder="Enter your confirmPassword"
                       {...field}
-                      className=" px-4 py-6 shadow-inner drop-shadow-xl"
+                      className="px-4 py-6 shadow-inner drop-shadow-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -200,7 +200,7 @@ const StudentCreateForm = ({ modalClose }: { modalClose: () => void }) => {
             <Button
               type="button"
               variant="secondary"
-              className="rounded-full "
+              className="rounded-full"
               size="lg"
               onClick={modalClose}
             >

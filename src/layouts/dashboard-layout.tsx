@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import Sidebar from '../shared/sidebar';
-import Header from '../shared/header';
-import MobileSidebar from '../shared/mobile-sidebar';
+import Sidebar from '@/components/sidebar';
+import Header from '@/components/header';
+import MobileSidebar from '@/components/mobile-sidebar';
 import { MenuIcon } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -29,7 +29,7 @@ export default function DashboardLayout({
           </button>
           <Header />
         </div>
-        <main className="relative mx-2 my-3 mr-2 flex-1 overflow-hidden rounded-xl  bg-background focus:outline-none md:mx-0 md:my-4 md:mr-4 ">
+        <main className="relative mx-2 my-3 mr-2 flex-1 overflow-hidden rounded-xl bg-background focus:outline-none md:mx-0 md:my-4 md:mr-4">
           {children}
         </main>
       </div>

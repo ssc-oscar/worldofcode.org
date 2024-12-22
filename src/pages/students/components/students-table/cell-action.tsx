@@ -1,4 +1,4 @@
-import { AlertModal } from '@/components/shared/alert-modal';
+import { AlertModal } from '@/components/alert-modal';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

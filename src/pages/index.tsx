@@ -1,12 +1,10 @@
-import DashboardLayout from '@/components/layout/dashboard-layout';
-import NavbarLayout from '@/components/layout/navbar-layout';
-import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import NavbarLayout from '@/layouts/navbar-layout';
+import WaveBackground from '@/components/bg-animation';
 
 export default function HomePage() {
   return (
     <NavbarLayout>
-      <></>
+      <WaveBackground />
     </NavbarLayout>
   );
 }
