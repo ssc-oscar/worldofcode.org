@@ -5,7 +5,7 @@ import {
   DotsHorizontalIcon
 } from '@radix-ui/react-icons';
 
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils';
 import { ButtonProps, buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
