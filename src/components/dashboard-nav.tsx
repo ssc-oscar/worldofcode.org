@@ -1,5 +1,5 @@
 'use client';
-import { Icons } from '@/components/ui/icons';
+import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import { Dispatch, SetStateAction } from 'react';

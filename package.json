@@ -76,6 +76,7 @@
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.4",
     "vaul": "^1.1.2",
+    "vocs": "1.0.0-alpha.62",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -97,6 +98,10 @@
     "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
+    "unocss": "^0.65.2",
+    "unocss-preset-animations": "^1.1.0",
+    "unocss-preset-shadcn": "^0.3.1",
+    "utils": "link:@unocss/preset-mini/utils",
     "vite": "^6.0.5"
   }
 }

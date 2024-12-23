@@ -1,0 +1,22 @@
+.gradient-text {
+  font-size: 4rem; /* Adjust the size as needed */
+  font-weight: bold;
+  background: linear-gradient(90deg, #cbd5e1, #64748b, #334155);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-animation 13s infinite;
+}
+
+/* Gradient animation */
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

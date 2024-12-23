@@ -5,13 +5,14 @@ import { components, hooks, utils } from '@generouted/react-router/client';
 
 export type Path =
   | `/`
+  | `/auth/email`
+  | `/auth/github`
+  | `/auth/microsoft`
   | `/auth/signin`
-  | `/auth/signin/components/user-auth-form`
   | `/dashboard`
   | `/dashboard/components/overview`
   | `/dashboard/components/recent-sales`
   | `/form`
-  | `/not-found`
   | `/students`
   | `/students/StudentDetailPage`
   | `/students/components/bio`

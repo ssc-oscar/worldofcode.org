@@ -4,8 +4,8 @@ import { usePathname } from '@/hooks/use-pathname';
 import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import type { Dispatch, SetStateAction } from 'react';
-import { Icons } from './ui/icons';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { Icons } from './icons';
+import { GitHubLogoIcon, TwitterLogoIcon } from '@radix-ui/react-icons';
 
 interface NavProps {
   items: NavItem[];
@@ -43,20 +43,27 @@ export default function NavBar({ items, isMobileNav = false }: NavProps) {
                       : 'text-black dark:text-white'
                   )}
                 >
-                  {/* <Icon className={`ml-2.5 size-5`} /> */}
                   {isMobileNav ? '' : item.title}
                 </a>
               );
             })}
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <a
               className="inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-              href="https://github.com"
+              href="https://x.com/worldofcode_ssc"
+              target="_blank"
+            >
+              <TwitterLogoIcon className="size-4" />
+            </a>
+            <a
+              className="inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+              href="https://github.com/woc-hack/tutorial"
+              target="_blank"
             >
               <GitHubLogoIcon className="size-4" />
             </a>
-            <a href="/auth/signin">
+            <a href="/auth/signin" className="ml-2">
               <Button size="sm" className="h-8">
                 Login
               </Button>

@@ -1,11 +1,21 @@
 /* Base styles for the waves */
 .waves {
   position: absolute;
-  bottom: 0px;
+  bottom: 1em;
   width: 100%;
   margin-bottom: -7px; /* Fix for safari gap */
   min-height: 100px;
   max-height: 150px;
+  z-index: 0;
+}
+
+.copyright {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  z-index: 0;
+  background-color: #0f172a;
+  color: #64748b;
 }
 
 /* Animation for the waves */

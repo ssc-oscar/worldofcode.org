@@ -1,0 +1,175 @@
+import Logo from '@/components/logo';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useRouter } from '@/hooks/use-router';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Icons } from '@/components/icons';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Enter a valid email address' })
+});
+
+type UserFormValue = z.infer<typeof formSchema>;
+
+export function UserAuthForm() {
+  const router = useRouter();
+  const [loading] = useState(false);
+  const defaultValues = {
+    email: 'demo@gmail.com'
+  };
+  const form = useForm<UserFormValue>({
+    resolver: zodResolver(formSchema),
+    defaultValues
+  });
+
+  const onSubmit = async (data: UserFormValue) => {
+    console.log('data', data);
+    router.push('/');
+  };
+
+  const { toast } = useToast();
+
+  return (
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full space-y-2"
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email..."
+                    disabled={loading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button disabled={loading} className="ml-auto w-full" type="submit">
+            Continue With Email
+          </Button>
+        </form>
+      </Form>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
+        </div>
+      </div>
+      <div className="flex-col space-y-4">
+        <Button
+          disabled={loading}
+          className="ml-auto w-full bg-slate-700"
+          type="submit"
+          onClick={() => router.push('/auth/github')}
+        >
+          <span className="flex items-center justify-center gap-2 text-center">
+            <Icons.gitHub className="h-[1.45em]" />
+            GitHub
+          </span>
+        </Button>
+        <Button
+          disabled={loading}
+          className="ml-auto w-full bg-slate-500"
+          type="submit"
+          onClick={() => toast({ description: 'Coming soon' })}
+        >
+          <span className="flex items-center justify-center gap-2 text-center">
+            <Icons.microsoft className="h-4" />
+            Microsoft
+          </span>
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-primary dark:bg-secondary" />
+        <div className="relative z-20 flex items-center text-lg font-medium">
+          <Link to="/">
+            <Logo className="h-8 invert-[.9] hover:invert" />
+          </Link>
+        </div>
+        <div className="relative z-20 mt-auto">
+          <blockquote className="text-md space-y-2">
+            <p className="text-slate-300">
+              Complete, Curated, Cross-referenced, and Current Collection of
+              Open Source Version Control Data.
+            </p>
+            <p className="text-slate-200">
+              Get stratified samples from OSS, cross-project code flow,
+              developer/code networks, do OSS census, get deforked repositories,
+              aliased author IDs.
+            </p>
+            <p className="text-slate-100">
+              Make study of global OSS properties not only possible, but fun.
+            </p>
+            {/* <footer className="text-sm">Sofia Davis</footer> */}
+          </blockquote>
+        </div>
+      </div>
+      <div className="flex h-full items-center p-4 lg:p-8">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Sign in or Sign up
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              We'll create one if you don't have an account.
+            </p>
+          </div>
+          <UserAuthForm />
+          <p className="px-8 text-center text-sm text-muted-foreground">
+            By clicking continue, you agree to our{' '}
+            <Link
+              to="/terms"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link
+              to="/privacy"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

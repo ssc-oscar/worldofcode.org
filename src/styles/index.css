@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -71,6 +71,7 @@
 
 @layer base {
   html {
-    font-family: sans-serif;
+    font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+      'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   }
 }
