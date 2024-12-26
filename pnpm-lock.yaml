@@ -206,6 +206,12 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.18.1
         version: 8.18.1(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.2)
+      '@unocss/preset-web-fonts':
+        specifier: ^0.65.3
+        version: 0.65.3
+      '@unocss/reset':
+        specifier: ^0.65.3
+        version: 0.65.3
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.0.5(@types/node@22.10.2)(jiti@2.4.2)(tsx@4.19.2)(yaml@2.6.1))
@@ -242,6 +248,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.17
+      type-fest:
+        specifier: ^4.31.0
+        version: 4.31.0
       typescript:
         specifier: ^5.7.2
         version: 5.7.2
@@ -3041,6 +3050,12 @@ packages:
         integrity: sha512-37zj1w/6TENsUMzRRmlH5LqUcLGTTjGHrUeZ5KZyeDk+osB/rHSCw0VqqqvL6a7cOHgaW88JgfgKDt5ijRZyFA==
       }
 
+  '@unocss/core@0.65.3':
+    resolution:
+      {
+        integrity: sha512-xYkJ63lIadL6KqvGcaE2fFeLvo6rC1F+e+R9EFn0Aj0ArMRhiltZk8vvLFHP7iYjjdTdqDkAr/7IdrTosTo8Pg==
+      }
+
   '@unocss/extractor-arbitrary-variants@0.65.2':
     resolution:
       {
@@ -3104,6 +3119,12 @@ packages:
         integrity: sha512-Pl0sKjhrb6FuDID3PMwGflZXwSVW1G1vZEwCd0yEwYH92421VEfK5D073cUtZ1l6irqIA3aux9uMWA9iKtQj7A==
       }
 
+  '@unocss/preset-web-fonts@0.65.3':
+    resolution:
+      {
+        integrity: sha512-hDuDbZawPc7ebtNoYI5zKpqURjAH5lLKqVRwdQXQiJ2T8IfT246HkL6+pcpdjAkHy3oJDUxGwrD/tYFcu9fcdA==
+      }
+
   '@unocss/preset-wind@0.65.2':
     resolution:
       {
@@ -3114,6 +3135,12 @@ packages:
     resolution:
       {
         integrity: sha512-9UmwqYjfdxyi6j1pMfuulipLCsdH2RlF+IOG53unYxulP4C8bvwMnj8Wk+AjMiG5mIOClYyVTGk3NMRPM73/eg==
+      }
+
+  '@unocss/reset@0.65.3':
+    resolution:
+      {
+        integrity: sha512-elwdQJ6tF4IpVUv7euK8MOKXTcQMeImsimaCViqe0yL0onPChgK16qs5xgVbBGrj9B57bmWgoUp0af/J03oNYA==
       }
 
   '@unocss/rule-utils@0.65.2':
@@ -7047,6 +7074,13 @@ packages:
       }
     engines: { node: '>= 0.8.0' }
 
+  type-fest@4.31.0:
+    resolution:
+      {
+        integrity: sha512-yCxltHW07Nkhv/1F6wWBr8kz+5BGMfP+RbRSYFnegVb0qV/UMT0G0ElBloPVerqn4M2ZV80Ir1FtCcYv1cT6vQ==
+      }
+    engines: { node: '>=16' }
+
   typescript@5.7.2:
     resolution:
       {
@@ -9178,6 +9212,8 @@ snapshots:
 
   '@unocss/core@0.65.2': {}
 
+  '@unocss/core@0.65.3': {}
+
   '@unocss/extractor-arbitrary-variants@0.65.2':
     dependencies:
       '@unocss/core': 0.65.2
@@ -9242,6 +9278,11 @@ snapshots:
       '@unocss/core': 0.65.2
       ofetch: 1.4.1
 
+  '@unocss/preset-web-fonts@0.65.3':
+    dependencies:
+      '@unocss/core': 0.65.3
+      ofetch: 1.4.1
+
   '@unocss/preset-wind@0.65.2':
     dependencies:
       '@unocss/core': 0.65.2
@@ -9249,6 +9290,8 @@ snapshots:
       '@unocss/rule-utils': 0.65.2
 
   '@unocss/reset@0.65.2': {}
+
+  '@unocss/reset@0.65.3': {}
 
   '@unocss/rule-utils@0.65.2':
     dependencies:
@@ -11997,6 +12040,8 @@ snapshots:
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
+
+  type-fest@4.31.0: {}
 
   typescript@5.7.2: {}
 

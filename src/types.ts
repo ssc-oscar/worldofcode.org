@@ -1,13 +1,27 @@
-import { Icons } from '@/components/icons';
+import type { ViteSSGContext } from 'vite-ssg';
+
+export type UserModule = (ctx: ViteSSGContext) => void;
 
 export interface NavItem {
   title: string;
   href: string;
   disabled?: boolean;
   external?: boolean;
-  icon?: keyof typeof Icons;
+  icon?: string;
   label?: string;
   description?: string;
+}
+
+export type EmojiOrIconString = string | `i-${string}`;
+
+export interface HomePageItem {
+  title?: string;
+  description: string;
+  linkHref?: string;
+  linkText?: string;
+  linkColor?: string;
+  icon: EmojiOrIconString;
+  iconColor?: string;
 }
 
 export interface NavItemWithChildren extends NavItem {

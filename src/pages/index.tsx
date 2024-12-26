@@ -16,12 +16,13 @@ import { useToast } from '@/hooks/use-toast';
 import { CITATION } from '@/config';
 import '@/styles/gradient-text.css';
 import '@/styles/grid-container.css';
+import '@/styles/homepage.css';
 import GithubLogin from './auth/github';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 
 function TypologyCard({ icon: Icon, content, iconClassName = 'bg-cyan-50' }) {
   return (
-    <div className="h-fit max-w-80 rounded-xl bg-muted/50 text-card-foreground">
+    <div className="homepage-card bg-muted/50 text-card-foreground z-10 h-fit max-w-80 rounded-xl">
       <div className="flex flex-col gap-4 space-y-1.5 p-6">
         <div
           className={cn(
@@ -34,33 +35,6 @@ function TypologyCard({ icon: Icon, content, iconClassName = 'bg-cyan-50' }) {
         <blockquote className="text-md space-y-2">
           <p>{content}</p>
         </blockquote>
-      </div>
-    </div>
-  );
-}
-
-function TypologyCardWithAction({
-  icon: Icon,
-  content,
-  iconClassName = 'bg-cyan-50'
-}) {
-  return (
-    <div className="h-fit max-w-80 rounded-xl bg-muted/50 text-card-foreground">
-      <div className="flex flex-col gap-4 space-y-1.5 p-6">
-        <div
-          className={cn(
-            'flex size-9 items-center justify-center rounded-lg border-[2px] border-slate-200',
-            iconClassName
-          )}
-        >
-          <Icon className="size-6" />
-        </div>
-        <blockquote className="text-md space-y-2">
-          <p>{content}</p>
-        </blockquote>
-        <Button size="lg" className="bg-slate-800">
-          Sign up
-        </Button>
       </div>
     </div>
   );
@@ -70,7 +44,7 @@ export default function HomePage() {
   const { toast } = useToast();
   return (
     <WaveLayout>
-      <div className="flex h-full flex-col items-center justify-center p-20">
+      <div className="flex h-full flex-col items-center justify-center px-8 py-20">
         <div className="flex flex-col items-center justify-center gap-8">
           <h1 className="gradient-text scroll-m-20 font-extrabold tracking-tight lg:text-6xl">
             World of Code
@@ -107,7 +81,7 @@ export default function HomePage() {
               Cite the Paper
             </Button>
           </div>
-          <div className="relative flex h-full flex-wrap items-center justify-center gap-10 p-10 text-white dark:border-r lg:flex">
+          <div className="relative flex h-full flex-wrap items-center justify-center gap-10 p-10 text-white lg:flex dark:border-r">
             <TypologyCard
               icon={GitBranch}
               iconClassName="bg-cyan-50"
@@ -124,7 +98,7 @@ export default function HomePage() {
               content="Make study of global OSS properties not only possible, but approachable and fun."
             />
 
-            <div className="h-fit max-w-80 rounded-xl bg-muted/50 text-card-foreground">
+            <div className="homepage-card bg-muted/50 text-card-foreground h-fit max-w-80 rounded-xl">
               <div className="flex flex-col gap-4 space-y-1.5 p-6">
                 <div
                   className={cn(
@@ -150,7 +124,7 @@ export default function HomePage() {
                 </a>
               </div>
             </div>
-            <div className="h-fit max-w-80 rounded-xl bg-muted/50 text-card-foreground">
+            <div className="homepage-card bg-muted/50 text-card-foreground h-fit max-w-80 rounded-xl">
               <div className="flex flex-col gap-4 space-y-1.5 p-6">
                 <div
                   className={cn(
@@ -170,7 +144,7 @@ export default function HomePage() {
                 </a>
               </div>
             </div>
-            <div className="h-fit max-w-80 rounded-xl bg-muted/50 text-card-foreground">
+            <div className="homepage-card bg-muted/50 text-card-foreground h-fit max-w-80 rounded-xl">
               <div className="flex flex-col gap-4 space-y-1.5 p-6">
                 <div
                   className={cn(
