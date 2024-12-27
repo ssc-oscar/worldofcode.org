@@ -1,12 +1,14 @@
 import { useRouter } from '@/hooks/use-router';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NotFound() {
   const router = useRouter();
 
   return (
     <div className="absolute left-1/2 top-1/2 mb-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center">
-      <span className="bg-gradient-to-b from-foreground to-transparent bg-clip-text text-[10rem] font-extrabold leading-none text-transparent">
+      <span className="from-foreground bg-gradient-to-b to-transparent bg-clip-text text-[10rem] font-extrabold leading-none text-transparent">
         404
       </span>
       <h2 className="font-heading my-2 text-2xl font-bold">

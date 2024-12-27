@@ -21,7 +21,7 @@ export default function NavBar({ items, isMobileNav = false }: NavProps) {
   }
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 bg-white shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-gray-950/90">
+    <nav className="supports-[backdrop-filter]:bg-background/60 fixed inset-x-0 top-0 z-50 bg-white shadow-sm backdrop-blur dark:bg-gray-950/90">
       <div className="mx-auto w-full max-w-7xl px-4">
         <div className="flex h-14 items-center justify-between">
           <a href="/" className="flex items-center">
@@ -30,16 +30,17 @@ export default function NavBar({ items, isMobileNav = false }: NavProps) {
           </a>
           <nav className="hidden gap-4 md:flex">
             {items.map((item, index) => {
-              const isActive = item.href === path;
+              const stripEndSlash = (str: string) => str.replace(/\/$/, '');
+              const isActive = stripEndSlash(path) === stripEndSlash(item.href);
               // const Icon = Icons[item.icon || 'arrowRight'];
               return (
                 <a
                   key={index}
                   href={item.href}
                   className={cn(
-                    'inline-flex h-8 items-center justify-center gap-1 whitespace-nowrap rounded-md p-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground hover:ease-in-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+                    'hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 items-center justify-center gap-1 whitespace-nowrap rounded-md p-2 text-sm font-medium transition-colors hover:ease-in-out focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
                     isActive
-                      ? 'cursor-default text-muted-foreground'
+                      ? 'text-muted-foreground cursor-default'
                       : 'text-black dark:text-white'
                   )}
                 >
@@ -50,14 +51,14 @@ export default function NavBar({ items, isMobileNav = false }: NavProps) {
           </nav>
           <div className="flex items-center gap-2">
             <a
-              className="inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+              className="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
               href="https://x.com/worldofcode_ssc"
               target="_blank"
             >
               <TwitterLogoIcon className="size-4" />
             </a>
             <a
-              className="inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+              className="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
               href="https://github.com/woc-hack/tutorial"
               target="_blank"
             >

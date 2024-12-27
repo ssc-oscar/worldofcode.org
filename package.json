@@ -80,6 +80,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@iconify-json/fluent-color": "^1.2.3",
+    "@iconify-json/fluent-emoji-flat": "^1.2.2",
+    "@mdx-js/rollup": "^3.1.0",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
@@ -105,6 +108,8 @@
     "unocss-preset-animations": "^1.1.0",
     "unocss-preset-shadcn": "^0.3.1",
     "utils": "link:@unocss/preset-mini/utils",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vite-plugin-markdown": "^2.2.0",
+    "vite-plugin-vitepress-auto-sidebar": "^1.7.1"
   }
 }

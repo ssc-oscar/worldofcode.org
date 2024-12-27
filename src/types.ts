@@ -1,7 +1,4 @@
-import type { ViteSSGContext } from 'vite-ssg';
-
-export type UserModule = (ctx: ViteSSGContext) => void;
-
+/** Items shown in the NavBar */
 export interface NavItem {
   title: string;
   href: string;
@@ -14,14 +11,16 @@ export interface NavItem {
 
 export type EmojiOrIconString = string | `i-${string}`;
 
+/** Items on the homepage.
+ *  Icon can be a emoji character or a unocss icon className (https://unocss.dev/presets/icons) */
 export interface HomePageItem {
   title?: string;
   description: string;
   linkHref?: string;
   linkText?: string;
-  linkColor?: string;
+  linkClassName?: string;
   icon: EmojiOrIconString;
-  iconColor?: string;
+  iconClassName?: string;
 }
 
 export interface NavItemWithChildren extends NavItem {

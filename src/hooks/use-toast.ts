@@ -1,3 +1,6 @@
+'use client';
+
+// Inspired by react-hot-toast library
 import * as React from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
@@ -138,8 +141,6 @@ type Toast = Omit<ToasterToast, 'id'>;
 
 function toast({ ...props }: Toast) {
   const id = genId();
-
-  console.log('toast', props);
 
   const update = (props: ToasterToast) =>
     dispatch({

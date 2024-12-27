@@ -11,12 +11,13 @@ export default function NavbarLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-secondary">
+    <div className="bg-secondary flex h-screen">
       <NavBar items={navItems} />
-      <div className="mt-14 flex w-0 flex-1 flex-col overflow-hidden">
-        <main className="relative flex-1 overflow-hidden bg-background focus:outline-none">
+      <div className="mt-14 flex w-0 flex-1 flex-col">
+        <main className="bg-background relative flex-1 focus:outline-none">
           {children}
         </main>
+        <Toaster />
       </div>
     </div>
   );

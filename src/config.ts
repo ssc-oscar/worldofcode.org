@@ -68,13 +68,14 @@ export const homePageItems: HomePageItem[] = [
   {
     description:
       'Make study of global OSS properties not only possible, but approachable and fun.',
-    icon: ' i-fluent-emoji-flat:cat-with-wry-smile'
+    icon: 'i-fluent-emoji-flat:cat-with-wry-smile'
   },
   {
-    description: `Next World of Code Hackathon: \n Nov 17-19, Knoxville, TN`,
+    description: 'Next World of Code Hackathon: \n Nov 17-19, Knoxville, TN',
     icon: 'i-fluent-emoji-flat:calendar',
     linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2023',
-    linkText: 'Register Now'
+    linkText: 'Register Now',
+    linkClassName: 'bg-red-500 animate-pulse'
   },
   {
     description: 'General World of Code Infrastructure Overview',
@@ -87,5 +88,17 @@ export const homePageItems: HomePageItem[] = [
     icon: 'i-fluent-color:video-32',
     linkHref: 'https://youtu.be/c0uFPwT5SZI',
     linkText: 'Watch on YouTube'
+  },
+  {
+    description: `Fun facts about some crazy competitions among git repositories`,
+    icon: '😂',
+    linkHref: 'https://osslab-pku.org',
+    linkText: 'Learn More'
+  },
+  {
+    description: `Peking University OSS Lab`,
+    icon: 'pku_logo.webp',
+    linkHref: 'https://osslab-pku.org',
+    linkText: 'Learn More'
   }
 ];

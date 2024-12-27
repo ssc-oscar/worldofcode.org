@@ -1,6 +1,6 @@
 /* Base styles for the waves */
 .waves {
-  position: absolute;
+  position: sticky;
   bottom: 1em;
   width: 100%;
   margin-bottom: -7px; /* Fix for safari gap */
@@ -10,7 +10,7 @@
 }
 
 .copyright {
-  position: absolute;
+  position: sticky;
   bottom: 0px;
   width: 100%;
   z-index: 0;

@@ -4,15 +4,18 @@
 import { components, hooks, utils } from '@generouted/react-router/client';
 
 export type Path =
-  | `/`
+  | `///`
   | `/auth/email`
   | `/auth/github`
   | `/auth/microsoft`
   | `/auth/signin`
+  | `/blog`
+  | `/blog/2`
   | `/dashboard`
   | `/dashboard/components/overview`
   | `/dashboard/components/recent-sales`
   | `/form`
+  | `/lookup`
   | `/students`
   | `/students/StudentDetailPage`
   | `/students/components/bio`

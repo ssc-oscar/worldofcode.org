@@ -22,7 +22,7 @@ export default defineConfig({
       darkSelector: '[data-kb-theme="dark"]'
     }),
     presetIcons({
-      scale: 1.2
+      warn: true
     }),
     presetWebFonts({
       fonts: {
@@ -31,11 +31,13 @@ export default defineConfig({
         mono: 'DM Mono'
       },
       processors: createLocalFontProcessor()
-    }),
-    presetAttributify(),
-    presetTypography()
+    })
   ],
-  transformers: [transformerDirectives(), transformerVariantGroup()],
+  transformers: [
+    // allows class='hover:(text-xl text-underline)'
+    transformerDirectives(),
+    transformerVariantGroup()
+  ],
   content: {
     pipeline: {
       include: [
