@@ -5,4 +5,4 @@ settings = Dynaconf(
     settings_files=["settings.toml", ".secrets.toml"],
 )
 
-print(dict(settings))
+# print(dict(settings))

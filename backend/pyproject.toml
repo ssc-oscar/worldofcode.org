@@ -1,106 +1,23 @@
-[tool.poetry]
+[project]
 name = "woc-backend"
 version = "0.1.0"
 description = "Next gen backend of worldofcode.org"
-authors = ["Runzhi He <rzhe@pku.edu.cn>"]
-license = "MIT"
 readme = "README.md"
-package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.8"
-python-woc = "^0.2.5"
-tqdm = "^4.65.0"
-fastapi = "^0.115.6"
-uvicorn = {extras = ["standard"], version = "^0.32.1"}
-flask = "^3.0.3"
-httpx = {extras = ["http2"], version = "^0.28.1"}
-fastapi-pagination = "^0.12.32"
-loguru = "^0.7.3"
-websockets = ">=11.0"
-dynaconf = "^3.2.6"
-beanie = ">=1.26.0,<1.27.0"
-clickhouse-driver = "^0.2.9"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.2"
-ruff = "^0.4.4"  # <- ruff is powerful enough to be the only linter
-pre-commit = "^3.5"
-mypy = "^1.13.0"
-
-[build-system]
-requires = ["poetry-core", "setuptools>=42"]
-build-backend = "poetry.core.masonry.api"
-
-### Test and coverage ###
-
-[tool.pytest.ini_options]
-addopts = "-ra -q"
-testpaths = [
-    "tests",
+requires-python = ">=3.8"
+dependencies = [
+    "beanie>=1.29.0",
+    "clickhouse-driver>=0.2.9",
+    "dynaconf>=3.2.7",
+    "fastapi>=0.115.8",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "python-woc>=0.2.5",
+    "uvicorn[standard]>=0.33.0",
 ]
 
-[tool.coverage.report]
-show_missing = true
-omit = [ "tests/*" ]
-
-[tool.coverage.run]
-plugins = [ "Cython.Coverage" ]
-
-[tool.ruff]
-target-version = "py38"
-line-length = 90
-extend-exclude = [
-    "__pycache__",
-    "build",
-    "dist",
-]
-
-[tool.ruff.lint]
-# rules ref: https://docs.astral.sh/ruff
-extend-select = [
-    "C4",
-    "D201",
-    "D204",
-    "D205",
-    "D206",
-    "D210",
-    "D211",
-    "D213",
-    "D300",
-    "D419",
-    "E",
-    "F",
-    "G010",
-    "I001",
-    "INP001",
-    "N805",
-    "PERF101",
-    "PERF102",
-    "PERF401",
-    "PERF402",
-    "PGH004",
-    "PGH005",
-    "PIE794",
-    "PIE796",
-    "PIE807",
-    "PIE810",
-    "RUF015",
-    "RUF100",
-]
-# disable line length check, as ruff format already handles that
-ignore = ["E203", "E501", "E741"]
-
-[tool.ruff.lint.per-file-ignores]
-# loose checks for test files
-"tests/**/*.py" = [
-    "S101",
-    "ARG",
-    "FBT",
-    "PLR2004",
-    "S311",
-    "D",
-    "F405",
-    "F403",
-    "F841"
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1",
+    "pytest>=8.3.4",
+    "ruff>=0.9.4",
 ]

@@ -2,6 +2,7 @@ import argparse
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from woc.local import WocMapsLocal
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -18,18 +19,15 @@ from .clickhouse.routes import api as clickhouse_api
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # init woc
-    app.state.woc = WocMapsLocal(on_large='head')
+    app.state.woc = WocMapsLocal(on_large='ignore')
     # init mongo
     app.state.mongo_client = AsyncIOMotorClient(settings.mongo.url)
     await init_beanie(
-        database=app.state.mongo_client[settings.mongo.db],
+        database=app.state.mongo_client.get_database(),
         document_models=[MongoAPI, MongoAuthor, MongoProject],
     )
     # init clickhouse
-    app.state.ch_client = Ch(
-        host=settings.clickhouse.host,
-        database=settings.clickhouse.db,
-    )
+    app.state.ch_client = Ch.from_url(settings.clickhouse.url)
     yield
     # close mongo
     app.state.mongo_client.close()
@@ -38,6 +36,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="woc-backend", version="0.1.0", lifespan=lifespan)
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "localhost:3000"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 app.include_router(lookup_api, prefix="/lookup")
 app.include_router(mongo_api, prefix="/mongo")
 app.include_router(clickhouse_api, prefix="/clickhouse")
@@ -53,8 +59,15 @@ if __name__ == "__main__":
         default=False,
         help="Reload on code changes",
     )
+    # parser.add_argument(
+    #     "--cors",
+    #     action="store_true",
+    #     default=False,
+    #     help="Allow CORS",
+    # )
     args = parser.parse_args()
-    logger.info("Starting uvicorn server on port %d", args.port)
+
+    logger.info("Starting uvicorn server on port {}", args.port)
 
     uvicorn.run(
         "woc_backend.__main__:app",
