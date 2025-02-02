@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING, List, Optional, Union, Dict, Any
 from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
 
@@ -17,12 +18,14 @@ async def search_author(q: str, limit: int = 10):
     return WocResponse[List[MongoAuthor]](data=results)
 
 @api.get("/author/sample", response_model=WocResponse[List[MongoAuthor]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
-async def sample_author(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+async def sample_author(limit: int = 10, filter: Optional[str] = None):
     """
     Get a random sample of authors.
     """
     if filter is None:
         filter = {}
+    else:
+        filter = json.loads(filter)
     results = await MongoAuthor.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
     return WocResponse[List[MongoAuthor]](data=results)
 
@@ -47,13 +50,17 @@ async def search_project(q: str, limit: int = 10):
     return WocResponse[List[MongoProject]](data=results)
 
 @api.get("/project/sample", response_model=WocResponse[List[MongoProject]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
-async def sample_project(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+async def sample_project(limit: int = 10, filter: Optional[str] = None):
     """
     Get a sample of projects.
 
     :param limit: Maximum number of projects to return.
     :param filter: Optional MongoDB filter. e.g. {"NumCommits" : {"$gt": 100}}
     """
+    if filter is None:
+        filter = {}
+    else:
+        filter = json.loads(filter)
     results = await MongoProject.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
     return WocResponse[List[MongoProject]](data=results)
 
@@ -81,13 +88,17 @@ async def search_api(q: str, limit: int = 10):
 
 
 @api.get("/api/sample", response_model=WocResponse[List[MongoAPI]], response_model_exclude_none=True, dependencies=[Depends(validate_limit)])
-async def sample_api(limit: int = 10, filter: Optional[Dict[str, Any]] = None):
+async def sample_api(limit: int = 10, filter: Optional[str] = None):
     """
     Get a sample of APIs.
 
     :param limit: Maximum number of APIs to return.
     :param filter: Optional MongoDB filter. e.g. {"NumCommits" : {"$gt": 100}}
     """
+    if filter is None:
+        filter = {}
+    else:
+        filter = json.loads(filter)
     results = await MongoAPI.aggregate([{"$match": filter}, {"$sample": {"size": limit}}]).to_list()
     return WocResponse[List[MongoAPI]](data=results)
 
