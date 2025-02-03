@@ -14,7 +14,7 @@ export default function NavbarLayout({
     <div className="bg-secondary flex h-screen">
       <NavBar items={navItems} />
       <div className="mt-14 flex w-0 flex-1 flex-col">
-        <main className="bg-background relative flex-1 focus:outline-none">
+        <main className="bg-background px-auto relative flex max-w-7xl flex-1 flex-col items-center justify-center focus:outline-none">
           {children}
         </main>
         <Toaster />

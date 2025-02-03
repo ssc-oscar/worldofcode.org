@@ -1,7 +1,6 @@
 import type { LookupCommit, LookupTree } from '@/api/models.ts';
 import { useQuery } from '@tanstack/react-query';
 import { request } from './request.ts';
-import { assert } from 'console';
 
 export type ValueCommitRoot = [string, number];
 export type ValueFirstAuthor = [string, string, string];
@@ -70,7 +69,7 @@ const decodeTreeEntry = (
       _tree.entries?.push(decodeTreeEntry(name, hash, hashOrTree));
     }
     // shall never happen
-    assert(
+    console.assert(
       false,
       `Invalid tree entry${JSON.stringify([mode, name, hashOrTree])}`
     );

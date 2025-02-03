@@ -20,7 +20,7 @@ function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
         >
           <Icon
             icon={props.icon}
-            className="text-1.2em w-1.2em text-align-center"
+            className="w-1.2em text-align-center text-1.2em"
           />
         </div>
         <p>{props.title}</p>
@@ -37,7 +37,7 @@ function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
       >
         <Icon
           icon={props.icon}
-          className="text-1.2em w-1.2em text-align-center"
+          className="w-1.2em text-align-center text-1.2em"
         />
       </div>
     );
@@ -118,20 +118,18 @@ function WocLogoAndButtons() {
 export default function HomePage() {
   return (
     <WaveLayout>
-      <div className="flex h-full flex-col items-center justify-center px-8">
-        <div className="w-100% flex flex-col items-center justify-center gap-8">
-          <WocLogoAndButtons />
-          <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {homePageItems.map((item) => (
-              <li
-                className="flex flex-col items-center justify-center gap-4"
-                key={item.icon}
-              >
-                <HomePageCard {...item} />
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="w-100% flex flex-col items-center justify-center gap-8 pt-12">
+        <WocLogoAndButtons />
+        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {homePageItems.map((item) => (
+            <li
+              className="flex flex-col items-center justify-center gap-4"
+              key={item.icon}
+            >
+              <HomePageCard {...item} />
+            </li>
+          ))}
+        </ul>
       </div>
     </WaveLayout>
   );

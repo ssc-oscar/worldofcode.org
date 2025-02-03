@@ -16,7 +16,7 @@ export default function Icon({
 }) {
   if (props.icon.startsWith('i-')) {
     // unocss icon
-    return <div className={cn(props.icon, props.className)} />;
+    return <div className={cn(props.className, props.icon)} />;
   } else if (props.icon.split('.').length > 1) {
     // image
     return <img src={props.icon} className={props.className} />;

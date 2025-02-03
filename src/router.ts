@@ -9,8 +9,9 @@ export type Path =
   | `/auth/github`
   | `/auth/microsoft`
   | `/auth/signin`
-  | `/blog`
-  | `/blog/2`
+  | `/blog/license`
+  | `/blog/tutorial`
+  | `/blog/woc_hardware`
   | `/dashboard`
   | `/dashboard/components/overview`
   | `/dashboard/components/recent-sales`
