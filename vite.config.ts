@@ -2,19 +2,14 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import generouted from '@generouted/react-router/plugin';
 import { compression } from 'vite-plugin-compression2';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vite';
 import UnoCSS from 'unocss/vite';
-import mdx from '@mdx-js/rollup';
-import { plugin as mdPlugin, Mode } from 'vite-plugin-markdown';
-import rehypePrettyCode from 'rehype-pretty-code';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import rehypeSlug from 'rehype-slug';
 import zlib from 'zlib';
 
 export default defineConfig({
   build: {
     target: ['es2020', 'firefox78', 'chrome79', 'safari13'],
-    outDir: 'build',
     assetsInlineLimit: 8192,
     sourcemap: process.env.GENERATE_SOURCEMAP !== 'false',
     chunkSizeWarningLimit: 1500,
@@ -33,19 +28,8 @@ export default defineConfig({
     legalComments: 'none'
   },
   plugins: [
-    {
-      enforce: 'pre',
-      ...mdx({
-        include: /\.mdx?$/,
-        remarkPlugins: [],
-        rehypePlugins: [
-          rehypeSlug,
-          [rehypePrettyCode, { pad: 2 }],
-          [rehypeAutolinkHeadings, { behavior: 'wrap' }]
-        ]
-      })
-    },
-    // mdPlugin({ mode: [Mode.HTML, Mode.MARKDOWN, Mode.TOC, Mode.REACT] }),
+    // copy /docs to dist/docs
+    viteStaticCopy({ targets: [{ src: 'docs', dest: '.' }] }),
     react(),
     UnoCSS(),
     generouted(),

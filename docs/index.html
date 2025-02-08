@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A demonstration of docsify-themable: a delightfully simple theme system for docsify.js"
+    />
+    <title>Welcome</title>
+
+    <!-- 1. Theme -->
+    <link
+      rel="stylesheet"
+      href="//unpkg.com/docsify-themeable/dist/css/theme-simple.css"
+    />
+    <!-- <link rel="stylesheet" href="//unpkg.com/docsify-themeable/dist/css/theme-simple-dark.css"> -->
+    <!-- <link rel="stylesheet" href="//unpkg.com/docsify-themeable/dist/css/theme-defaults.css"> -->
+
+    <!-- 2. PrismJS Themes -->
+    <link rel="stylesheet" href="//unpkg.com/prism-github/prism-github.css" />
+    <!-- <link rel="stylesheet" href="//unpkg.cxom/prism-theme-one-dark/prism-onedark.css"> -->
+
+    <!-- 3. Custom Theme Properties -->
+    <style>
+      :root {
+        /* Reduce the font size */
+        /* --base-font-size: 14px; */
+
+        /* Change the theme color hue (0-360) */
+        --theme-hue: 9;
+
+        /* Add sidebar navigation bullets */
+        /* --sidebar-nav-link-before-content-l1: "😀"; */
+        /* --sidebar-nav-link-before-content-l2: "💩"; */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      // 4. Docsify Configuration
+      // https://docsify.js.org/#/configuration
+      window.$docsify = {
+        el: '#app',
+        name: 'Documentation',
+        repo: '//github.com/osslab-pku/trainingbook',
+        // coverpage: "_coverpage.md",
+        // homepage: '//raw.githubusercontent.com/jhildenbiddle/docsify-themeable/master/README.md',
+        loadSidebar: '_sidebar.md',
+        // loadNavbar: "_navbar.md",
+        maxLevel: 3,
+        subMaxLevel: 3,
+        logo: '../woc.webp',
+        // 5. docsify-themeable
+        themeable: {
+          // readyTransition : false,
+          // responsiveTables: false
+        },
+        plugins: [
+          titlePlugin({
+            suffix: ' | World of Code'
+          })
+        ]
+      };
+
+      function titlePlugin(config) {
+        return (hook, vm) => {
+          hook.doneEach((content) => {
+            document.title += config.suffix;
+          });
+        };
+      }
+    </script>
+
+    <!-- Required: docsify + docsify-themeable -->
+    <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+    <script src="//unpkg.com/docsify-themeable"></script>
+    <!-- Docsify Plugins -->
+    <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
+    <script src="//unpkg.com/docsify-copy-code"></script>
+    <script src="//unpkg.com/svg-pan-zoom@3/dist/svg-pan-zoom.min.js"></script>
+    <script src="//unpkg.com/@viz-js/viz@3/lib/viz-standalone.js"></script>
+    <script src="//unpkg.com/@hrz6976/docsify-viz@1/dist/docsify-viz.min.js"></script>
+    <!-- Syntax Highlighters -->
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-java.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  </body>
+</html>
