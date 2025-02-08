@@ -1,15 +1,27 @@
+import NavBarBase from '@/layouts/navbar-base';
 import WaveBackground from '@/components/bg-animation';
-import NavbarLayout from './navbar-layout';
+import { cn } from '@/lib/utils';
+import '@/styles/homepage.css';
 
-export default function WaveLayout({
-  children
+export default function NavbarLayout({
+  children,
+  className
 }: {
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <NavbarLayout>
-      {children}
+    <NavBarBase>
+      <main
+        className={cn(
+          'relative flex max-w-7xl flex-1 flex-col items-center pb-5 md:pb-20',
+          'bg-background px-auto main-container justify-center focus:outline-none',
+          className
+        )}
+      >
+        {children}
+      </main>
       <WaveBackground />
-    </NavbarLayout>
+    </NavBarBase>
   );
 }

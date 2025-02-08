@@ -20,9 +20,9 @@ export const getCommit = async (key: string): Promise<LookupCommit> => {
     tree,
     parent,
     author,
-    authored_at: new Date(author_timestamp + ' ' + author_timezone),
+    authored_at: new Date(parseInt(author_timestamp) * 1000),
     committer,
-    committed_at: new Date(committer_timestamp + ' ' + committer_timezone),
+    committed_at: new Date(parseInt(committer_timestamp) * 1000),
     message
   };
 };
@@ -106,4 +106,15 @@ export const useGetValue = (map: string, key: string) =>
     queryKey: ['value', map, key],
     queryFn: async () => getValue(map, key),
     enabled: !!map && !!key
+  });
+
+export const getMapNames = async (): Promise<string[]> => {
+  const resp = await request<string[]>('/lookup/map', 'GET');
+  return resp;
+};
+
+export const useMapNames = () =>
+  useQuery({
+    queryKey: ['map-names'],
+    queryFn: getMapNames
   });

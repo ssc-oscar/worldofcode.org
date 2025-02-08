@@ -13,7 +13,8 @@ export async function request<T>(
     method: method,
     baseURL: BASE_URL,
     params: data,
-    headers: headers
+    headers: headers,
+    timeout: 10000
   });
   if (
     200 <= response.status &&

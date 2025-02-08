@@ -1,7 +1,7 @@
 import type { HomePageItem, NavItem } from './types';
 
 /** Backend base url */
-export const BASE_URL = '/';
+export const BASE_URL = 'http://localhost:8234';
 
 /** Bibtex citation for the project */
 export const CITATION = `@article{ma2021world,
@@ -17,41 +17,41 @@ export const CITATION = `@article{ma2021world,
 
 export const navItems: NavItem[] = [
   {
-    title: 'Blog',
-    href: '/blog',
-    // icon: 'user',
-    label: 'blog'
+    title: 'Docs',
+    href: '/docs/',
+    icon: 'i-material-symbols:book-5-rounded',
+    label: 'Docs'
   },
   {
     title: 'Lookup',
     href: '/lookup',
-    // icon: 'user',
+    icon: 'i-material-symbols:category-search',
     label: 'Lookup'
   },
   {
     title: 'Sample',
     href: '/sample',
-    // icon: 'user',
+    icon: 'i-material-symbols:lab-research',
     label: 'Sample'
   },
   {
     title: 'Explore',
     href: '/explore',
-    // icon: 'user',
+    icon: 'i-material-symbols:graph-3',
     label: 'Explore'
   },
   {
     title: 'DevDash',
     href: '/devdash',
-    // icon: 'user',
+    icon: 'i-material-symbols:person-play-outline',
     label: 'DevDash'
-  },
-  {
-    title: 'APIDoc',
-    href: 'http://localhost:8234/docs',
-    // icon: 'user',
-    label: 'APIDoc'
   }
+  // {
+  //   title: 'APIDoc',
+  //   href: 'http://localhost:8234/docs',
+  //   icon: 'i-material-symbols:api',
+  //   label: 'APIDoc'
+  // }
 ];
 
 export const homePageItems: HomePageItem[] = [

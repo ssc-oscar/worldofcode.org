@@ -1,21 +1,22 @@
 /* Base styles for the waves */
 .waves {
-  position: sticky;
-  bottom: 1em;
-  width: 100%;
-  margin-bottom: -7px; /* Fix for safari gap */
-  min-height: 100px;
-  max-height: 150px;
-  z-index: 0;
-}
-
-.copyright {
-  position: sticky;
+  position: fixed;
+  /* bottom: 1em; */
   bottom: 0px;
   width: 100%;
-  z-index: 0;
+  margin-bottom: -7px;
+  min-height: 100px;
+  max-height: 150px;
+  z-index: 0 !important;
+}
+.copyright {
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
   background-color: #0f172a;
   color: #64748b;
+  z-index: 0 !important;
+  margin-bottom: -7px; /* Fix for safari gap */
 }
 
 /* Animation for the waves */

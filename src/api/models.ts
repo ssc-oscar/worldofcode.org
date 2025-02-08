@@ -32,6 +32,18 @@ export type LookupTree = LookupFile & {
   entries: Array<LookupFile | LookupTree> | undefined;
 };
 
+export type ClickhouseBlobDepsQuery = {
+  start?: number;
+  end?: number;
+  limit?: number;
+  offset?: number;
+  blob?: string;
+  language?: ClickhouseLanguage;
+  author?: string;
+  deps?: string;
+  project?: string;
+};
+
 export type ClickhouseBlobDeps = {
   blob: string;
   commit: string;
@@ -40,6 +52,16 @@ export type ClickhouseBlobDeps = {
   author: string;
   language: ClickhouseLanguage;
   deps: string[];
+};
+
+export type ClickhouseCommitQuery = {
+  start?: number;
+  end?: number;
+  limit?: number;
+  offset?: number;
+  author?: string;
+  project?: string;
+  comment?: string;
 };
 
 export type ClickhouseCommit = {

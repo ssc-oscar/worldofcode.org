@@ -9,14 +9,13 @@ export type Path =
   | `/auth/github`
   | `/auth/microsoft`
   | `/auth/signin`
-  | `/blog/license`
-  | `/blog/tutorial`
-  | `/blog/woc_hardware`
   | `/dashboard`
   | `/dashboard/components/overview`
   | `/dashboard/components/recent-sales`
   | `/form`
   | `/lookup`
+  | `/sample`
+  | `/sample/ch-table`
   | `/students`
   | `/students/StudentDetailPage`
   | `/students/components/bio`

@@ -1,0 +1,6 @@
+/* ref: https://stackoverflow.com/questions/47041672/change-the-color-of-the-clear-button-x-in-input-type-search */
+
+[type='search']::-webkit-search-cancel-button {
+  filter: grayscale(1);
+  cursor: pointer;
+}

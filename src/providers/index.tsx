@@ -1,16 +1,48 @@
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/hooks/use-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryCache,
+  QueryClientProvider
+} from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Suspense } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
-// import { BrowserRouter } from 'react-router-dom';
 import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
 import { Toaster } from '@/components/ui/toaster';
+import { toast } from '@/hooks/use-toast';
+import { AxiosError } from 'axios';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: async (error) => {
+      // try to get the error message from the response
+      let [msg, auxmsg] = [error.message, ''];
+      if (msg.length > 500) {
+        msg = msg.slice(0, 500) + '...';
+      }
+      if (error instanceof AxiosError) {
+        if (error.response?.data?.detail) {
+          auxmsg = error.response.data.detail;
+        } else if (error.response?.data) {
+          auxmsg = error.response.data;
+        }
+      }
+      if (auxmsg.length > 500) {
+        auxmsg = auxmsg.slice(0, 500) + '...';
+      }
+      toast({ title: msg, description: auxmsg });
+    }
+  }),
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false
+    }
+  }
+});
 
 const ErrorFallback = ({ error }: FallbackProps) => {
   const router = useRouter();

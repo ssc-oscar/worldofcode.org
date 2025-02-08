@@ -45,7 +45,7 @@ export default function WaveBackground({ color = '#0f172a', className = '' }) {
           </g>
         </svg>
       </div>
-      <div className="copyright flex pl-2 text-sm">
+      {/* <div className="copyright flex pl-2 text-sm">
         &copy; 2021-2024 World of Code authors. &nbsp;
         <a
           href="https://github.com/woc-hack/tutorial/raw/refs/heads/master/LICENSE"
@@ -55,7 +55,7 @@ export default function WaveBackground({ color = '#0f172a', className = '' }) {
           License
         </a>{' '}
         &nbsp; applies.
-      </div>
+      </div> */}
     </>
   );
 }

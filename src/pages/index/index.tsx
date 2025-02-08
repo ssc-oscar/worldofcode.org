@@ -55,7 +55,7 @@ function HomePageCard({ ...props }: HomePageItem) {
     );
   }
   return (
-    <div className="z-1 bg-muted/50 text-card-foreground h-100% w-100% max-w-80 rounded-xl">
+    <div className="bg-muted/50 text-card-foreground h-100% w-100% max-w-80 rounded-xl">
       <div className="h-100% flex flex-col justify-between gap-4 space-y-1.5 p-6">
         <HomePageCardHeader {...props} />
         <div className="text-1em text-wrap">
