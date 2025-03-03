@@ -46,6 +46,9 @@ def _build_commits_query(**kwargs: Any) -> str:
     if kwargs["limit"]:
         limit = "LIMIT %(limit)s"
         params["limit"] = kwargs["limit"]
+        if "offset" in kwargs and kwargs["offset"] > 0:
+            limit += " OFFSET %(offset)s"
+            params["offset"] = kwargs["offset"]
     else:
         limit = ""
 
@@ -66,6 +69,7 @@ def get_commits(
     start: int = Query(None, ge=0),
     end: int = Query(None, ge=0),
     limit: int = Query(10, ge=0),
+    offset: int = Query(0, ge=0),
     author: str = Query(None),
     project: str = Query(None),
     comment: str = Query(None),
@@ -76,6 +80,7 @@ def get_commits(
     :param start: Start time in Unix timestamp.
     :param end: End time in Unix timestamp.
     :param limit: Maximum number of commits to return.
+    :param offset: Offset for pagination.
     :param author: Author email address (text search).
     :param project: Project name (text search).
     :param comment: Commit message (text search).
@@ -97,6 +102,7 @@ def get_commits(
         comment=comment,
         limit=limit,
         count=False,
+        offset=offset,
     )
     try:
         r = ch_client.execute(*q)
@@ -182,13 +188,18 @@ def _build_deps_query(**kwargs: Any) -> str:
     # match '^{dep) or ';(dep): too slow for now
     # if kwargs["deps"]:
     #     where_clauses.append(f"match(deps, '^{re.escape(kwargs['deps'])}|;{re.escape(kwargs['deps'])}')")
+    # if kwargs["deps"]:
+    #     where_clauses.append("deps = %(deps)s")
     if kwargs["deps"]:
-        where_clauses.append("deps = %(deps)s")
+        where_clauses.append("has(imports, %(deps)s)")
         params["deps"] = kwargs["deps"]
     where = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     if "limit" in kwargs and kwargs["limit"] > 0:
         limit = "LIMIT %(limit)s"
         params["limit"] = kwargs["limit"]
+        if "offset" in kwargs and kwargs["offset"] > 0:
+            limit += " OFFSET %(offset)s"
+            params["offset"] = kwargs["offset"]
     else:
         limit = ""
     return (
@@ -208,6 +219,7 @@ def get_deps(
     start: int = Query(None, ge=0),
     end: int = Query(None, ge=0),
     limit: int = Query(10, ge=0),
+    offset: int = Query(0, ge=0),
     blob: Optional[str] = Query(None),
     language: Optional[ClickhouseLanguage] = Query(None),
     author: str = Query(None),
@@ -220,6 +232,7 @@ def get_deps(
     :param start: Start time in Unix timestamp.
     :param end: End time in Unix timestamp.
     :param limit: Maximum number of dependencies to return.
+    :param offset: Offset for pagination.
     :param blob: Blob key.
     :param language: Programming language.
     :param author: Author name and email address.
@@ -248,6 +261,7 @@ def get_deps(
         limit=limit,
         count=False,
         blob=blob,
+        offset=offset,
     )
     try:
         r = ch_client.execute(*q)

@@ -1,8 +1,9 @@
 from typing import Optional, List, Union, Literal, Dict, Any
 from pydantic import BaseModel, Field
 from datetime import datetime
-from beanie import Document
+from beanie import Document, Indexed
 from enum import Enum
+import pymongo
 
 
 class MongoLanguage(str, Enum):

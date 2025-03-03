@@ -83,6 +83,18 @@ def _get_values_with_cursor(woc: "WocMapsLocal", map_name: str, key: str, cursor
     return _decoded, next_cursor
 
 @api.get(
+    "/map",
+    response_model=WocResponse[List[str]],
+    response_model_exclude_none=True,
+)
+def get_maps(request: Request):
+    """
+    Get the list of available maps.
+    """
+    woc: WocMapsLocal = request.app.state.woc
+    return WocResponse[List[str]](data=set([m.name for m in woc.maps]))
+
+@api.get(
     "/map/{map_}",
     dependencies=[Depends(validate_q_length)],
     response_model=WocResponse[Dict[str, list]],
