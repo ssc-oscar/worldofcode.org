@@ -6,7 +6,7 @@
 - [How Maps Generated](scripts.md)
 - [Woc Hardware](woc_hardware.md)
 - [🔗 Python Driver](https://ssc-oscar.github.io/python-woc/)
-- [🔗 API Doc]({{VITE_BASE_URL}}/docs)
+- [🔗 API Doc](https://wocapi-preview.osslab-pku.org/docs)
 
 <div style="position: sticky; bottom: 0px; border-top: 2px solid var(--mono-tint1); margin-top: 2.5px; " >
     <a href="/" style="background-color:var(--mono-tint3); ">
