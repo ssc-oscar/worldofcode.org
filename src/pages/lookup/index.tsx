@@ -29,9 +29,12 @@ import 'react18-json-view/src/style.css';
 import '@/styles/search-button.css';
 import { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
+import { getProject, getAPI, getAuthor } from '@/api/mongo';
 
 function getExampleSha(map: string) {
-  if (map.startsWith('b') || map.startsWith('obb')) {
+  if (map.toLowerCase() == 'api') {
+    return 'C:ASIOCodec.h';
+  } else if (map.startsWith('b') || map.startsWith('obb')) {
     return '05fe634ca4c8386349ac519f899145c75fff4169';
   } else if (map.startsWith('c')) {
     return 'e4af89166a17785c1d741b8b1d5775f3223f510f';
@@ -113,7 +116,13 @@ export function QueryTabs() {
     useQuery({
       queryKey: ['value', map, key],
       queryFn: async () => {
-        if (map === 'blob') {
+        if (map === 'api') {
+          return getAPI(key);
+        } else if (map === 'author') {
+          return getAuthor(key);
+        } else if (map === 'project') {
+          return getProject(key);
+        } else if (map === 'blob') {
           return getBlob(key);
         } else if (map === 'commit') {
           return getCommit(key);
@@ -142,8 +151,9 @@ export function QueryTabs() {
   return (
     <div className="flex h-full flex-wrap items-center justify-center gap-5 p-5">
       <Tabs defaultValue="getValues" className="w-[360px]">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="showCnt">showCnt</TabsTrigger>
+          <TabsTrigger value="entity">showEnt</TabsTrigger>
           <TabsTrigger value="getValues">getValues</TabsTrigger>
         </TabsList>
         <TabsContent value="showCnt">
@@ -197,15 +207,7 @@ export function QueryTabs() {
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="current">
-                  <div className="flex items-center gap-0.5 py-[5px]">
-                    Map
-                    <Link
-                      to="https://github.com/woc-hack/tutorial"
-                      target="_blank"
-                    >
-                      <div className="i-solar-question-circle-bold-duotone color-foreground cursor-pointer opacity-80 hover:opacity-60" />
-                    </Link>
-                  </div>
+                  <div className="flex items-center gap-0.5 py-[5px]">Map</div>
                 </Label>
                 <Select
                   disabled={isLoading || mapError != null}
@@ -231,6 +233,50 @@ export function QueryTabs() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="new">Hash or Name</Label>
+                <Input
+                  id="new"
+                  type="search"
+                  placeholder={defaultMapSha}
+                  value={mapSha}
+                  onChange={(e) => setMapSha(e.target.value)}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => doFetchData()}>Query</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="entity">
+          <Card>
+            <CardHeader>
+              <CardTitle>Show Entity</CardTitle>
+              <CardDescription>
+                Retrieve the attributes of an entity (Author, Project, API) in
+                the World of Code dataset.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="type">Entity</Label>
+                <Select
+                  disabled={isLoading || mapError != null}
+                  onValueChange={(e) => setMapName(e)}
+                >
+                  <Select onValueChange={(e) => setMapName(e)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an entity ..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="author">Author</SelectItem>
+                      <SelectItem value="project">Project</SelectItem>
+                      <SelectItem value="api">API</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new">Name</Label>
                 <Input
                   id="new"
                   type="search"

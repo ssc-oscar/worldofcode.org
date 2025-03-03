@@ -102,8 +102,8 @@ Do the hard work to enable research on global properties of (Free, Libre, and Op
 
 ### What WoC Contains
 
-![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png)
-![Content: Commits., trees, blobs, projects, authors](https://github.com/woc-hack/tutorial/blob/master/Assets/Database.png)
+![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png?raw=true)
+![Content: Commits., trees, blobs, projects, authors](https://github.com/woc-hack/tutorial/blob/master/Assets/Database.png?raw=true)
 
 ### Related background reading
 
@@ -937,7 +937,7 @@ UNIX> python3.6 modtrends.py tensorflow.first keras.first
 ```
 
 The final graph looks something like this:
-[![Tensorflow vs Keras](../ipynb_first/Tensorflow-vs-Keras.png 'Tensorflow vs Keras')](https://github.com/ssc-oscar/aiframeworks/blob/master/charts/ipynb_charts/Tensorflow-vs-Keras.png)
+![Tensorflow vs Keras](https://github.com/ssc-oscar/aiframeworks/blob/master/charts/ipynb_charts/Tensorflow-vs-Keras.png?raw=true)
 
 ## Activity S1: Detecting percentage language use and changes over time (Complex)
 

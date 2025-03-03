@@ -77,7 +77,7 @@ function WocLogoAndButtons() {
         World of Code
       </h1>
       <div className="z-1 mb-6 flex flex-wrap items-center justify-center gap-6">
-        <a href="https://github.com/woc-hack/tutorial" target="_blank">
+        <a href="docs/#/tutorial" target="_blank">
           <Button
             size="lg"
             onClick={() => console.log('clicked')}
@@ -86,7 +86,7 @@ function WocLogoAndButtons() {
             Get Started
           </Button>
         </a>
-        <a href="https://github.com/ssc-oscar/lookup" target="_blank">
+        <a href="docs/" target="_blank">
           <Button
             size="lg"
             onClick={() => console.log('clicked')}

@@ -14,7 +14,7 @@ export default function NavbarLayout({
     <NavBarBase>
       <main
         className={cn(
-          'relative flex max-w-7xl flex-1 flex-col items-center pb-5 md:pb-20',
+          'relative mx-auto flex max-w-7xl flex-1 flex-col items-center pb-5 md:pb-20',
           'bg-background px-auto main-container justify-center focus:outline-none',
           className
         )}

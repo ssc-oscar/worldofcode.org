@@ -1,7 +1,8 @@
 import type { HomePageItem, NavItem } from './types';
 
 /** Backend base url */
-export const BASE_URL = 'http://localhost:8234';
+export const BASE_URL =
+  (import.meta.env.VITE_BASE_URL as string) || 'http://localhost:8234';
 
 /** Bibtex citation for the project */
 export const CITATION = `@article{ma2021world,
