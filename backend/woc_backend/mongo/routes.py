@@ -43,7 +43,7 @@ async def _sample(cls: Union[MongoAuthor,MongoProject,MongoAPI], filter, limit):
     # 3) fallback to full scan
     if len(results) < limit:
         logger.warning(f"Failed to sample enough projects, falling back to full scan, filter={filter}")
-        results.extend(await cls.find(filter).limit(limit - len(results)).project({"_id": 0}).to_list())
+        results.extend(await cls.find(filter).limit(limit - len(results)).to_list())
     return results
     
 
@@ -95,7 +95,7 @@ async def get_project(q: str):
     print("getting project", q)
     try:
         return WocResponse[MongoProject](
-            data=await MongoProject.find_one({"ProjectID": q}).project({"_id": 0})
+            data=await MongoProject.find_one({"ProjectID": q})
         )
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
@@ -106,7 +106,7 @@ async def search_api(q: str, limit: int = 10):
     """
     Search for APIs by name.
     """
-    results = await MongoAPI.findext(q,language=None).sort([("score", {"$meta": "textScore"})]).limit(limit).to_list()
+    results = await MongoAPI.find(q,language=None).sort([("score", {"$meta": "textScore"})]).limit(limit).to_list()
     return WocResponse[List[MongoAPI]](data=results)
 
 
@@ -128,6 +128,6 @@ async def get_api(q: str):
     Get API information by name.
     """
     try:
-        return WocResponse[MongoAPI](data=await MongoAPI.find_one({"API": q}).project({"_id": 0}))
+        return WocResponse[MongoAPI](data=await MongoAPI.find_one({"API": q}))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
