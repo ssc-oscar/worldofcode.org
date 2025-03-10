@@ -13,7 +13,10 @@ from .config import settings
 from .lookup.routes import api as lookup_api
 from .mongo.routes import api as mongo_api
 from .mongo.models import MongoAPI, MongoAuthor, MongoProject
+from .auth.routes import api as auth_api
+from .auth.models import Token, OneTimeCode, User
 from .clickhouse.routes import api as clickhouse_api
+from .utils.cache import TTLCache
 
 
 @asynccontextmanager
@@ -24,18 +27,20 @@ async def lifespan(app: FastAPI):
     app.state.mongo_client = AsyncIOMotorClient(settings.mongo.url)
     await init_beanie(
         database=app.state.mongo_client.get_database(),
-        document_models=[MongoAPI, MongoAuthor, MongoProject],
+        document_models=[MongoAPI, MongoAuthor, MongoProject, Token, OneTimeCode, User],
     )
     # init clickhouse
     app.state.ch_client = Ch.from_url(settings.clickhouse.url)
+    # init cache
+    app.state.token_cache = TTLCache(settings.auth.get("cache_ttl", 100))
     yield
     # close mongo
     app.state.mongo_client.close()
     # close clickhouse
     app.state.ch_client.disconnect()
 
-
 app = FastAPI(title="woc-backend", version="0.1.0", lifespan=lifespan)
+
 @app.middleware("http")
 async def add_cors_headers(request, call_next):
     response = await call_next(request)
@@ -44,9 +49,11 @@ async def add_cors_headers(request, call_next):
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
+
 app.include_router(lookup_api, prefix="/lookup")
 app.include_router(mongo_api, prefix="/mongo")
 app.include_router(clickhouse_api, prefix="/clickhouse")
+app.include_router(auth_api, prefix="/auth")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Package Dashboard Server")

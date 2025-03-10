@@ -6,7 +6,7 @@ from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
 from beanie.operators import Text
 from loguru import logger
 
-from woc_backend.common import validate_limit
+from ..utils.validate import validate_limit
 from .models import MongoAPI, MongoAuthor, MongoProject
 from ..models import WocResponse
 
@@ -62,7 +62,7 @@ async def get_author(q: str):
     Get author information by email address.
     """
     try:
-        return WocResponse[MongoAuthor](data=await MongoAuthor.find_one({"AuthorID": q}, {"_id": 0}))
+        return WocResponse[MongoAuthor](data=await MongoAuthor.find_one({"AuthorID": q}))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
 
@@ -92,11 +92,8 @@ async def get_project(q: str):
     """
     Get project information by name.
     """
-    print("getting project", q)
     try:
-        return WocResponse[MongoProject](
-            data=await MongoProject.find_one({"ProjectID": q})
-        )
+        return WocResponse[MongoProject](data=await MongoProject.find_one({"ProjectID": q}))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
 

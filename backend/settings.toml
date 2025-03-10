@@ -1,11 +1,90 @@
 dynaconf_merge = true
 cache_path = "./cache/"
 log_level = "info"
+web_url = "https://woc-preview.osslab-pku.org/"
 
 [limit]
 batch_items = 10
 sql_limit = 100
 
+[mongo]
+url = "set in .secrets.toml"
+
 [clickhouse]
+url = "set in .secrets.toml"
 table_commits = "commits_all"
 table_deps = " b2cPtaPkgR_all"
+
+[github]
+# https://github.com/settings/applications/new
+app_id = "set in .secrets.toml"  
+app_secret = "set in .secrets.toml"
+
+[microsoft]
+# https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade/quickStartType~/null/sourceType/Microsoft_AAD_IAM
+app_id = "set in .secrets.toml"
+app_secret = "set in .secrets.toml"
+tenant_id = "set in .secrets.toml"
+
+[cloudflare]
+# https://dash.cloudflare.com/login?to=/:account/turnstile
+site_secret = "set in .secrets.toml"
+turnstile_secret = "set in .secrets.toml"
+
+[auth]
+session_ttl = 86400
+api_ttl = 31622400
+code_ttl = 600
+cache_ttl = 100
+
+[smtp]
+host = "set in .secrets.toml"
+email = "set in .secrets.toml"
+username = "set in .secrets.toml"
+password = "set in .secrets.toml"
+title_template = "Welcome to World of Code"
+content_template = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your World of Code {{ 'Sign Up' if is_signup else 'Login' }} Magic Link</title>
+    <style>
+        @media only screen and (max-width: 480px) {
+            .container {
+                padding: 10px !important;
+            }
+            
+            .content {
+                padding: 20px !important;
+            }
+            
+            .button {
+                display: block !important;
+                margin-right: 0px !important;
+            }
+            
+        }
+    </style>
+</head>
+<body style="font-family: 'Helvetica Neue', Arial, sans-serif;line-height: 1.6;color: #333333;margin: 0;padding: 0;">
+    <div class="container" style="max-width: 600px;margin: 0 auto;padding: 20px;background-color: #f9f9f9;">
+        <div class="content" style="background-color: #ffffff;padding: 30px;border-radius: 8px;box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            
+            <p style="margin: 0 0 20px;">You've requested to {{ 'sign up for' if is_signup else 'log in to' }} World of Code. Click the magic link below to {{ 'complete your registration' if is_signup else 'log in' }}:</p>
+            
+            <div class="button-container" style="margin: 30px 0 20px;text-align: center;">
+                <a href="{{ magic_link }}" class="button" style="display: inline-block;background-color: #3498db;padding: 12px 20px;text-decoration: none;border-radius: 4px;margin-bottom: 10px;text-align: center;font-weight: 500;transition: background-color 0.2s;color: white !important;">Click here to {{ 'sign up' if is_signup else 'log in' }}</a>
+            </div>
+            
+            <p style="margin: 0 0 15px;">This link will expire in {{ expire_mins }} minutes. If you didn't request this link, please ignore this email. Never forward this link to anyone else, as they would be able to access your account. If you have any questions, please <a href="mailto:{{ contact_email }}">contact us</a>.</p>
+            
+            <div class="footer" style="margin-top: 30px;text-align: center;color: #7f8c8d;font-size: 14px;">
+                <p style="margin: 0 0 15px;">&copy; 2025 World of Code</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""

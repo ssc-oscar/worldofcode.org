@@ -4,7 +4,7 @@ from woc.local import decode_str, decomp_or_raw, decode_value
 
 from ..models import WocResponse
 from .models import ObjectName
-from ..common import validate_q_length
+from ..utils.validate import validate_q_length
 
 if TYPE_CHECKING:
     from woc.local import WocMapsLocal
