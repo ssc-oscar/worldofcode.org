@@ -35,7 +35,7 @@ export default defineConfig({
     generouted(),
     compression({
       include: /\.*$/,
-      exclude: /\.(png|jpg|jpeg|webp|mp3|ogg|webm)$/i,
+      exclude: /_redirects|\.(png|jpg|jpeg|webp|mp3|ogg|webm)$/i,
       algorithm: 'brotliCompress',
       compressionOptions: {
         params: {
