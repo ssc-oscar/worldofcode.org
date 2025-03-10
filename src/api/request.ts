@@ -1,6 +1,5 @@
 import { BASE_URL } from '@/config.ts';
 import axios, { type AxiosRequestConfig, type AxiosHeaders } from 'axios';
-import type { HTTPValidationError, WocResponse } from '@/api/models.ts';
 
 export async function request<T>(
   url: string,
@@ -41,3 +40,18 @@ export async function request<T>(
     );
   }
 }
+export type WocResponse<T> = {
+  data: T;
+  errors?: Record<string, unknown>;
+};
+
+export type ResponseType<T> = WocResponse<T> | ValidationError;
+export type HTTPValidationError = {
+  detail?: ValidationError[];
+};
+
+export type ValidationError = {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+};

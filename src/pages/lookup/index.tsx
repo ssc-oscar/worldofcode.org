@@ -20,10 +20,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WaveLayout from '@/layouts/wave-layout';
-import { useGetValue, useMapNames } from '@/api/lookup';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getValue, getCommit, getBlob, getTree } from '@/api/lookup';
+import {
+  getMapNames,
+  getValue,
+  getCommit,
+  getBlob,
+  getTree
+} from '@/api/lookup';
 import JsonView from 'react18-json-view';
 import 'react18-json-view/src/style.css';
 import '@/styles/search-button.css';
@@ -102,6 +107,12 @@ function RenderedResults({
 }
 
 export function QueryTabs() {
+  const useMapNames = () =>
+    useQuery({
+      queryKey: ['map-names'],
+      queryFn: getMapNames
+    });
+
   const { data: mapNames, error: mapError, isLoading } = useMapNames();
 
   const [mapName, setMapName] = useState<string>('');

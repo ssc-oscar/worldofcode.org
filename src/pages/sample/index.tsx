@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WaveLayout from '@/layouts/wave-layout';
-import { useGetValue, useMapNames } from '@/api/lookup';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getValue, getCommit, getBlob, getTree } from '@/api/lookup';
@@ -89,8 +88,6 @@ function RenderedResults({
 }
 
 export function TabsDemo() {
-  const { data: mapNames, error: mapError, isLoading } = useMapNames();
-
   const [mapName, setMapName] = useState<string>('');
   const [mapSha, setMapSha] = useState<string>('');
   const [defaultMapSha, setDefaultMapSha] = useState<string>('');

@@ -4,6 +4,11 @@ import type { HomePageItem, NavItem } from './types';
 export const BASE_URL =
   (import.meta.env.VITE_BASE_URL as string) || 'http://localhost:8234';
 
+/** Turnstile site id */
+export const TURNSTILE_SITE_ID =
+  (import.meta.env.VITE_TURNSTILE_SITE_ID as string) ||
+  '1x00000000000000000000AA';
+
 /** Bibtex citation for the project */
 export const CITATION = `@article{ma2021world,
   title = {World of code: Enabling a research workflow for mining and analyzing the universe of open source vcs data},

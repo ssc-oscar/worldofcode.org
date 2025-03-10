@@ -1,55 +1,82 @@
-import {
-  ClickhouseBlobDeps,
-  ClickhouseCommit,
-  ClickhouseCommitQuery,
-  ClickhouseBlobDepsQuery
-} from '@/api/models.ts';
-import { useQuery } from '@tanstack/react-query';
 import { request } from './request.ts';
+
+export type ClickhouseBlobDepsQuery = {
+  start?: number;
+  end?: number;
+  limit?: number;
+  offset?: number;
+  blob?: string;
+  language?: ClickhouseLanguage;
+  author?: string;
+  deps?: string;
+  project?: string;
+};
+
+export type ClickhouseBlobDeps = {
+  blob: string;
+  commit: string;
+  project: string;
+  timestamp: number;
+  author: string;
+  language: ClickhouseLanguage;
+  deps: string[];
+};
+
+export type ClickhouseCommitQuery = {
+  start?: number;
+  end?: number;
+  limit?: number;
+  offset?: number;
+  author?: string;
+  project?: string;
+  comment?: string;
+};
+
+export type ClickhouseCommit = {
+  hash: string;
+  timestamp: number;
+  tree: string;
+  author: string;
+  parent: string;
+  comment: string;
+  content: string;
+};
+
+export enum ClickhouseLanguage {
+  Java = 'Java',
+  Ruby = 'rb',
+  CSharp = 'Cs',
+  Perl = 'pl',
+  Python = 'PY',
+  Go = 'Go',
+  Scala = 'Scala',
+  JavaScript = 'JS',
+  Fortran = 'F',
+  Julia = 'jl',
+  IPython = 'ipy',
+  Rust = 'Rust',
+  Dart = 'Dart',
+  Kotlin = 'Kotlin',
+  C_CPP = 'C',
+  R = 'R',
+  TypeScript = 'TypeScript'
+}
 
 export const getClickhouseCommit = async (
   q: ClickhouseCommitQuery
 ): Promise<ClickhouseCommit> =>
   await request<ClickhouseCommit>('/clickhouse/commit', 'GET', q);
 
-export const useGetClickhouseCommit = (q: ClickhouseCommitQuery) =>
-  useQuery({
-    queryKey: ['commit', q],
-    queryFn: async () => getClickhouseCommit(q),
-    enabled: !!q
-  });
-
 export const getClickhouseCommitCount = async (
   q: ClickhouseCommitQuery
 ): Promise<number> =>
   await request<number>('/clickhouse/commit/count', 'GET', q);
-
-export const useGetClickhouseCommitCount = (q: ClickhouseCommitQuery) =>
-  useQuery({
-    queryKey: ['commit', q],
-    queryFn: async () => getClickhouseCommitCount(q),
-    enabled: !!q
-  });
 
 export const getClickhouseBlobDeps = async (
   q: ClickhouseBlobDepsQuery
 ): Promise<ClickhouseBlobDeps> =>
   await request<ClickhouseBlobDeps>('/clickhouse/deps', 'GET', q);
 
-export const useGetClickhouseBlobDeps = (q: ClickhouseBlobDepsQuery) =>
-  useQuery({
-    queryKey: ['deps', q],
-    queryFn: async () => getClickhouseBlobDeps(q),
-    enabled: !!q
-  });
-
 export const getClickhouseBlobDepsCount = async (
   q: ClickhouseBlobDepsQuery
 ): Promise<number> => await request<number>('/clickhouse/deps/count', 'GET', q);
-
-export const useGetClickhouseBlobDepsCount = (q: ClickhouseBlobDepsQuery) =>
-  useQuery({
-    queryKey: ['deps', q],
-    queryFn: async () => getClickhouseBlobDepsCount(q),
-    enabled: !!q
-  });

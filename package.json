@@ -21,6 +21,7 @@
     "@eslint/object-schema": "^2.1.5",
     "@generouted/react-router": "^1.19.9",
     "@hookform/resolvers": "^3.9.1",
+    "@marsidev/react-turnstile": "^1.1.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-aspect-ratio": "^1.1.1",

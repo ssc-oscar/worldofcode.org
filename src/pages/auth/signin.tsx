@@ -17,8 +17,9 @@ import { useRouter } from '@/hooks/use-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Icons } from '@/components/icons';
+import { BASE_URL, TURNSTILE_SITE_ID } from '@/config';
 import * as z from 'zod';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' })
@@ -30,12 +31,13 @@ export function UserAuthForm() {
   const router = useRouter();
   const [loading] = useState(false);
   const defaultValues = {
-    email: 'demo@gmail.com'
+    email: ''
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues
   });
+  const [token, setToken] = useState('');
 
   const onSubmit = async (data: UserFormValue) => {
     console.log('data', data);
@@ -43,6 +45,18 @@ export function UserAuthForm() {
   };
 
   const { toast } = useToast();
+
+  const redirectHandler = (provider: string) => {
+    if (loading) return;
+    if (!token)
+      return toast({
+        title: 'Error',
+        description: 'Please complete the captcha'
+      });
+    router.push(
+      `${BASE_URL}/auth/${provider}/login?cf_turnstile_response=${token}`
+    );
+  };
 
   return (
     <>
@@ -79,7 +93,7 @@ export function UserAuthForm() {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+          <span className="bg-background text-muted-foreground px-2">
             Or continue with
           </span>
         </div>
@@ -89,10 +103,10 @@ export function UserAuthForm() {
           disabled={loading}
           className="ml-auto w-full bg-slate-700"
           type="submit"
-          onClick={() => router.push('/auth/github')}
+          onClick={() => router.push(`${BASE_URL}/auth/github/login`)}
         >
           <span className="flex items-center justify-center gap-2 text-center">
-            <Icons.gitHub className="h-[1.45em]" />
+            <div className="i-simple-icons:github h-4" />
             GitHub
           </span>
         </Button>
@@ -100,13 +114,16 @@ export function UserAuthForm() {
           disabled={loading}
           className="ml-auto w-full bg-slate-500"
           type="submit"
-          onClick={() => toast({ description: 'Coming soon' })}
+          onClick={() => router.push(`${BASE_URL}/auth/microsoft/login`)}
         >
           <span className="flex items-center justify-center gap-2 text-center">
-            <Icons.microsoft className="h-4" />
+            <div className="i-simple-icons:microsoft h-4" />
             Microsoft
           </span>
         </Button>
+        <div className="flex items-center justify-center pt-4">
+          <Turnstile siteKey={TURNSTILE_SITE_ID} onSuccess={setToken} />
+        </div>
       </div>
     </>
   );
@@ -115,8 +132,8 @@ export function UserAuthForm() {
 export default function SignInPage() {
   return (
     <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-        <div className="absolute inset-0 bg-primary dark:bg-secondary" />
+      <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
+        <div className="bg-primary dark:bg-secondary absolute inset-0" />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link to="/">
             <Logo className="h-8 invert-[.9] hover:invert" />
@@ -146,25 +163,27 @@ export default function SignInPage() {
             <h1 className="text-2xl font-semibold tracking-tight">
               Sign in or Sign up
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               We'll create one if you don't have an account.
             </p>
           </div>
           <UserAuthForm />
-          <p className="px-8 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground px-8 text-center text-sm">
             By clicking continue, you agree to our{' '}
             <Link
-              to="/terms"
-              className="underline underline-offset-4 hover:text-primary"
+              to="/docs/#/terms"
+              className="hover:text-primary underline underline-offset-4"
+              target="_blank"
             >
               Terms of Service
             </Link>{' '}
             and{' '}
             <Link
-              to="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
+              to="/docs/#/license"
+              className="hover:text-primary underline underline-offset-4"
+              target="_blank"
             >
-              Privacy Policy
+              License
             </Link>
             .
           </p>

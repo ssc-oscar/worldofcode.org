@@ -1,13 +1,82 @@
-import type {
-  MongoAuthor,
-  MongoAPI,
-  MongoLanguage,
-  MongoProject
-} from '@/api/models.ts';
 import { request } from './request.ts';
 
-export type ValueCommitRoot = [string, number];
-export type ValueFirstAuthor = [string, string, string];
+export type MongoAPI = {
+  API: string;
+  EarliestCommitDate: number;
+  FileInfo: Record<MongoLanguage, number>;
+  LatestCommitDate: number;
+  NumAuthors: number;
+  NumCommits: number;
+  NumProjects: number;
+};
+
+export type MongoAuthor = {
+  Alias: string[];
+  AuthorID: string;
+  EarliestCommitDate: number;
+  FileInfo: Record<MongoLanguage, number>;
+  Gender?: string | null;
+  LatestCommitDate: number;
+  MonNcm: Record<string, number>;
+  MonNprj: Record<string, number>;
+  NumActiveMon: number;
+  NumAlias: number;
+  NumCommits: number;
+  NumFiles: number;
+  NumOriginatingBlobs: number;
+  NumProjects: number;
+};
+
+export enum MongoLanguage {
+  IPython = 'ipy',
+  Ruby = 'Ruby',
+  TypeScript = 'TypeScript',
+  SQL = 'Sql',
+  Swift = 'Swift',
+  Cobol = 'Cobol',
+  OCaml = 'OCaml',
+  Kotlin = 'Kotlin',
+  Ada = 'Ada',
+  Erlang = 'Erlang',
+  Perl = 'Perl',
+  Julia = 'Julia',
+  FML = 'fml',
+  Basic = 'Basic',
+  Dart = 'Dart',
+  C_CPP = 'C/C++',
+  Lisp = 'Lisp',
+  Java = 'Java',
+  JavaScript = 'JavaScript',
+  Other = 'other',
+  Python = 'Python',
+  Clojure = 'Clojure',
+  Rust = 'Rust',
+  PHP = 'PHP',
+  R = 'R',
+  Go = 'Go',
+  Fortran = 'Fortran',
+  Lua = 'Lua',
+  Scala = 'Scala'
+}
+
+export type MongoProject = {
+  CommunitySize: number;
+  Core: Record<string, unknown>;
+  EarliestCommitDate: number;
+  FileInfo: Record<MongoLanguage, number>;
+  LatestCommitDate: number;
+  MonNauth: Record<string, number>;
+  MonNcm: Record<string, number>;
+  NumActiveMon: number;
+  NumAuthors: number;
+  NumBlobs: number;
+  NumCommits: number;
+  NumCore: number;
+  NumFiles: number;
+  NumForks: number;
+  NumProjects: number;
+  ProjectID: string;
+};
 
 export function getAuthor(author: string) {
   return request<MongoAuthor>(`/mongo/author/${author}`);

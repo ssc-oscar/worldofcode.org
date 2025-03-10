@@ -1,9 +1,37 @@
-import type { LookupCommit, LookupTree } from '@/api/models.ts';
-import { useQuery } from '@tanstack/react-query';
 import { request } from './request.ts';
 
-export type ValueCommitRoot = [string, number];
-export type ValueFirstAuthor = [string, string, string];
+export type ObjectName = 'blob' | 'commit' | 'tree';
+
+type LookupGitObject = {
+  hash: string;
+};
+type LookupNamedObject = {
+  name: string;
+};
+
+export type LookupCommit = LookupGitObject & {
+  tree: string;
+  parent: string;
+  author: string;
+  authored_at: Date;
+  committer: string;
+  committed_at: Date;
+  message: string;
+};
+
+export type LookupAuthor = LookupNamedObject & {
+  author_name: string;
+  email: string;
+};
+
+export type LookupFile = LookupGitObject &
+  LookupNamedObject & {
+    mode: string;
+  };
+
+export type LookupTree = LookupFile & {
+  entries: Array<LookupFile | LookupTree> | undefined;
+};
 
 export const getCommit = async (key: string): Promise<LookupCommit> => {
   const [
@@ -27,22 +55,8 @@ export const getCommit = async (key: string): Promise<LookupCommit> => {
   };
 };
 
-export const useGetCommit = (key: string) =>
-  useQuery({
-    queryKey: ['commit', key],
-    queryFn: async () => getCommit(key),
-    enabled: !!key
-  });
-
 export const getBlob = async (key: string): Promise<string> =>
   await request<string>(`/lookup/object/blob/${key}`, 'GET');
-
-export const useGetBlob = (key: string) =>
-  useQuery({
-    queryKey: ['blob', key],
-    queryFn: async () => getBlob(key),
-    enabled: !!key
-  });
 
 type RawTreeEntry = Array<[string, string, string | RawTreeEntry]>;
 const decodeTreeEntry = (
@@ -89,32 +103,12 @@ export const getTree = async (
   return decodeTreeEntry('', key, resp);
 };
 
-export const useGetTree = (key: string, traverse: boolean) =>
-  useQuery({
-    queryKey: ['tree', key, traverse],
-    queryFn: async () => getTree(key, traverse),
-    enabled: !!key
-  });
-
 export const getValue = async (map: string, key: string): Promise<unknown> => {
   const resp = await request<string>(`/lookup/map/${map}/${key}`, 'GET');
   return resp;
 };
 
-export const useGetValue = (map: string, key: string) =>
-  useQuery({
-    queryKey: ['value', map, key],
-    queryFn: async () => getValue(map, key),
-    enabled: !!map && !!key
-  });
-
 export const getMapNames = async (): Promise<string[]> => {
   const resp = await request<string[]>('/lookup/map', 'GET');
   return resp;
 };
-
-export const useMapNames = () =>
-  useQuery({
-    queryKey: ['map-names'],
-    queryFn: getMapNames
-  });
