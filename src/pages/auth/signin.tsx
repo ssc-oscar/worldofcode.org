@@ -1,8 +1,7 @@
 import Logo from '@/components/logo';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -37,7 +36,7 @@ export function UserAuthForm() {
     resolver: zodResolver(formSchema),
     defaultValues
   });
-  const [token, setToken] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const onSubmit = async (data: UserFormValue) => {
     console.log('data', data);
@@ -46,16 +45,24 @@ export function UserAuthForm() {
 
   const { toast } = useToast();
 
-  const redirectHandler = (provider: string) => {
+  const onOauthRedirect = (provider: string) => {
     if (loading) return;
-    if (!token)
+    if (!turnstileToken)
       return toast({
         title: 'Error',
-        description: 'Please complete the captcha'
+        description: 'Please verify you are not a robot',
+        variant: 'destructive',
+        action: (
+          <ToastAction
+            altText="Reload"
+            onClick={() => window.location.reload()}
+          >
+            Reload page
+          </ToastAction>
+        )
       });
-    router.push(
-      `${BASE_URL}/auth/${provider}/login?cf_turnstile_response=${token}`
-    );
+    // redirect
+    window.location.href = `${BASE_URL}/auth/${provider}/login?cf_turnstile_response=${turnstileToken}`;
   };
 
   return (
@@ -103,7 +110,7 @@ export function UserAuthForm() {
           disabled={loading}
           className="ml-auto w-full bg-slate-700"
           type="submit"
-          onClick={() => router.push(`${BASE_URL}/auth/github/login`)}
+          onClick={() => onOauthRedirect('github')}
         >
           <span className="flex items-center justify-center gap-2 text-center">
             <div className="i-simple-icons:github h-4" />
@@ -114,15 +121,18 @@ export function UserAuthForm() {
           disabled={loading}
           className="ml-auto w-full bg-slate-500"
           type="submit"
-          onClick={() => router.push(`${BASE_URL}/auth/microsoft/login`)}
+          onClick={() => onOauthRedirect('microsoft')}
         >
           <span className="flex items-center justify-center gap-2 text-center">
             <div className="i-simple-icons:microsoft h-4" />
             Microsoft
           </span>
         </Button>
-        <div className="flex items-center justify-center pt-4">
-          <Turnstile siteKey={TURNSTILE_SITE_ID} onSuccess={setToken} />
+        <div className="flex h-[65px] items-center justify-center pt-4">
+          <Turnstile
+            siteKey={TURNSTILE_SITE_ID}
+            onSuccess={setTurnstileToken}
+          />
         </div>
       </div>
     </>
