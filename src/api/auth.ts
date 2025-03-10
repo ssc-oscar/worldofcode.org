@@ -87,3 +87,12 @@ export const createToken = async () =>
  */
 export const revokeToken = async (token_id: string) =>
   await request<void>(`/auth/token/${token_id}`, 'DELETE');
+
+export const sendVerificationEmail = async (
+  email: string,
+  cf_turnstile_response: string
+) =>
+  await request<void>(`/auth/email/login`, 'GET', {
+    email,
+    cf_turnstile_response
+  });

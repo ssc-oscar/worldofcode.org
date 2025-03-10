@@ -19,6 +19,7 @@ import { useForm } from 'react-hook-form';
 import { BASE_URL, TURNSTILE_SITE_ID } from '@/config';
 import * as z from 'zod';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { sendVerificationEmail } from '@/api/auth';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' })
@@ -39,8 +40,8 @@ export function UserAuthForm() {
   const [turnstileToken, setTurnstileToken] = useState('');
 
   const onSubmit = async (data: UserFormValue) => {
-    console.log('data', data);
-    router.push('/');
+    sendVerificationEmail(data.email, turnstileToken);
+    console.log(data);
   };
 
   const { toast } = useToast();
