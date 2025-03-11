@@ -1,109 +1,115 @@
 import Logo from '@/components/logo';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter } from '@/hooks/use-router';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useEffect, useState, useRef } from 'react';
 import { BASE_URL, TURNSTILE_SITE_ID } from '@/config';
-import * as z from 'zod';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { sendVerificationEmail } from '@/api/auth';
+import { parseError } from '@/lib/error';
 
-const formSchema = z.object({
-  email: z.string().email({ message: 'Enter a valid email address' })
-});
-
-type UserFormValue = z.infer<typeof formSchema>;
-
-export function UserAuthForm() {
-  const router = useRouter();
-  const [loading] = useState(false);
-  const defaultValues = {
-    email: ''
-  };
-  const form = useForm<UserFormValue>({
-    resolver: zodResolver(formSchema),
-    defaultValues
-  });
+export function UserAuthForm({
+  setEmailSent
+}: {
+  setEmailSent?: (value: boolean) => void;
+}) {
+  const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
 
-  const onSubmit = async (data: UserFormValue) => {
-    sendVerificationEmail(data.email, turnstileToken);
-    console.log(data);
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm();
+  useEffect(() => {
+    if (errors.email) {
+      toast({
+        title: 'Error',
+        description: String(errors.email.message),
+        variant: 'destructive'
+      });
+    }
+  }, [errors.email]);
 
-  const { toast } = useToast();
+  const onSubmit = handleSubmit(async (data) => {
+    if (loading) return;
+    if (!turnstileToken) {
+      setLoading(false);
+      toast({
+        title: 'Captcha Error',
+        description: 'Please verify you are not a robot',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      console.log('data', data);
+      await sendVerificationEmail(data.email, turnstileToken);
+    } catch (error) {
+      const err_obj = parseError(error);
+      toast(err_obj);
+      if (err_obj.description === 'reCAPTCHA validation failed.') {
+        console.log('resetting captcha');
+        // reset captcha
+        turnstileRef.current?.reset();
+      }
+    } finally {
+      setLoading(false);
+    }
+    // redirect
+    setEmailSent?.(true);
+  });
 
   const onOauthRedirect = (provider: string) => {
     if (loading) return;
-    if (!turnstileToken)
-      return toast({
-        title: 'Error',
+    if (!turnstileToken) {
+      setLoading(false);
+      toast({
+        title: 'Captcha Error',
         description: 'Please verify you are not a robot',
-        variant: 'destructive',
-        action: (
-          <ToastAction
-            altText="Reload"
-            onClick={() => window.location.reload()}
-          >
-            Reload page
-          </ToastAction>
-        )
+        variant: 'destructive'
       });
+      return;
+    }
     // redirect
+    setLoading(true);
     window.location.href = `${BASE_URL}/auth/${provider}/login?cf_turnstile_response=${turnstileToken}`;
   };
 
   return (
     <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full space-y-2"
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter your email..."
-                    disabled={loading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      <form onSubmit={onSubmit}>
+        <div className="w-full space-y-2">
+          <Input
+            {...register('email')}
+            type="email"
+            placeholder="Enter your email..."
+            disabled={loading}
+            required
           />
-
           <Button disabled={loading} className="ml-auto w-full" type="submit">
             Continue With Email
           </Button>
-        </form>
-      </Form>
+        </div>
+      </form>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">
-            Or continue with
-          </span>
+          {loading ? (
+            <span className="bg-background text-muted-foreground animate-pulse px-2">
+              Loading
+            </span>
+          ) : (
+            <span className="bg-background text-muted-foreground px-2">
+              Or continue with
+            </span>
+          )}
         </div>
       </div>
       <div className="flex-col space-y-4">
@@ -131,8 +137,10 @@ export function UserAuthForm() {
         </Button>
         <div className="flex h-[65px] items-center justify-center pt-4">
           <Turnstile
+            ref={turnstileRef}
             siteKey={TURNSTILE_SITE_ID}
             onSuccess={setTurnstileToken}
+            className="h-[65px] w-[300px]"
           />
         </div>
       </div>
@@ -141,6 +149,7 @@ export function UserAuthForm() {
 }
 
 export default function SignInPage() {
+  const [emailSent, setEmailSent] = useState(false);
   return (
     <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
@@ -169,36 +178,55 @@ export default function SignInPage() {
         </div>
       </div>
       <div className="flex h-full items-center p-4 lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Sign in or Sign up
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              We'll create one if you don't have an account.
+        {emailSent ? (
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+            <div className="flex flex-col items-center justify-center space-y-2 text-center">
+              <div className="i-line-md:email-check-twotone text-primary size-24" />
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Email Sent!
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                We've sent you a link to sign in. Please check your junk folder
+                if you don't see it in your inbox. Start over if you need to
+                resend the email.
+              </p>
+            </div>
+            <Button className="w-full" onClick={() => setEmailSent(false)}>
+              Start Over
+            </Button>
+          </div>
+        ) : (
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+            <div className="flex flex-col space-y-2 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Sign in or Sign up
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                We'll create one if you don't have an account.
+              </p>
+            </div>
+            <UserAuthForm setEmailSent={setEmailSent} />
+            <p className="text-muted-foreground px-8 text-center text-sm">
+              By clicking continue, you agree to our{' '}
+              <Link
+                to="/docs/#/terms"
+                className="hover:text-primary underline underline-offset-4"
+                target="_blank"
+              >
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/docs/#/license"
+                className="hover:text-primary underline underline-offset-4"
+                target="_blank"
+              >
+                License
+              </Link>
+              .
             </p>
           </div>
-          <UserAuthForm />
-          <p className="text-muted-foreground px-8 text-center text-sm">
-            By clicking continue, you agree to our{' '}
-            <Link
-              to="/docs/#/terms"
-              className="hover:text-primary underline underline-offset-4"
-              target="_blank"
-            >
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link
-              to="/docs/#/license"
-              className="hover:text-primary underline underline-offset-4"
-              target="_blank"
-            >
-              License
-            </Link>
-            .
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );

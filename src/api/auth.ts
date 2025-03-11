@@ -70,6 +70,9 @@ export type User = {
  */
 export const getUser = async () => await request<User>('/auth/user', 'GET');
 
+export const updateUser = async (name: string) =>
+  await request<User>('/auth/user', 'PUT', { name });
+
 /**
  * Get tokens belonging to the current user
  */
@@ -92,7 +95,8 @@ export const sendVerificationEmail = async (
   email: string,
   cf_turnstile_response: string
 ) =>
-  await request<void>(`/auth/email/login`, 'GET', {
-    email,
-    cf_turnstile_response
-  });
+  await request<void>(
+    '/auth/email/login',
+    'POST',
+    new URLSearchParams({ email, cf_turnstile_response })
+  );

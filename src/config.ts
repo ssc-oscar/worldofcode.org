@@ -1,8 +1,8 @@
 import type { HomePageItem, NavItem } from './types';
 
 /** Backend base url */
-export const BASE_URL =
-  (import.meta.env.VITE_BASE_URL as string) || 'http://localhost:8234';
+export const BASE_URL = '/api';
+// (import.meta.env.VITE_BASE_URL as string) || 'http://localhost:8234';
 
 /** Turnstile site id */
 export const TURNSTILE_SITE_ID =

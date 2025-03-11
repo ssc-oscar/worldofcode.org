@@ -13,27 +13,28 @@ import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { toast } from '@/hooks/use-toast';
+import { parseError } from '@/lib/error';
 import { AxiosError } from 'axios';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: async (error) => {
-      // try to get the error message from the response
-      let [msg, auxmsg] = [error.message, ''];
-      if (msg.length > 500) {
-        msg = msg.slice(0, 500) + '...';
-      }
+      // handle 401 Error
       if (error instanceof AxiosError) {
-        if (error.response?.data?.detail) {
-          auxmsg = error.response.data.detail;
-        } else if (error.response?.data) {
-          auxmsg = error.response.data;
+        console.log('error', error);
+        if (error.response?.status === 401) {
+          // cancel all queries
+          queryClient.cancelQueries();
+          // remove 'user' from cache
+          queryClient.resetQueries({
+            queryKey: ['user'],
+            exact: true
+          });
+          return;
         }
+        toast(parseError(error));
+        // throw error;
       }
-      if (auxmsg.length > 500) {
-        auxmsg = auxmsg.slice(0, 500) + '...';
-      }
-      toast({ title: msg, description: auxmsg });
     }
   }),
   defaultOptions: {
@@ -53,7 +54,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
       role="alert"
     >
       <h2 className="text-2xl font-semibold">
-        Ooops, something went wrong :({' '}
+        Ooops, something went wrong :{'( '}
       </h2>
       <pre className="text-2xl font-bold">{error.message}</pre>
       <pre>{error.stack}</pre>
