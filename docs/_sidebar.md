@@ -1,5 +1,6 @@
 - [Overview](README.md)
 - [Tutorial](tutorial.md)
+- [Terms of Service](terms.md)
 - [License](license.md)
 - [Fun Facts](crazy.md)
 - [Mappings and Objects](maps.md)
