@@ -5,16 +5,16 @@ import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import { useEffect } from 'react';
 import { useWindowSize } from 'react-use';
-import { useUser } from '@/hooks/use-user';
+import { useUserStore } from '@/hooks/use-user';
 import Icon from './icon';
 
 function UserAvatar() {
-  const { user } = useUser();
+  const { user } = useUserStore();
 
   if (user?.name) {
     return (
       <a href="/dashboard" className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
+        <div className="hover:transform-rotate-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 transition-transform ease-in-out">
           <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
             {user.name.charAt(0).toUpperCase()}
           </span>
@@ -24,10 +24,10 @@ function UserAvatar() {
   }
 
   return (
-    <a href="/auth/signin" className="ml-2">
-      <Button size="sm" className="h-7">
-        Login
-      </Button>
+    <a href="/auth/signin" className="flex items-center gap-2">
+      <div className="hover:transform-rotate-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 transition-transform ease-in-out">
+        <span className="i-line-md:login size-4 text-sm font-semibold text-gray-800 dark:text-gray-200"></span>
+      </div>
     </a>
   );
 }

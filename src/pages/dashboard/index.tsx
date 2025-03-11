@@ -13,22 +13,24 @@ import {
   TabsTrigger
 } from '@/components/ui/tabs.js';
 import RecentSales from './components/recent-sales.js';
-import { useUser } from '@/hooks/use-user';
-import { getUserTokens } from '@/api/auth';
-import { useQuery } from '@tanstack/react-query';
-import NavbarLayout from '@/layouts/navbar-layout.js';
+import { useUserStore } from '@/hooks/use-user';
+import WaveLayout from '@/layouts/wave-layout';
+import { useEffect, useState } from 'react';
+import { revokeToken, getUserTokens, type User, type Token } from '@/api/auth';
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, refreshUser } = useUserStore();
+  const [userTokens, setUserTokens] = useState<Token[]>([]);
 
-  const { data: tokens, isLoading: tokensIsLoading } = useQuery({
-    queryKey: ['tokens'],
-    queryFn: async () => getUserTokens(),
-    enabled: !!user
-  });
+  useEffect(() => {
+    refreshUser();
+  }, []);
+  useEffect(() => {
+    getUserTokens().then((data) => console.log(data));
+  }, []);
 
   return (
-    <NavbarLayout>
+    <WaveLayout>
       <div className="max-h-screen flex-1 space-y-4 overflow-y-auto p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">
@@ -168,6 +170,6 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </NavbarLayout>
+    </WaveLayout>
   );
 }

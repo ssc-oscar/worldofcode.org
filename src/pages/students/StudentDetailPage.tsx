@@ -72,7 +72,7 @@ export default function StudentDetailPage() {
           </Card>
         </div>
         {/* contact information  */}
-        <Card className="col-span-1 bg-secondary shadow-[rgba(50,50,93,0.25)_0px_6px_12px_-2px,_rgba(0,0,0,0.3)_0px_3px_7px_-3px] drop-shadow-sm lg:col-span-3">
+        <Card className="bg-secondary col-span-1 shadow-[rgba(50,50,93,0.25)_0px_6px_12px_-2px,_rgba(0,0,0,0.3)_0px_3px_7px_-3px] drop-shadow-sm lg:col-span-3">
           <CardHeader className="text-xl font-bold">
             Contact Information
           </CardHeader>

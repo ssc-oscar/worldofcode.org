@@ -140,6 +140,7 @@ export function UserAuthForm({
             ref={turnstileRef}
             siteKey={TURNSTILE_SITE_ID}
             onSuccess={setTurnstileToken}
+            onExpire={() => setTurnstileToken('')}
             className="h-[65px] w-[300px]"
           />
         </div>

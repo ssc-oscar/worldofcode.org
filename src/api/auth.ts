@@ -4,7 +4,7 @@ export type Token = {
   /**
    * token id like woc-{user.id}-{token.id}
    */
-  id: string;
+  _id: string;
 
   /**
    * user who owns the token
@@ -52,7 +52,7 @@ export type User = {
   /**
    * id is a short uuid like edF8BXKwqjzLdT4ECVRoMe
    */
-  id: string;
+  _id: string;
 
   /**
    * name is the user's full name. user can change it
