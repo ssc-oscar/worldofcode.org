@@ -17,6 +17,67 @@ import { useUserStore } from '@/hooks/use-user';
 import WaveLayout from '@/layouts/wave-layout';
 import { useEffect, useState } from 'react';
 import { revokeToken, getUserTokens, type User, type Token } from '@/api/auth';
+import { type IBrowser, type IOS, UAParser } from 'ua-parser-js';
+import { cn } from '@/lib/utils';
+
+function UAIcons({ uaString: uastring }: { uaString: string }) {
+  const [os, setOS] = useState<IOS | null>(null);
+  const [browser, setBrowser] = useState<IBrowser | null>(null);
+
+  useEffect(() => {
+    const ua = new UAParser(uastring);
+    setBrowser(ua.getBrowser());
+    setOS(ua.getOS());
+  }, []);
+
+  const getBrowserIconName = (browser: string) => {
+    if (browser.indexOf('Chrome') > -1) return 'i-simple-icons:googlechrome';
+    if (browser.indexOf('Firefox') > -1) return 'i-simple-icons:firefoxbrowser';
+    if (browser.indexOf('Safari') > -1) return 'i-simple-icons:safari';
+    if (browser.indexOf('Edge') > -1) return 'i-simple-icons:microsoftedge';
+    if (browser.indexOf('IE') > -1) return 'i-simple-icons:internetexplorer';
+    if (browser.indexOf('Opera') > -1) return 'i-simple-icons:opera';
+    if (browser.indexOf('Arc') > -1) return 'i-simple-icons:arc';
+    if (browser.indexOf('WeChat') > -1) return 'i-simple-icons:wechat';
+    return 'i-solar:question-square-line-duotone';
+  };
+
+  const getOSIconName = (os: string) => {
+    if (os.indexOf('Windows') > -1) return 'i-simple-icons:windows10';
+    if (os.indexOf('Android') > -1) return 'simple-icons:android';
+    if (os.indexOf('mac') > -1) return 'i-simple-icons:apple';
+    if (os.indexOf('Harmony') > -1) return 'simple-icons:huawei';
+    if (os.indexOf('Chrome') > -1) return 'i-simple-icons:googlechrome';
+    if (os.indexOf('iOS') > -1) return 'simple-icons:ios';
+    return 'i-simple-icons:linux';
+  };
+
+  const trimVersion = (version: string) => {
+    return version.split('.')[0];
+  };
+
+  return (
+    <div className="flex size-4 flex-row items-center gap-2">
+      {browser && browser.name && (
+        <div
+          className={cn(
+            getBrowserIconName(browser.version),
+            'h-4',
+            'w-4',
+            'color-primary'
+          )}
+        ></div>
+      )}
+      {browser && browser.version && (
+        <div className="size-4">{trimVersion(browser.version)}</div>
+      )}
+      {os && os.name && <div className={getOSIconName(os.name)}></div>}
+      {os && os.version && (
+        <div className="size-4">{trimVersion(os.version)}</div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user, refreshUser } = useUserStore();
@@ -26,7 +87,7 @@ export default function DashboardPage() {
     refreshUser();
   }, []);
   useEffect(() => {
-    getUserTokens().then((data) => console.log(data));
+    getUserTokens().then((data) => setUserTokens(data));
   }, []);
 
   return (
@@ -37,6 +98,13 @@ export default function DashboardPage() {
             Hi, {user?.name}! 👋
           </h2>
         </div>
+        <ul>
+          {userTokens.map((token) => (
+            <li key={token._id}>
+              <UAIcons uaString={token.user_agent} />
+            </li>
+          ))}
+        </ul>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
