@@ -35,6 +35,8 @@ export type Token = {
    * token type, like session, api, etc.
    */
   token_type?: string;
+
+  name?: string;
 };
 
 /**
@@ -82,11 +84,14 @@ export const getUserTokens = async (token_type?: 'session' | 'api' | null) =>
 /**
  * Create a new API token for the current user
  */
-export const createToken = async (cf_turnstile_response: string) =>
+export const createToken = async (
+  cf_turnstile_response: string,
+  name?: string
+) =>
   await request<Token>(
     '/auth/token',
     'POST',
-    new URLSearchParams({ cf_turnstile_response })
+    new URLSearchParams({ name, cf_turnstile_response })
   );
 
 /**

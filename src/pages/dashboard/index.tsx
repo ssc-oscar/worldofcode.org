@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/popover';
 import RecentSales from './components/recent-sales.js';
 import WaveLayout from '@/layouts/wave-layout';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   revokeToken,
   getUserTokens,
@@ -41,6 +41,10 @@ import { cn } from '@/lib/utils.js';
 import useSWR from 'swr';
 import { toast } from '@/hooks/use-toast.js';
 import { parseError } from '@/lib/error.js';
+import { Label } from '@/components/ui/label.js';
+import { Input } from '@/components/ui/input.js';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { TURNSTILE_SITE_ID } from '@/config.js';
 
 function UALabel({ userAgent }: { userAgent: string }) {
   const getBrowserIconName = (browser: string) => {
@@ -98,7 +102,7 @@ function TokenLabel({ token }: { token: Token }) {
   );
 }
 
-function TokenPopover({ onTerminate }) {
+function TokenPopover({ onDelete, variant = 'session' }) {
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -108,22 +112,31 @@ function TokenPopover({ onTerminate }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-60">
-        <CardTitle className="mb-1">Terminate Session</CardTitle>
-        <CardDescription>
-          The user on this session will be logged out immediately.
+        <CardTitle className="mb-2">
+          {variant == 'session' ? 'Terminate Session' : 'Revoke Key'}
+        </CardTitle>
+        <CardDescription className="mb-2">
+          {variant == 'session'
+            ? 'Users on this session will be logged out immediately.'
+            : 'This key will be revoked and can not be recovered.'}
         </CardDescription>
         <div className="mt-2 flex justify-between">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="px-5"
+          >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={() => {
               setOpen(false);
-              onTerminate();
+              onDelete();
             }}
+            className="px-5"
           >
-            Terminate
+            {variant == 'session' ? 'Terminate' : 'Revoke'}
           </Button>
         </div>
       </PopoverContent>
@@ -171,10 +184,10 @@ function SessionsPanel() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="">Expires</TableHead>
-          <TableHead>Device</TableHead>
-          <TableHead className="max-w-[100px]">IP Address</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="w-30">Device</TableHead>
+          <TableHead className="w-30">Expires</TableHead>
+          <TableHead className="w-40">IP Address</TableHead>
+          <TableHead className="w-[52px] text-center">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -182,23 +195,83 @@ function SessionsPanel() {
           sessionTokens.map((token) => {
             return (
               <TableRow key={token._id}>
-                <TableCell className="w-30 font-medium">
-                  {format(new Date(token.expires), 'MM-dd HH:mm:ss')}
-                </TableCell>
-                <TableCell className="w-30">
+                <TableCell className="w-30 max-w-30 truncate">
                   <UALabel userAgent={token.user_agent} />
                 </TableCell>
-                <TableCell className="w-30 max-w-40 truncate">
+                <TableCell className="w-30 max-w-30 truncate">
+                  {format(new Date(token.expires), 'MM-dd HH:mm:ss')}
+                </TableCell>
+                <TableCell className="w-40 max-w-40 truncate">
                   {token.request_ip}
                 </TableCell>
-                <TableCell className="w-6 text-right">
-                  <TokenPopover onTerminate={() => revokeSession(token._id)} />
+                <TableCell className="w-8 text-center">
+                  <TokenPopover onDelete={() => revokeSession(token._id)} />
                 </TableCell>
               </TableRow>
             );
           })}
       </TableBody>
+      {sessionTokens.length == 0 && (
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={4} className="h-[52px]">
+              😅No other sessions.
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      )}
     </Table>
+  );
+}
+
+function APIKeyCreatePopover({ onCreate }) {
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [name, setName] = useState('');
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="flex w-[80px] items-center gap-[2px]"
+        >
+          <div className="i-solar:add-square-bold-duotone mt-[2px] size-4" />
+          +1
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full">
+        <div className="flex flex-col gap-4">
+          <div className="flex w-full items-center">
+            <Label htmlFor="name" className="w-15">
+              Name
+            </Label>
+            <Input
+              id="name"
+              placeholder="Optional"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="flex h-[65px] w-[300px] items-center justify-center">
+            <Turnstile
+              siteKey={TURNSTILE_SITE_ID}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken('')}
+              className="h-[65px] w-[300px]"
+            />
+          </div>
+          <Button
+            className="w-[300px]"
+            onClick={async () => {
+              if (await onCreate(turnstileToken, name)) setOpen(false);
+            }}
+          >
+            Create API Key
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -224,36 +297,57 @@ function APIKeysPanel() {
     // Make the API call
     let oldTokens = APITokens;
     try {
-      mutate(
+      await mutate(
         APITokens.filter((session) => session._id !== tokenId),
         false // Don't revalidate immediately
       );
       await revokeToken(tokenId);
       // Revalidate to make sure our optimistic update was correct
-      mutate();
+      await mutate();
     } catch (error) {
       toast(parseError(error));
-      mutate(oldTokens);
+      await mutate(oldTokens);
     }
   };
-  const createAPIToken = async () => {
-    // Make the API call
-    let oldTokens = APITokens;
-    try {
-      await createToken();
-      mutate();
-    } catch (error) {
-      toast(parseError(error));
+  const createAPIToken = async (turnstileToken, name) => {
+    if (!turnstileToken) {
+      toast({
+        title: 'Captcha Error',
+        description: 'Please verify you are not a robot',
+        variant: 'destructive'
+      });
+      return false;
     }
+    await createToken(turnstileToken, name);
+    await mutate();
+    return true;
   };
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(
+      function () {
+        toast({
+          title: 'Copied',
+          description: 'API Key copied to clipboard'
+        });
+      },
+      function (err) {
+        toast({
+          title: 'Copy Error',
+          description: 'Failed to copy API Key to clipboard',
+          variant: 'destructive'
+        });
+      }
+    );
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="">Expires</TableHead>
-          <TableHead>Device</TableHead>
-          <TableHead className="max-w-[100px]">IP Address</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="w-30">Name</TableHead>
+          <TableHead className="w-30">Expires</TableHead>
+          <TableHead className="w-40">Key</TableHead>
+          <TableHead className="w-[52px] text-center">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -261,25 +355,39 @@ function APIKeysPanel() {
           APITokens.map((token) => {
             return (
               <TableRow key={token._id}>
-                <TableCell className="w-30 font-medium">
+                <TableCell className="w-30 max-w-30 truncate">
+                  {token.name ? token.name : 'Untitled'}
+                </TableCell>
+                <TableCell className="w-30 max-w-30 truncate">
                   {format(new Date(token.expires), 'MM-dd HH:mm:ss')}
                 </TableCell>
-                <TableCell className="w-30 max-w-30">
-                  <UALabel userAgent={token.user_agent} />
+                <TableCell className="w-40 max-w-40 truncate">
+                  {token._id.substring(0, 10) + '...'}
                 </TableCell>
-                <TableCell className="w-30 max-w-40 truncate">
-                  {token.request_ip}
-                </TableCell>
-                <TableCell className="w-6 text-right">
-                  <TokenPopover onTerminate={() => revokeAPIToken(token._id)} />
+                <TableCell className="flex gap-2 text-center">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => copyToClipboard(token._id)}
+                  >
+                    <div className="i-solar:copy-bold-duotone size-4" />
+                  </Button>
+                  <TokenPopover
+                    onDelete={() => revokeAPIToken(token._id)}
+                    variant="api"
+                  />
                 </TableCell>
               </TableRow>
             );
           })}
       </TableBody>
       <TableFooter>
-        <TableCell colSpan={3}>Need a new API Key?</TableCell>
-        <TableCell>+1</TableCell>
+        <TableRow>
+          <TableCell colSpan={3}>👉 Need a new API Key?</TableCell>
+          <TableCell className="w-8 text-center">
+            <APIKeyCreatePopover onCreate={createAPIToken} />
+          </TableCell>
+        </TableRow>
       </TableFooter>
     </Table>
   );
@@ -296,16 +404,16 @@ export default function DashboardPage() {
             Hi, {user?.name}! 👋
           </h2>
         </div>
-        <Tabs defaultValue="sessions" className="space-y-4">
+        <Tabs defaultValue="apikeys" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="apikeys">API Keys</TabsTrigger>
+            <TabsTrigger value="sessions">Other Sessions</TabsTrigger>
           </TabsList>
-          <TabsContent value="sessions" className="space-y-4">
-            <SessionsPanel />
-          </TabsContent>
           <TabsContent value="apikeys" className="space-y-4">
             <APIKeysPanel />
+          </TabsContent>
+          <TabsContent value="sessions" className="space-y-4">
+            <SessionsPanel />
           </TabsContent>
         </Tabs>
       </div>
