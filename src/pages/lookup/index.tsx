@@ -211,7 +211,11 @@ export function QueryTabs() {
 
   return (
     <div className="flex h-full flex-wrap items-center justify-center gap-5 p-5">
-      <Tabs defaultValue="getValues" className="w-[360px]">
+      <Tabs
+        defaultValue="getValues"
+        className="w-[360px]"
+        onValueChange={() => setMapSha('')}
+      >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="showCnt">showCnt</TabsTrigger>
           <TabsTrigger value="entity">showEnt</TabsTrigger>

@@ -8,6 +8,7 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCookie } from 'react-use';
 import {
   Table,
   TableBody,
@@ -31,11 +32,12 @@ import {
   getUserTokens,
   type User,
   type Token,
-  createToken
+  createToken,
+  updateUser
 } from '@/api/auth';
 import { UAParser } from 'ua-parser-js';
 import { UserContext } from '@/providers/user-provider.js';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { Button } from '@/components/ui/button.js';
 import { cn } from '@/lib/utils.js';
 import useSWR from 'swr';
@@ -45,6 +47,7 @@ import { Label } from '@/components/ui/label.js';
 import { Input } from '@/components/ui/input.js';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { TURNSTILE_SITE_ID } from '@/config.js';
+import useSWRMutation from 'swr/mutation';
 
 function UALabel({ userAgent }: { userAgent: string }) {
   const getBrowserIconName = (browser: string) => {
@@ -120,11 +123,11 @@ function TokenPopover({ onDelete, variant = 'session' }) {
             ? 'Users on this session will be logged out immediately.'
             : 'This key will be revoked and can not be recovered.'}
         </CardDescription>
-        <div className="mt-2 flex justify-between">
+        <div className="mt-2 flex justify-between gap-3">
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            className="px-5"
+            className="w-full"
           >
             Cancel
           </Button>
@@ -134,7 +137,7 @@ function TokenPopover({ onDelete, variant = 'session' }) {
               setOpen(false);
               onDelete();
             }}
-            className="px-5"
+            className="w-full"
           >
             {variant == 'session' ? 'Terminate' : 'Revoke'}
           </Button>
@@ -163,6 +166,8 @@ function SessionsPanel() {
     }
   );
 
+  const [tokenInCookie] = useCookie('token');
+
   const revokeSession = async (sessionId) => {
     // Make the API call
     let oldTokens = sessionTokens;
@@ -187,14 +192,19 @@ function SessionsPanel() {
           <TableHead className="w-30">Device</TableHead>
           <TableHead className="w-30">Expires</TableHead>
           <TableHead className="w-40">IP Address</TableHead>
-          <TableHead className="w-[52px] text-center">Actions</TableHead>
+          <TableHead className="w-24 text-center">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {sessionTokens &&
           sessionTokens.map((token) => {
             return (
-              <TableRow key={token._id}>
+              <TableRow
+                key={token._id}
+                className={
+                  tokenInCookie == token._id ? 'bg-green-1 dark:bg-green-7' : ''
+                }
+              >
                 <TableCell className="w-30 max-w-30 truncate">
                   <UALabel userAgent={token.user_agent} />
                 </TableCell>
@@ -205,7 +215,11 @@ function SessionsPanel() {
                   {token.request_ip}
                 </TableCell>
                 <TableCell className="w-8 text-center">
-                  <TokenPopover onDelete={() => revokeSession(token._id)} />
+                  {tokenInCookie == token._id ? (
+                    <div> Current </div>
+                  ) : (
+                    <TokenPopover onDelete={() => revokeSession(token._id)} />
+                  )}
                 </TableCell>
               </TableRow>
             );
@@ -236,8 +250,9 @@ function APIKeyCreatePopover({ onCreate }) {
           variant="outline"
           className="flex w-[80px] items-center gap-[2px]"
         >
-          <div className="i-solar:add-square-bold-duotone mt-[2px] size-4" />
-          +1
+          {/* <div className="i-solar:add-square-bold-duotone mt-[2px] size-4" />
+          +1 */}
+          Create
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full">
@@ -347,7 +362,7 @@ function APIKeysPanel() {
           <TableHead className="w-30">Name</TableHead>
           <TableHead className="w-30">Expires</TableHead>
           <TableHead className="w-40">Key</TableHead>
-          <TableHead className="w-[52px] text-center">Actions</TableHead>
+          <TableHead className="w-24 text-center">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -393,6 +408,102 @@ function APIKeysPanel() {
   );
 }
 
+function UserInfoArea() {
+  const { user, setUser } = useContext(UserContext);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [username, setUsername] = useState(user?.name || '');
+  const [openLogout, setOpenLogout] = useState(false);
+
+  const {
+    trigger: doUpdateUser,
+    isMutating,
+    data
+  } = useSWRMutation('/api/user', (url, { arg }: { arg: string }) =>
+    updateUser(arg)
+  );
+
+  const [tokenInCookie] = useCookie('token');
+
+  const { trigger: doLogout, isMutating: isLogoutMutating } = useSWRMutation(
+    '/api/user',
+    async (url, { arg }) => await revokeToken(tokenInCookie)
+  );
+
+  // set Username on mount
+  useEffect(() => {
+    setUsername(user?.name || '');
+  }, [user]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <Popover open={openEdit} onOpenChange={setOpenEdit}>
+        <PopoverTrigger asChild>
+          <Button variant="outline">
+            <div className="i-solar:pen-2-bold-duotone mr-1" />
+            Edit
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="flex w-60 flex-col gap-3 p-4">
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={isMutating}
+          />
+          <Button
+            onClick={async () => {
+              const r = await doUpdateUser(username);
+              setUser(r);
+              setUsername(r?.name || '');
+              setOpenEdit(false);
+            }}
+            className="px-5"
+            disabled={isMutating}
+          >
+            Submit
+          </Button>
+        </PopoverContent>
+      </Popover>
+      <Popover open={openLogout} onOpenChange={setOpenLogout}>
+        <PopoverTrigger asChild>
+          <Button>
+            <div className="i-solar:exit-bold-duotone mr-1" />
+            Logout
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="flex w-60 flex-col gap-3 p-4">
+          <CardTitle className="mb-2 text-center font-normal">
+            Are you sure to log out?
+          </CardTitle>
+          <div className="flex justify-between gap-3">
+            <Button
+              onClick={() => setOpenLogout(false)}
+              className="w-full"
+              disabled={isMutating}
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await doLogout();
+                // clean up the user
+                setUser(null);
+                // redirect to home page
+                window.location.href = '/';
+              }}
+              className="w-full"
+              disabled={isLogoutMutating}
+              variant="destructive"
+            >
+              Logout
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, setUser } = useContext(UserContext);
 
@@ -405,10 +516,13 @@ export default function DashboardPage() {
           </h2>
         </div>
         <Tabs defaultValue="apikeys" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="apikeys">API Keys</TabsTrigger>
-            <TabsTrigger value="sessions">Other Sessions</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="apikeys">API Keys</TabsTrigger>
+              <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            </TabsList>
+            <UserInfoArea />
+          </div>
           <TabsContent value="apikeys" className="space-y-4">
             <APIKeysPanel />
           </TabsContent>
