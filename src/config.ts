@@ -1,4 +1,55 @@
-import type { HomePageItem, NavItem } from './types';
+export interface HomePageItem {
+  /** Title of a home page tile */
+  title?: string;
+  /** Description of a home page tile. Unlike title, it is required. */
+  description: string;
+  /** The URL of the optional link. */
+  linkHref?: string;
+  /* By default, it is "learn more" */
+  linkText?: string;
+  /** Extra link attribute applied to the link */
+  linkClassName?: string;
+  /** Icon can be a emoji, an asset url, or a unocss icon className (e.g. i-fluent-emoji-flat:world-map) */
+  icon: string;
+  /** Extra className attribute applied to the icon */
+  iconClassName?: string;
+}
+
+export interface NavItem {
+  /** Title of a navbar item */
+  title: string;
+  /** Link of a navbar item */
+  href: string;
+  /** An attribute to disable a navbar item. This is reserved to display some buttons only to logged in users */
+  disabled?: boolean;
+  /** An attribute to open a link in a new tab by setting target=_blank */
+  external?: boolean;
+  /** Icon can be a emoji, an asset url, or a unocss icon className (e.g. i-fluent-emoji-flat:world-map) */
+  icon?: string;
+  /** Description text shown in the tooltip */
+  description?: string;
+}
+
+export interface NavItemWithChildren extends NavItem {
+  items: NavItemWithChildren[];
+}
+
+export interface NavItemWithOptionalChildren extends NavItem {
+  items?: NavItemWithChildren[];
+}
+
+export interface FooterItem {
+  title: string;
+  items: {
+    title: string;
+    href: string;
+    external?: boolean;
+  }[];
+}
+
+export type MainNavItem = NavItemWithOptionalChildren;
+
+export type SidebarNavItem = NavItemWithChildren;
 
 /** Backend base url */
 export const BASE_URL = '/api';
@@ -26,31 +77,31 @@ export const navItems: NavItem[] = [
     title: 'Docs',
     href: '/docs/',
     icon: 'i-material-symbols:book-5-rounded',
-    label: 'Docs'
+    description: 'Comprehensive World of Code Documentation Collection'
   },
   {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
-    label: 'Lookup'
+    description: 'An interactive playground for World of Code API'
   },
   {
     title: 'Sample',
     href: '/sample',
     icon: 'i-material-symbols:lab-research',
-    label: 'Sample'
+    description: 'Sample Projects, Authors and more'
   },
   {
     title: 'Explore',
     href: '/explore',
     icon: 'i-material-symbols:graph-3',
-    label: 'Explore'
+    description: 'Explore the World of Code with Graph Visualization'
   },
   {
     title: 'DevDash',
     href: '/devdash',
     icon: 'i-material-symbols:person-play-outline',
-    label: 'DevDash'
+    description: 'Developer Dashboard'
   }
   // {
   //   title: 'APIDoc',
@@ -107,4 +158,4 @@ export const homePageItems: HomePageItem[] = [
     linkHref: 'https://osslab-pku.org',
     linkText: 'Learn More'
   }
-];
+]; /** Items shown in the NavBar */

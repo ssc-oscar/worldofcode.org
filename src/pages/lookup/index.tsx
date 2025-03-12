@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WaveLayout from '@/layouts/wave-layout';
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+// import { useQuery } from '@tanstack/react-query';
 import {
   getMapNames,
   getValue,
@@ -34,10 +34,22 @@ import 'react18-json-view/src/style.css';
 import '@/styles/search-button.css';
 import { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { getProject, getAPI, getAuthor } from '@/api/mongo';
+import {
+  getProject,
+  getAPI,
+  getAuthor,
+  searchProject,
+  searchAuthor
+} from '@/api/mongo';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
 
 function getExampleSha(map: string) {
-  if (map.toLowerCase() == 'api') {
+  if (map === 'author_email') {
+    return 'audris@mockus.org';
+  } else if (map === 'author') {
+    return 'Audris Mockus';
+  } else if (map.toLowerCase() == 'api') {
     return 'C:ASIOCodec.h';
   } else if (map.startsWith('b') || map.startsWith('obb')) {
     return '05fe634ca4c8386349ac519f899145c75fff4169';
@@ -107,13 +119,18 @@ function RenderedResults({
 }
 
 export function QueryTabs() {
-  const useMapNames = () =>
-    useQuery({
-      queryKey: ['map-names'],
-      queryFn: getMapNames
-    });
+  // const useMapNames = () =>
+  //   useQuery({
+  //     queryKey: ['map-names'],
+  //     queryFn: getMapNames
+  //   });
 
-  const { data: mapNames, error: mapError, isLoading } = useMapNames();
+  // const { data: mapNames, error: mapError, isLoading } = useMapNames();
+  const {
+    data: mapNames,
+    error: mapError,
+    isLoading
+  } = useSWR('/map/names', getMapNames);
 
   const [mapName, setMapName] = useState<string>('');
   const [mapSha, setMapSha] = useState<string>('');
@@ -123,35 +140,68 @@ export function QueryTabs() {
     setDefaultMapSha(getExampleSha(mapName));
   }, [mapName]);
 
-  const useGetResults = (map: string, key: string) =>
-    useQuery({
-      queryKey: ['value', map, key],
-      queryFn: async () => {
-        if (map === 'api') {
-          return getAPI(key);
-        } else if (map === 'author') {
-          return getAuthor(key);
-        } else if (map === 'project') {
-          return getProject(key);
-        } else if (map === 'blob') {
-          return getBlob(key);
-        } else if (map === 'commit') {
-          return getCommit(key);
-        } else if (map === 'tree') {
-          return getTree(key, true);
-        } else {
-          return getValue(map, key);
-        }
-      },
-      enabled: false
-    });
+  // const useGetResults = (map: string, key: string) =>
+  //   useQuery({
+  //     queryKey: ['value', map, key],
+  //     queryFn: async () => {
+  //       if (map === 'api') {
+  //         return getAPI(key);
+  //       } else if (map === 'author') {
+  //         return getAuthor(key);
+  //       } else if (map === 'project') {
+  //         return getProject(key);
+  //       } else if (map === 'blob') {
+  //         return getBlob(key);
+  //       } else if (map === 'commit') {
+  //         return getCommit(key);
+  //       } else if (map === 'tree') {
+  //         return getTree(key, true);
+  //       } else {
+  //         return getValue(map, key);
+  //       }
+  //     },
+  //     enabled: false
+  //   });
+
+  // const {
+  //   data: queryData,
+  //   refetch: fetchData,
+  //   error: queryError,
+  //   isLoading: isQueryLoading
+  // } = useGetResults(mapName, mapSha || defaultMapSha);
+
+  const getQueryResults = async (map: string, key: string) => {
+    if (map === 'api') {
+      return getAPI(key);
+    } else if (map === 'author') {
+      return searchAuthor(key);
+    } else if (map === 'author_email') {
+      return searchAuthor(key, 10, 'email');
+    } else if (map === 'project') {
+      return searchProject(key);
+    } else if (map === 'blob') {
+      return getBlob(key);
+    } else if (map === 'commit') {
+      return getCommit(key);
+    } else if (map === 'tree') {
+      return getTree(key, true);
+    } else {
+      return getValue(map, key);
+    }
+  };
+
+  const useQueryResults = (mapName: string, mapSha: string) =>
+    useSWRMutation(`/lookup/${mapName}/${mapSha}`, () =>
+      getQueryResults(mapName, mapSha)
+    );
 
   const {
     data: queryData,
-    refetch: fetchData,
     error: queryError,
-    isLoading: isQueryLoading
-  } = useGetResults(mapName, mapSha || defaultMapSha);
+    isMutating: isQueryLoading,
+    trigger: fetchData
+  } = useQueryResults(mapName, mapSha || defaultMapSha);
+
   const doFetchData = async () => {
     if (!mapSha && defaultMapSha) {
       setMapSha(defaultMapSha);
@@ -279,7 +329,10 @@ export function QueryTabs() {
                       <SelectValue placeholder="Select an entity ..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="author">Author</SelectItem>
+                      <SelectItem value="author">Author (by Name)</SelectItem>
+                      <SelectItem value="author_email">
+                        Author (by Email)
+                      </SelectItem>
                       <SelectItem value="project">Project</SelectItem>
                       <SelectItem value="api">API</SelectItem>
                     </SelectContent>

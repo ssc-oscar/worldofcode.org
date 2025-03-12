@@ -181,6 +181,9 @@ importers:
       sonner:
         specifier: ^1.7.1
         version: 1.7.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      swr:
+        specifier: ^2.3.3
+        version: 2.3.3(react@19.0.0)
       tailwind-merge:
         specifier: ^2.5.5
         version: 2.5.5
@@ -209,6 +212,9 @@ importers:
       '@iconify-json/fluent-emoji-flat':
         specifier: ^1.2.2
         version: 1.2.2
+      '@iconify-json/iconoir':
+        specifier: ^1.2.7
+        version: 1.2.7
       '@iconify-json/line-md':
         specifier: ^1.2.5
         version: 1.2.5
@@ -1107,6 +1113,12 @@ packages:
     resolution:
       {
         integrity: sha512-kHNe9AwlhT578dPY9F/vf3QLQovB3OV7/L+25VlTtBc7NuexkICdm+SrHYYUkHYueCNkU+VI3exmwO2FZkvpuw==
+      }
+
+  '@iconify-json/iconoir@1.2.7':
+    resolution:
+      {
+        integrity: sha512-UDlx2WeWHqopfKRsjOta6fn/KkOhF0MmI2AxoYfakqtMLlznkTnrtY9QVuXZzsbvk+Gyavq2L39VjhcxGbt+LA==
       }
 
   '@iconify-json/line-md@1.2.5':
@@ -3099,6 +3111,13 @@ packages:
       }
     engines: { node: '>=0.4.0' }
 
+  dequal@2.0.3:
+    resolution:
+      {
+        integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==
+      }
+    engines: { node: '>=6' }
+
   destr@2.0.3:
     resolution:
       {
@@ -4771,6 +4790,14 @@ packages:
       }
     engines: { node: '>=8' }
 
+  swr@2.3.3:
+    resolution:
+      {
+        integrity: sha512-dshNvs3ExOqtZ6kJBaAsabhPdHyeY4P2cKwRCniDVifBMoG/SVI7tfLWqPXriVspf2Rg4tPzXJTnwaihIeFw2A==
+      }
+    peerDependencies:
+      react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   tailwind-merge@2.5.5:
     resolution:
       {
@@ -5616,6 +5643,10 @@ snapshots:
       '@iconify/types': 2.0.0
 
   '@iconify-json/fluent-emoji-flat@1.2.2':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/iconoir@1.2.7':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -7059,6 +7090,8 @@ snapshots:
 
   delayed-stream@1.0.0: {}
 
+  dequal@2.0.3: {}
+
   destr@2.0.3: {}
 
   detect-europe-js@0.1.2: {}
@@ -7998,6 +8031,12 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
+
+  swr@2.3.3(react@19.0.0):
+    dependencies:
+      dequal: 2.0.3
+      react: 19.0.0
+      use-sync-external-store: 1.4.0(react@19.0.0)
 
   tailwind-merge@2.5.5: {}
 

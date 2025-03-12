@@ -1,7 +1,7 @@
 'use client';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import { NavItem } from '@/types';
+import { NavItem } from '@/config';
 import { Dispatch, SetStateAction } from 'react';
 import { useSidebar } from '@/hooks/use-sidebar';
 import {
@@ -45,7 +45,7 @@ export default function DashboardNav({
                   <Link
                     to={item.disabled ? '/' : item.href}
                     className={cn(
-                      'flex items-center gap-2 overflow-hidden rounded-md py-2 text-sm font-medium hover:text-muted-foreground',
+                      'hover:text-muted-foreground flex items-center gap-2 overflow-hidden rounded-md py-2 text-sm font-medium',
                       path === item.href
                         ? 'bg-white text-black hover:text-black'
                         : 'transparent',

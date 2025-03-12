@@ -82,8 +82,12 @@ export const getUserTokens = async (token_type?: 'session' | 'api' | null) =>
 /**
  * Create a new API token for the current user
  */
-export const createToken = async () =>
-  await request<Token>('/auth/token', 'POST');
+export const createToken = async (cf_turnstile_response: string) =>
+  await request<Token>(
+    '/auth/token',
+    'POST',
+    new URLSearchParams({ cf_turnstile_response })
+  );
 
 /**
  * Revoke a token by its ID

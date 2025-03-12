@@ -82,9 +82,18 @@ export function getAuthor(author: string) {
   return request<MongoAuthor>(`/mongo/author/${author}`);
 }
 
-export function searchAuthor(author: string, limit: number = 10) {
+export function searchAuthor(
+  author: string,
+  limit: number = 10,
+  by: 'author' | 'email' = 'author'
+) {
+  if (by === 'email') {
+    return request<MongoAuthor[]>(
+      `/mongo/author/search?q=${author}&limit=${limit}&by=email`
+    );
+  }
   return request<MongoAuthor[]>(
-    `/mongo/author/search?author=${author}&limit=${limit}`
+    `/mongo/author/search?q=${author}&limit=${limit}`
   );
 }
 
@@ -103,7 +112,7 @@ export function getProject(project: string) {
 
 export function searchProject(project: string, limit: number = 10) {
   return request<MongoProject[]>(
-    `/mongo/project/search?project=${project}&limit=${limit}`
+    `/mongo/project/search?q=${project}&limit=${limit}`
   );
 }
 

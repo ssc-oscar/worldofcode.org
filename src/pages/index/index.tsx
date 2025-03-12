@@ -2,7 +2,7 @@ import WaveLayout from '@/layouts/wave-layout';
 import { cn } from '@/lib/utils';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { HomePageItem } from '@/types';
+import type { HomePageItem } from '@/config';
 import styles from './index.module.css';
 import { CITATION, homePageItems } from '@/config';
 import Icon from '@/components/icon';

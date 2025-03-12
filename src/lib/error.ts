@@ -2,13 +2,15 @@ import { AxiosError } from 'axios';
 import type { Toast } from '@/hooks/use-toast';
 
 export function parseError(error: Error): Toast {
-  console.error(error);
   let error_title = 'Error';
   let error_msg = 'Unknown error';
   if (error instanceof AxiosError) {
     error_title = error.message;
     if ('response' in error && error.response) {
-      if ('detail' in error.response.data) {
+      if (
+        error.response.data instanceof Object &&
+        'detail' in error.response.data
+      ) {
         // 422
         if (error.response.status === 422) {
           error_msg = error.response.data.detail
