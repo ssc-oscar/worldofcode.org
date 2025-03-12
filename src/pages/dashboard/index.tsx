@@ -201,9 +201,10 @@ function SessionsPanel() {
             return (
               <TableRow
                 key={token._id}
-                className={
+                className={cn(
+                  'h-[52px]',
                   tokenInCookie == token._id ? 'bg-green-1 dark:bg-green-7' : ''
-                }
+                )}
               >
                 <TableCell className="w-30 max-w-30 truncate">
                   <UALabel userAgent={token.user_agent} />

@@ -128,7 +128,7 @@ export const homePageItems: HomePageItem[] = [
     icon: 'i-fluent-emoji-flat:cat-with-wry-smile'
   },
   {
-    description: 'Next World of Code Hackathon: \n Nov 17-19, Knoxville, TN',
+    description: 'Next World of Code Hackathon: \n Late May - Early Jun (TBD)',
     icon: 'i-fluent-emoji-flat:calendar',
     linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2023',
     linkText: 'Register Now',

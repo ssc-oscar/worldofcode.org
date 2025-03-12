@@ -12,6 +12,7 @@ import { UserContext } from '@/providers/user-provider';
 import TooltipContainer from './tooltip-container';
 import Icon from './icon';
 import { AxiosError } from 'axios';
+import { useTheme } from '@/providers/theme-provider';
 
 const stripEndSlash = (str: string) => str.replace(/\/$/, '');
 
@@ -77,6 +78,8 @@ export default function NavBar({ items }: { items: NavItem[] }) {
   if (!items?.length) {
     return null;
   }
+
+  const { theme, setTheme } = useTheme();
 
   const { width } = useWindowSize();
 
@@ -144,6 +147,37 @@ export default function NavBar({ items }: { items: NavItem[] }) {
               >
                 <div className="i-simple-icons:github size-4" />
               </a>
+            </TooltipContainer>
+            <TooltipContainer tooltip="Toggle Theme">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() =>
+                  setTheme((theme) => {
+                    switch (theme) {
+                      case 'dark':
+                        return 'system';
+                      case 'light':
+                        return 'dark';
+                      case 'system':
+                        return 'light';
+                      default:
+                        return 'system';
+                    }
+                  })
+                }
+              >
+                {theme === 'dark' ? (
+                  <Icon icon="i-solar:moon-bold-duotone" className="size-4" />
+                ) : theme === 'light' ? (
+                  <Icon icon="i-solar:sun-2-bold-duotone" className="size-4" />
+                ) : (
+                  <Icon
+                    icon="i-solar:monitor-smartphone-bold-duotone"
+                    className="size-4"
+                  />
+                )}
+              </Button>
             </TooltipContainer>
             <TooltipContainer tooltip="User Settings">
               <UserAvatar />
