@@ -84,8 +84,9 @@ function WocLogoAndButtons() {
           <Button
             size="lg"
             onClick={() => console.log('clicked')}
-            className="hover:bg-slate-6 dark:bg-slate-2 bg-slate-500"
+            className="hover:bg-slate-6 dark:bg-slate-2 gap-1 bg-slate-500 px-6"
           >
+            <div className="i-solar:running-2-bold-duotone size-4.5" />
             Get Started
           </Button>
         </a>
@@ -93,14 +94,15 @@ function WocLogoAndButtons() {
           <Button
             size="lg"
             onClick={() => console.log('clicked')}
-            className="dark:bg-slate-3 bg-slate-700"
+            className="dark:bg-slate-3 hover:bg-slate-5 gap-1 bg-slate-700 px-6"
           >
+            <div className="i-solar:book-2-bold-duotone size-4.5" />
             Read the Docs
           </Button>
         </a>
         <Button
           size="lg"
-          className="dark:bg-slate-4 bg-slate-900"
+          className="dark:bg-slate-4 gap-1 bg-slate-900 px-6"
           onClick={() => {
             navigator.clipboard.writeText(CITATION).then(() => {
               console.log('copied');
@@ -111,6 +113,7 @@ function WocLogoAndButtons() {
             });
           }}
         >
+          <div className="i-solar:copyright-line-duotone size-4.5" />
           Cite the Paper
         </Button>
       </div>
