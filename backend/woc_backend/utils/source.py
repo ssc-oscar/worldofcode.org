@@ -1,6 +1,7 @@
 from fastapi import Request, Depends
 from typing import Optional, Dict, Tuple
 import ipaddress
+from urllib.parse import urlparse
 from ..config import settings
 
 def get_client_info(request: Request) -> Dict[str, str]:
@@ -16,10 +17,18 @@ def get_client_info(request: Request) -> Dict[str, str]:
     
     # Try to get the real client IP by checking common proxy headers
     ip = _extract_real_ip(request)
+
+    # read referrer from header
+    referrer = request.headers.get("Referer", "")
+    if referrer:
+        # only keep the scheme and netloc
+        _parsed = urlparse(referrer)
+        referrer = f"{_parsed.scheme}://{_parsed.netloc}"
     
     return {
         "request_ip": ip,
-        "user_agent": user_agent
+        "user_agent": user_agent,
+        "referrer": referrer
     }
 
 def _extract_real_ip(request: Request) -> str:
@@ -90,6 +99,9 @@ def get_base_url(request: Request) -> Dict[str, str]:
     """
     Extract the base URL from the request, handling proxy headers.
     """
+    if settings.get("base_url"):
+        return settings.base_url
+    
     # Get the original scheme determined by FastAPI
     scheme = request.url.scheme
     

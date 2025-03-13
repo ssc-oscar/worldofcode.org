@@ -1,8 +1,10 @@
 import argparse
 import uvicorn
+import shortuuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from loguru import logger
 from woc.local import WocMapsLocal
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -22,7 +24,7 @@ from .utils.cache import TTLCache
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # init woc
-    app.state.woc = WocMapsLocal(on_large='ignore')
+    app.state.woc = WocMapsLocal(on_large="ignore")
     # init mongo
     app.state.mongo_client = AsyncIOMotorClient(settings.mongo.url)
     await init_beanie(
@@ -39,16 +41,27 @@ async def lifespan(app: FastAPI):
     # close clickhouse
     app.state.ch_client.disconnect()
 
+
 app = FastAPI(title="woc-backend", version="0.1.0", lifespan=lifespan)
 
-@app.middleware("http")
-async def add_cors_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    return response
+# # SESSION
+# app.add_middleware(SessionMiddleware, secret_key=settings.auth.get("session_secret", shortuuid.uuid()))
+# CORS
+if settings.cors.get("enabled", False):
+
+    @app.middleware("http")
+    async def add_cors_headers(request, call_next):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = ",".join(
+            settings.cors.get("origins", ["*"])
+        )
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET, POST, PUT, DELETE, OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response
+
 
 app.include_router(lookup_api, prefix="/lookup")
 app.include_router(mongo_api, prefix="/mongo")
@@ -75,4 +88,6 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         reload=args.reload,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
     )

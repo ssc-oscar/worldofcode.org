@@ -13,8 +13,6 @@ async def send_email(
     text: Optional[str] = None,
     html: Optional[str] = None
 ):
-    if not (settings.smtp.host and settings.smtp.username and settings.smtp.password and settings.smtp.email):
-        raise ValueError("SMTP settings are not configured: check smtp.host, smtp.username, smtp.password, and smtp.email")
 
     # If both text and html are provided, use MIMEMultipart
     if text and html:

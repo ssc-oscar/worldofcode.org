@@ -2,6 +2,9 @@ dynaconf_merge = true
 cache_path = "./cache/"
 log_level = "info"
 web_url = "https://woc-preview.osslab-pku.org/"
+# cookie_domain = ".osslab-pku.org"
+# base_url = "http://localhost:4000/api"
+base_url = "/api"
 
 [limit]
 batch_items = 10
@@ -32,10 +35,15 @@ site_secret = "set in .secrets.toml"
 turnstile_secret = "set in .secrets.toml"
 
 [auth]
+session_secret = "set in .secrets.toml"
 session_ttl = 86400
 api_ttl = 31622400
 code_ttl = 600
 cache_ttl = 100
+
+[cors]
+enabled = true
+origins = ["*"]
 
 [smtp]
 host = "set in .secrets.toml"

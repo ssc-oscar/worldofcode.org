@@ -48,7 +48,7 @@ async def validate_token_nullable(request: Request, token_header: HTTPAuthorizat
     if not token:
         return None
     # cache token, this is a frequent operation
-    cache: "TTLCache[str,Token]" = request.app.state.cache
+    cache: "TTLCache[str,Token]" = request.app.state.token_cache
     token_obj = cache.get(token)
     if token_obj is None:
         from ..auth.models import Token
@@ -78,7 +78,6 @@ async def validate_one_time_code(request: Request, state: Optional[str] = None, 
         state = form.get("state")
     if state is None:
         logger.warning(f"state is None: {client_info}")
-        logger.debug(f"Headers: {request.headers}, Cookies: {request.cookies}, Query: {request.query_params}, Body: {await request.body()}")
         raise HTTPException(status_code=400, detail="Code not found. Please check if the link is correct.")
     # check one_time_code
     from ..auth.models import OneTimeCode
