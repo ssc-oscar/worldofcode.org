@@ -91,7 +91,11 @@ export function UserAuthForm({
             disabled={loading}
             required
           />
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
+          <Button
+            disabled={loading}
+            className="dark:bg-slate-2 ml-auto w-full"
+            type="submit"
+          >
             Continue With Email
           </Button>
         </div>
@@ -115,7 +119,7 @@ export function UserAuthForm({
       <div className="flex-col space-y-4">
         <Button
           disabled={loading}
-          className="ml-auto w-full bg-slate-700"
+          className="dark:bg-slate-3 ml-auto w-full bg-slate-700"
           type="submit"
           onClick={() => onOauthRedirect('github')}
         >
@@ -126,7 +130,7 @@ export function UserAuthForm({
         </Button>
         <Button
           disabled={loading}
-          className="ml-auto w-full bg-slate-500"
+          className="dark:bg-slate-4 hover:dark:bg-slate-3 ml-auto w-full bg-slate-500 hover:bg-slate-600"
           type="submit"
           onClick={() => onOauthRedirect('microsoft')}
         >
@@ -153,8 +157,8 @@ export default function SignInPage() {
   const [emailSent, setEmailSent] = useState(false);
   return (
     <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
-        <div className="bg-primary dark:bg-secondary absolute inset-0" />
+      <div className="relative hidden h-full flex-col p-10 text-white lg:flex">
+        <div className="dark:bg-foreground/10 bg-primary absolute inset-0" />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link to="/">
             <Logo className="h-8 invert-[.9] hover:invert" />

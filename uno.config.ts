@@ -15,11 +15,10 @@ import { presetShadcn } from 'unocss-preset-shadcn';
 export default defineConfig({
   presets: [
     presetUno(),
-    presetAnimations(),
+    presetAnimations(), // @ts-ignore
     presetShadcn({
       color: 'slate',
-      // With default setting for SolidUI, you need to set the darkSelector option.
-      darkSelector: '[data-kb-theme="dark"]'
+      darkSelector: ':root[class~="dark"]'
     }),
     presetIcons({
       warn: true

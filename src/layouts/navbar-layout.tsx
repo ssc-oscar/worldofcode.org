@@ -12,7 +12,7 @@ export default function NavbarLayout({
     <NavBarBase>
       <main
         className={cn(
-          'bg-background px-auto relative flex max-w-7xl flex-1 flex-col',
+          'px-auto relative flex max-w-7xl flex-1 flex-col',
           'mx-auto items-center justify-center focus:outline-none',
           className
         )}

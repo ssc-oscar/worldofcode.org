@@ -15,7 +15,7 @@ export default function NavbarLayout({
       <main
         className={cn(
           'relative mx-auto flex max-w-7xl flex-1 flex-col items-center pb-5 md:pb-20',
-          'bg-background px-auto main-container justify-center focus:outline-none',
+          'px-auto main-container justify-center focus:outline-none',
           className
         )}
       >

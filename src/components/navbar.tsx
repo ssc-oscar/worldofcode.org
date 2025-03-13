@@ -66,7 +66,7 @@ function UserAvatar() {
   return (
     <a href="/auth/signin" className="flex items-center gap-2">
       <div className="hover:transform-rotate-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 transition-transform ease-in-out">
-        <span className="i-line-md:login size-4 text-sm font-semibold text-gray-800 dark:text-gray-200"></span>
+        <span className="i-line-md:login size-4 text-sm font-semibold text-gray-800"></span>
       </div>
     </a>
   );
@@ -84,13 +84,13 @@ export default function NavBar({ items }: { items: NavItem[] }) {
   const { width } = useWindowSize();
 
   return (
-    <nav className="supports-[backdrop-filter]:bg-background/60 fixed inset-x-0 top-0 z-50 bg-white shadow-sm backdrop-blur dark:bg-gray-950/90">
+    <nav className="supports-[backdrop-filter]:bg-background/60 fixed inset-x-0 top-0 z-50 bg-white shadow-sm backdrop-blur dark:bg-slate-900">
       <div className="mx-auto w-full max-w-7xl px-4">
         <div className="flex h-14 items-center justify-between">
           <a href="/" className="flex items-center">
             <Icon
               icon={width < 768 ? '/woc_mini.webp' : '/woc.webp'}
-              className="h-7"
+              className="h-7 hover:brightness-90 dark:invert"
             />
             <span className="sr-only">WoC</span>
           </a>
@@ -116,7 +116,7 @@ export default function NavBar({ items }: { items: NavItem[] }) {
                       href={item.href}
                       className={cn(
                         'hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 items-center justify-center gap-1 whitespace-nowrap rounded-md p-2 text-sm font-medium transition-colors hover:ease-in-out focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-                        'text-black dark:text-white'
+                        'text-foreground'
                       )}
                     >
                       {item.icon && (
@@ -132,7 +132,7 @@ export default function NavBar({ items }: { items: NavItem[] }) {
           <div className="flex items-center gap-2">
             <TooltipContainer tooltip="Follow us on Twitter!">
               <a
-                className="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+                className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
                 href="https://x.com/worldofcode_ssc"
                 target="_blank"
               >
@@ -141,7 +141,7 @@ export default function NavBar({ items }: { items: NavItem[] }) {
             </TooltipContainer>
             <TooltipContainer tooltip="GitHub Organization">
               <a
-                className="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+                className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
                 href="https://github.com/woc-hack/tutorial"
                 target="_blank"
               >
@@ -153,19 +153,15 @@ export default function NavBar({ items }: { items: NavItem[] }) {
                 variant="ghost"
                 size="icon"
                 onClick={() =>
-                  setTheme((theme) => {
-                    switch (theme) {
-                      case 'dark':
-                        return 'system';
-                      case 'light':
-                        return 'dark';
-                      case 'system':
-                        return 'light';
-                      default:
-                        return 'system';
-                    }
-                  })
+                  setTheme(
+                    theme === 'dark'
+                      ? 'system'
+                      : theme === 'system'
+                        ? 'light'
+                        : 'dark'
+                  )
                 }
+                className="text-foreground"
               >
                 {theme === 'dark' ? (
                   <Icon icon="i-solar:moon-bold-duotone" className="size-4" />

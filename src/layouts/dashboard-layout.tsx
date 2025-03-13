@@ -12,7 +12,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-secondary">
+    <div className="bg-secondary flex h-screen overflow-hidden">
       <MobileSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -29,7 +29,7 @@ export default function DashboardLayout({
           </button>
           <Header />
         </div>
-        <main className="relative mx-2 my-3 mr-2 flex-1 overflow-hidden rounded-xl bg-background focus:outline-none md:mx-0 md:my-4 md:mr-4">
+        <main className="relative mx-2 my-3 mr-2 flex-1 overflow-hidden rounded-xl focus:outline-none md:mx-0 md:my-4 md:mr-4">
           {children}
         </main>
       </div>

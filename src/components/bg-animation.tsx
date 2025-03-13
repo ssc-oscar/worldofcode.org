@@ -1,10 +1,16 @@
 import '@/styles/bg-animation.css';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/providers/theme-provider';
 
-export default function WaveBackground({ color = '#0f172a', className = '' }) {
+export default function WaveBackground({
+  color = '#0f172a',
+  darkColor = '#cbd5e1'
+}) {
+  const { resolvedTheme } = useTheme();
+  const resolvedColor = resolvedTheme === 'dark' ? darkColor : color;
   return (
     <>
-      <div className={cn('waves', className)}>
+      <div className="waves">
         <svg
           className="waves"
           xmlns="http://www.w3.org/2000/svg"
@@ -24,24 +30,24 @@ export default function WaveBackground({ color = '#0f172a', className = '' }) {
               xlinkHref="#gentle-wave"
               x="48"
               y="0"
-              fill={color}
+              fill={resolvedColor}
               opacity="0.7"
             />
             <use
               xlinkHref="#gentle-wave"
               x="48"
               y="3"
-              fill={color}
+              fill={resolvedColor}
               opacity="0.5"
             />
             <use
               xlinkHref="#gentle-wave"
               x="48"
               y="5"
-              fill={color}
+              fill={resolvedColor}
               opacity="0.3"
             />
-            <use xlinkHref="#gentle-wave" x="48" y="7" fill={color} />
+            <use xlinkHref="#gentle-wave" x="48" y="7" fill={resolvedColor} />
           </g>
         </svg>
       </div>

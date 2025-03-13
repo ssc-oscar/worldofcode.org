@@ -13,9 +13,11 @@ function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
       <div className="flex items-center justify-between">
         <div
           className={cn(
-            'flex size-9 items-center justify-center rounded-lg border-[2px] border-slate-200',
+            'dark:border-slate-5 flex size-9 items-center justify-center rounded-lg border-[2px] border-slate-200',
             'hover:rotate-10 transform duration-200 ease-in-out',
-            props.iconClassName ? props.iconClassName : 'bg-slate-100'
+            props.iconClassName
+              ? props.iconClassName
+              : 'dark:bg-slate-3 bg-slate-100'
           )}
         >
           <Icon
@@ -30,9 +32,11 @@ function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
     return (
       <div
         className={cn(
-          'flex size-9 items-center justify-center rounded-lg border-[2px] border-slate-200',
+          'dark:border-slate-5 flex size-9 items-center justify-center rounded-lg border-[2px] border-slate-200',
           'hover:rotate-10 transform duration-200 ease-in-out',
-          props.iconClassName ? props.iconClassName : 'bg-slate-100'
+          props.iconClassName
+            ? props.iconClassName
+            : 'dark:bg-slate-3 bg-slate-100'
         )}
       >
         <Icon
@@ -55,7 +59,7 @@ function HomePageCard({ ...props }: HomePageItem) {
     );
   }
   return (
-    <div className="bg-muted/50 text-card-foreground h-100% w-100% max-w-80 rounded-xl">
+    <div className="h-100% w-100% dark:bg-slate-8 max-w-80 rounded-xl bg-slate-50">
       <div className="h-100% flex flex-col justify-between gap-4 space-y-1.5 p-6">
         <HomePageCardHeader {...props} />
         <div className="text-1em text-wrap">
@@ -81,7 +85,7 @@ function WocLogoAndButtons() {
           <Button
             size="lg"
             onClick={() => console.log('clicked')}
-            className="bg-slate-500"
+            className="hover:bg-slate-6 dark:bg-slate-2 bg-slate-500"
           >
             Get Started
           </Button>
@@ -90,14 +94,14 @@ function WocLogoAndButtons() {
           <Button
             size="lg"
             onClick={() => console.log('clicked')}
-            className="bg-slate-700"
+            className="dark:bg-slate-3 bg-slate-700"
           >
             Read the Docs
           </Button>
         </a>
         <Button
           size="lg"
-          className="bg-slate-900"
+          className="dark:bg-slate-4 bg-slate-900"
           onClick={() => {
             navigator.clipboard.writeText(CITATION).then(() => {
               console.log('copied');

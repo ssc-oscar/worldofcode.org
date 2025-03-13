@@ -132,7 +132,7 @@ export const homePageItems: HomePageItem[] = [
     icon: 'i-fluent-emoji-flat:calendar',
     linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2023',
     linkText: 'Register Now',
-    linkClassName: 'bg-red-500 animate-pulse'
+    linkClassName: 'important:bg-red-500 animate-pulse'
   },
   {
     description: 'General World of Code Infrastructure Overview',

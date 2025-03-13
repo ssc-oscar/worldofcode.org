@@ -1,11 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/hooks/use-router';
-// import {
-//   QueryClient,
-//   QueryCache,
-//   QueryClientProvider
-// } from '@tanstack/react-query';
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Suspense } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
@@ -19,35 +13,6 @@ import { UserContextProvider } from './user-provider';
 import { Link, useLocation } from 'react-router-dom';
 import { ToastAction } from '@/components/ui/toast';
 
-// export const queryClient = new QueryClient({
-//   queryCache: new QueryCache({
-//     onError: async (error) => {
-//       // handle 401 Error
-//       if (error instanceof AxiosError) {
-//         console.log('error', error);
-//         if (error.response?.status === 401) {
-//           // cancel all queries
-//           queryClient.cancelQueries();
-//           // remove 'user' from cache
-//           queryClient.resetQueries({
-//             queryKey: ['user'],
-//             exact: true
-//           });
-//           return;
-//         }
-//         toast(parseError(error));
-//         // throw error;
-//       }
-//     }
-//   }),
-//   defaultOptions: {
-//     queries: {
-//       refetchOnWindowFocus: false,
-//       retry: false
-//     }
-//   }
-// });
-
 const ErrorFallback = ({ error }: FallbackProps) => {
   console.log('error', error);
   return (
@@ -56,21 +21,34 @@ const ErrorFallback = ({ error }: FallbackProps) => {
       role="alert"
     >
       <h2 className="text-2xl">Ooops, something went really wrong :{'( '}</h2>
-      <pre className="overflow-clip text-lg font-bold text-red-500">
-        {error.message}
-      </pre>
-      <pre className="text-sm text-red-500">{error.stack}</pre>
+      <code className="p-4">
+        <pre className="bg-slate-1 overflow-clip rounded-t-xl p-4 text-sm font-bold text-red-500">
+          {error.message}
+        </pre>
+        <pre className="bg-slate-2 rounded-b-xl p-4 text-sm text-red-500">
+          {error.stack}
+        </pre>
+      </code>
       <div className="flex-center flex justify-center gap-4">
-        <Button className="mt-4" onClick={() => (window.location.href = '/')}>
-          Return to Home
-        </Button>
+        <button
+          className="bg-slate-8 text-secondary hover:filter-contrast-80 rounded-lg px-4 py-2"
+          onClick={() => {
+            // clean cache
+            localStorage.clear();
+            sessionStorage.clear();
+            document.cookie = '';
+            window.location.reload();
+          }}
+        >
+          Clear Cache and Reload
+        </button>
         <a
           href="https://github.com/ssc-oscar/woc-frontend/issues/new"
           target="_blank"
         >
-          <Button className="mt-4" variant="outline">
+          <button className="bg-slate-6 text-secondary hover:filter-contrast-80 rounded-lg px-4 py-2">
             Submit an Issue
-          </Button>
+          </button>
         </a>
       </div>
     </div>
@@ -108,7 +86,7 @@ export default function AppProvider({
               revalidateOnFocus: false
             }}
           >
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
               <UserContextProvider>{children}</UserContextProvider>
               <Toaster />
             </ThemeProvider>

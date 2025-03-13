@@ -360,7 +360,7 @@ export function QueryTabs() {
           </Card>
         </TabsContent>
       </Tabs>
-      <Card className="h-[376px] w-[360px] overflow-auto bg-slate-50 p-2">
+      <Card className="bg-foreground/5 h-[376px] w-[360px] overflow-auto p-2">
         <RenderedResults
           map={mapName}
           loading={isQueryLoading}
