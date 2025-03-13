@@ -1,0 +1,35 @@
+@import 'react-querybuilder/dist/query-builder-layout.css';
+
+.dark .queryBuilder {
+  color-scheme: dark;
+}
+
+.queryBuilder .ruleGroup-addGroup + button.ruleGroup-cloneGroup,
+.queryBuilder .ruleGroup-addGroup + button.ruleGroup-lock,
+.queryBuilder .ruleGroup-addGroup + button.ruleGroup-remove {
+  margin-left: auto !important;
+}
+
+.queryBuilder .rule-operators + button.rule-cloneRule,
+.queryBuilder .rule-operators + button.rule-lock,
+.queryBuilder .rule-operators + button.rule-remove,
+.queryBuilder .rule-value + button.rule-cloneRule,
+.queryBuilder .rule-value + button.rule-lock,
+.queryBuilder .rule-value + button.rule-remove {
+  margin-left: auto !important;
+}
+
+.queryBuilder .ruleGroup .rule .rule-value:has(.rule-value-list-item) {
+  gap: 0;
+}
+
+.queryBuilder.queryBuilder-branches .rule::before,
+.queryBuilder.queryBuilder-branches .rule::after,
+.queryBuilder.queryBuilder-branches .ruleGroup .ruleGroup::before,
+.queryBuilder.queryBuilder-branches .ruleGroup .ruleGroup::after {
+  border-color: hsl(var(--input));
+}
+
+.queryBuilder.queryBuilder-branches .betweenRules::before {
+  border-color: hsl(var(--input));
+}

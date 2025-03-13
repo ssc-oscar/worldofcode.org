@@ -11,7 +11,7 @@ export type Path =
   | `/dashboard/components/recent-sales`
   | `/form`
   | `/lookup`
-  | `/sample/ch-table`;
+  | `/sample`;
 
 export type Params = {};
 

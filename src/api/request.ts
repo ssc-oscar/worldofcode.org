@@ -30,7 +30,8 @@ export async function request<T>(
   url: string,
   method?: string,
   data?: unknown,
-  headers?: AxiosHeaders
+  headers?: AxiosHeaders,
+  timeout?: number
 ): Promise<T> {
   let _token = localStorage.getItem('token');
   if (_token) {
@@ -45,7 +46,7 @@ export async function request<T>(
     baseURL: BASE_URL,
     params: data,
     headers: headers,
-    timeout: 10000
+    timeout: timeout || 10000
   });
   if (!('data' in response.data)) {
     throw Error(

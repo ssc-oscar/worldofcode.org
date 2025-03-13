@@ -102,7 +102,11 @@ export function sampleAuthor(
   limit: number = 10
 ) {
   return request<MongoAuthor[]>(
-    `/mongo/author/sample?limit=${limit}&${new URLSearchParams(filter).toString()}`
+    `/mongo/author/sample?limit=${limit}&filter=${JSON.stringify(filter)}`,
+    'GET',
+    undefined,
+    undefined,
+    30000
   );
 }
 
@@ -121,7 +125,11 @@ export function sampleProject(
   limit: number = 10
 ) {
   return request<MongoProject[]>(
-    `/mongo/project/sample?limit=${limit}&${new URLSearchParams(filter).toString()}`
+    `/mongo/project/sample?limit=${limit}&filter=${JSON.stringify(filter)}`,
+    'GET',
+    undefined,
+    undefined,
+    30000
   );
 }
 
@@ -135,6 +143,10 @@ export function searchAPI(api: string, limit: number = 10) {
 
 export function sampleAPI(filter: Record<string, string>, limit: number = 10) {
   return request<MongoAPI[]>(
-    `/mongo/api/sample?limit=${limit}&${new URLSearchParams(filter).toString()}`
+    `/mongo/api/sample?limit=${limit}&filter=${JSON.stringify(filter)}`,
+    'GET',
+    undefined,
+    undefined,
+    30000
   );
 }

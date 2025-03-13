@@ -3,9 +3,10 @@ import { cn } from '@/lib/utils';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { HomePageItem } from '@/config';
-import styles from './index.module.css';
 import { CITATION, homePageItems } from '@/config';
 import Icon from '@/components/icon';
+
+import '@/styles/gradient-text.css';
 
 function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
   if (props.title)
@@ -77,9 +78,7 @@ function WocLogoAndButtons() {
   const { toast } = useToast();
   return (
     <>
-      <h1 className={cn('z-1 text-6xl font-bold', styles.gradientText)}>
-        World of Code
-      </h1>
+      <h1 className="z-1 gradient-text text-6xl font-bold">World of Code</h1>
       <div className="z-1 mb-6 flex flex-wrap items-center justify-center gap-6">
         <a href="docs/#/tutorial" target="_blank">
           <Button
