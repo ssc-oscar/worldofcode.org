@@ -9,6 +9,8 @@ export type Path =
   | `/dashboard`
   | `/dashboard/components/overview`
   | `/dashboard/components/recent-sales`
+  | `/devdash`
+  | `/explore`
   | `/form`
   | `/lookup`
   | `/sample`;
