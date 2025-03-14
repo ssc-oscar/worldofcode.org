@@ -78,7 +78,9 @@ function WocLogoAndButtons() {
   const { toast } = useToast();
   return (
     <>
-      <h1 className="z-1 gradient-text text-6xl font-bold">World of Code</h1>
+      <h1 className="z-1 gradient-text text-center text-6xl font-bold">
+        World of Code
+      </h1>
       <div className="z-1 mb-6 flex flex-wrap items-center justify-center gap-6">
         <a href="docs/#/tutorial" target="_blank">
           <Button

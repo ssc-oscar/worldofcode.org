@@ -106,7 +106,7 @@ export function sampleAuthor(
     'GET',
     undefined,
     undefined,
-    30000
+    60000
   );
 }
 
@@ -129,7 +129,7 @@ export function sampleProject(
     'GET',
     undefined,
     undefined,
-    30000
+    60000
   );
 }
 
@@ -147,6 +147,6 @@ export function sampleAPI(filter: Record<string, string>, limit: number = 10) {
     'GET',
     undefined,
     undefined,
-    30000
+    60000
   );
 }

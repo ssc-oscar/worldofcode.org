@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
   getFirstOption,
+  parseNumber,
   standardClassnames,
   useValueEditor
 } from 'react-querybuilder';
@@ -202,7 +203,12 @@ export const ShadcnUiValueEditor = (allProps: ShadcnUiValueEditorProps) => {
       disabled={disabled}
       className={className}
       placeholder={placeHolderText}
-      onChange={(e) => handleOnChange(e.target.value)}
+      onChange={(e) => {
+        console.log(title, e.target.value);
+        let v: string | number = e.target.value;
+        if (inputTypeCoerced === 'number') v = parseNumber(e.target.value);
+        handleOnChange(v);
+      }}
       {...extraProps}
     />
   );

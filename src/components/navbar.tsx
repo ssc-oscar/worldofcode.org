@@ -130,24 +130,28 @@ export default function NavBar({ items }: { items: NavItem[] }) {
             })}
           </nav>
           <div className="flex items-center gap-2">
-            <TooltipContainer tooltip="Follow us on Twitter!">
-              <a
-                className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-                href="https://x.com/worldofcode_ssc"
-                target="_blank"
-              >
-                <div className="i-simple-icons:x size-4" />
-              </a>
-            </TooltipContainer>
-            <TooltipContainer tooltip="GitHub Organization">
-              <a
-                className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-                href="https://github.com/woc-hack/tutorial"
-                target="_blank"
-              >
-                <div className="i-simple-icons:github size-4" />
-              </a>
-            </TooltipContainer>
+            {width >= 480 && (
+              <TooltipContainer tooltip="Follow us on Twitter!">
+                <a
+                  className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+                  href="https://x.com/worldofcode_ssc"
+                  target="_blank"
+                >
+                  <div className="i-simple-icons:x size-4" />
+                </a>
+              </TooltipContainer>
+            )}
+            {width >= 480 && (
+              <TooltipContainer tooltip="GitHub Organization">
+                <a
+                  className="hover:bg-accent hover:text-accent-foreground text-foreground focus-visible:ring-ring inline-flex h-8 w-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-0 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+                  href="https://github.com/woc-hack/tutorial"
+                  target="_blank"
+                >
+                  <div className="i-simple-icons:github size-4" />
+                </a>
+              </TooltipContainer>
+            )}
             <TooltipContainer tooltip="Toggle Theme">
               <Button
                 variant="ghost"

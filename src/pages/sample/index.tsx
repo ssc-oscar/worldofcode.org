@@ -24,7 +24,8 @@ import {
   type Field,
   defaultOperators,
   toFullOption,
-  formatQuery
+  formatQuery,
+  parseNumber
 } from 'react-querybuilder';
 import {
   MongoLanguage,
@@ -131,7 +132,7 @@ export default function SamplePage() {
     reset();
   }
 
-  function formatMongoQuery(query: RuleGroupType) {
+  function formatMongoQuery(query: RuleGroupType, fieldObject?: Field[]) {
     let rules = query.rules.map((rule) => {
       if ('field' in rule) {
         if (
@@ -140,6 +141,13 @@ export default function SamplePage() {
         ) {
           // parse date into timestamp
           return { ...rule, value: new Date(rule.value).getTime() / 1000 };
+        }
+        if (
+          fieldObject &&
+          fieldObject.filter((f) => f.name == rule.field)[0].inputType ==
+            'number'
+        ) {
+          return { ...rule, value: parseFloat(rule.value) };
         }
       }
       return rule;
@@ -234,7 +242,7 @@ export default function SamplePage() {
                   query={query}
                   onQueryChange={(newQuery) => {
                     setQuery(newQuery);
-                    setMongoQueryObj(formatMongoQuery(newQuery));
+                    setMongoQueryObj(formatMongoQuery(newQuery, authorFields));
                   }}
                   disabled={isMutating}
                 />
@@ -258,9 +266,8 @@ export default function SamplePage() {
                   fields={projectFields}
                   query={query}
                   onQueryChange={(newQuery) => {
-                    console.log(newQuery);
                     setQuery(newQuery);
-                    setMongoQueryObj(formatMongoQuery(newQuery));
+                    setMongoQueryObj(formatMongoQuery(newQuery, projectFields));
                   }}
                 />
               </QueryBuilderShadcnUi>
