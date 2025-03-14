@@ -3,16 +3,30 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Pie, type PieConfig } from '@ant-design/charts';
 
-function DemoPie(props: Partial<PieConfig>) {
+function DemoPie(props: Partial<PieConfig> = {}) {
+  let fileInfoData = {
+    Perl: 31,
+    Rust: 67,
+    Java: 1,
+    other: 13784,
+    'C/C++': 1278,
+    Ruby: 123,
+    JavaScript: 1343,
+    Python: 189,
+    Go: 30587
+  };
+  let values = Object.entries(fileInfoData).map(([name, value]) => ({
+    name,
+    value
+  }));
+  values.sort((a, b) => b.value - a.value);
   let defaultConfig = {
     data: {
-      type: 'fetch',
-      value:
-        'https://render.alipay.com/p/yuyan/180020010001215413/antd-charts/pie-doughnut.json'
+      value: values
     },
     angleField: 'value',
     colorField: 'name',
-    legend: false,
+    legend: true,
     innerRadius: 0.6,
     labels: [
       { text: 'name', style: { fontSize: 10, fontWeight: 'bold' } },
@@ -36,22 +50,14 @@ function DemoPie(props: Partial<PieConfig>) {
       }
     }
   };
-  return (
-    <Pie
-      {...{ ...defaultConfig, ...props }}
-      onRender={() => {
-        const container = document.getElementById('container');
-        if (container) createRoot(container).render(this);
-      }}
-    />
-  );
+  return <Pie {...defaultConfig} {...props} />;
 }
 
 export default function DashboardPage() {
   return (
     <WaveLayout>
       <div id="container">
-        <DemoPie data={{}} />
+        <DemoPie />
       </div>
     </WaveLayout>
   );

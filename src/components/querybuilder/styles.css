@@ -33,3 +33,7 @@
 .queryBuilder.queryBuilder-branches .betweenRules::before {
   border-color: hsl(var(--input));
 }
+
+.queryBuilder .ruleGroup-body {
+  overflow: scroll;
+}

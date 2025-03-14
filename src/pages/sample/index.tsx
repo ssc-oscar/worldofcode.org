@@ -48,6 +48,7 @@ import {
 import { authorFields, projectFields } from './fields';
 import useSWRMutation from 'swr/mutation';
 import { format } from 'date-fns';
+import { useWindowSize } from 'react-use';
 
 // const QueryBuilderPanel = ({
 //   fields,
@@ -122,18 +123,9 @@ export default function SamplePage() {
     }
   }, [error]);
 
-  function onPaneChange(pane: string) {
-    setSelectedPane(pane);
-    setQuery({
-      combinator: 'and',
-      rules: []
-    });
-    setMongoQueryObj(formatMongoQuery({ combinator: 'and', rules: [] }));
-    reset();
-  }
-
   function formatMongoQuery(query: RuleGroupType, fieldObject?: Field[]) {
     let rules = query.rules.map((rule) => {
+      console.log(rule);
       if ('field' in rule) {
         if (
           rule.field === 'EarliestCommitDate' ||
@@ -141,6 +133,14 @@ export default function SamplePage() {
         ) {
           // parse date into timestamp
           return { ...rule, value: new Date(rule.value).getTime() / 1000 };
+        }
+        if (rule.field === 'FileInfo') {
+          return {
+            ...rule,
+            field: 'FileInfo.' + rule.value,
+            operator: '=',
+            value: { $exists: true }
+          };
         }
         if (
           fieldObject &&
@@ -167,13 +167,68 @@ export default function SamplePage() {
     downloadAnchorNode.remove();
   }
 
+  const { width } = useWindowSize();
+
+  const btns = (
+    <>
+      <Button
+        className="w-full gap-1"
+        onClick={() => {
+          setQuery({
+            combinator: 'and',
+            rules: []
+          });
+          setMongoQueryObj(formatMongoQuery({ combinator: 'and', rules: [] }));
+          reset();
+        }}
+        disabled={isMutating}
+      >
+        <div className="i-solar:restart-line-duotone size-4" />
+        Reset
+      </Button>
+      {!!queryResult ? (
+        <Button
+          className="bg-green-4 hover:bg-green-5 w-full gap-1 text-black"
+          onClick={() => {
+            downloadObjectAsJson(
+              queryResult,
+              `${selectedPane}_samples_${format(new Date(), 'yyMMdd_HHmmss')}`
+            );
+          }}
+        >
+          <div className="i-solar:download-bold-duotone size-4" />
+          Export
+        </Button>
+      ) : (
+        <Button
+          className="bg-yellow-4 hover:bg-yellow-5 w-full gap-1 text-black"
+          onClick={trigger}
+          disabled={isMutating}
+        >
+          <div className="i-solar:rocket-2-bold-duotone size-4" />
+          Execute
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <WaveLayout>
       <div className="flex h-full w-full flex-col items-center justify-center">
         <Tabs
           defaultValue="author"
-          className="w-150"
-          onValueChange={onPaneChange}
+          className="max-w-[min(98vw,600px)]"
+          onValueChange={(pane) => {
+            setSelectedPane(pane);
+            setQuery({
+              combinator: 'and',
+              rules: []
+            });
+            setMongoQueryObj(
+              formatMongoQuery({ combinator: 'and', rules: [] })
+            );
+            reset();
+          }}
         >
           <div className="flex items-center justify-between gap-4">
             <TabsList>
@@ -193,47 +248,14 @@ export default function SamplePage() {
                 <SelectItem value="10">10</SelectItem>
                 <SelectItem value="20">20</SelectItem>
                 <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              className="w-full gap-1"
-              onClick={() => {
-                setQuery({
-                  combinator: 'and',
-                  rules: []
-                });
-                reset();
-              }}
-              disabled={isMutating}
-            >
-              <div className="i-solar:restart-line-duotone size-4" />
-              Reset
-            </Button>
-            {/* {queryResult ? JSON.stringify(queryResult) : null} */}
-            {!!queryResult ? (
-              <Button
-                className="bg-green-4 hover:bg-green-5 w-full gap-1 text-black"
-                onClick={() => {
-                  downloadObjectAsJson(
-                    queryResult,
-                    `${selectedPane}_samples_${format(new Date(), 'yyMMdd_HHmmss')}`
-                  );
-                }}
-              >
-                <div className="i-solar:download-bold-duotone size-4" />
-                Export
-              </Button>
-            ) : (
-              <Button
-                className="bg-yellow-4 hover:bg-yellow-5 w-full gap-1 text-black"
-                onClick={trigger}
-                disabled={isMutating}
-              >
-                <div className="i-solar:rocket-2-bold-duotone size-4" />
-                Execute
-              </Button>
-            )}
+            {width > 600 && btns}
           </div>
+          {width <= 600 && (
+            <div className="mt-2 flex flex-col items-center gap-2">{btns}</div>
+          )}
           <TabsContent value="author">
             <div className="flex w-full flex-col gap-2">
               <QueryBuilderShadcnUi>

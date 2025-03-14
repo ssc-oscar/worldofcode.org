@@ -210,7 +210,7 @@ export function QueryTabs() {
   };
 
   return (
-    <div className="flex h-full flex-wrap items-center justify-center gap-5 p-5">
+    <div className="flex h-full flex-wrap items-center justify-center gap-5 p-3">
       <Tabs
         defaultValue="getValues"
         className="w-[360px]"

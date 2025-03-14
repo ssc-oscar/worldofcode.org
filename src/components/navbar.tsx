@@ -152,33 +152,38 @@ export default function NavBar({ items }: { items: NavItem[] }) {
                 </a>
               </TooltipContainer>
             )}
-            <TooltipContainer tooltip="Toggle Theme">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  setTheme(
-                    theme === 'dark'
-                      ? 'system'
-                      : theme === 'system'
-                        ? 'light'
-                        : 'dark'
-                  )
-                }
-                className="text-foreground"
-              >
-                {theme === 'dark' ? (
-                  <Icon icon="i-solar:moon-bold-duotone" className="size-4" />
-                ) : theme === 'light' ? (
-                  <Icon icon="i-solar:sun-2-bold-duotone" className="size-4" />
-                ) : (
-                  <Icon
-                    icon="i-solar:monitor-smartphone-bold-duotone"
-                    className="size-4"
-                  />
-                )}
-              </Button>
-            </TooltipContainer>
+            {width >= 480 && (
+              <TooltipContainer tooltip="Toggle Theme">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    setTheme(
+                      theme === 'dark'
+                        ? 'system'
+                        : theme === 'system'
+                          ? 'light'
+                          : 'dark'
+                    )
+                  }
+                  className="text-foreground"
+                >
+                  {theme === 'dark' ? (
+                    <Icon icon="i-solar:moon-bold-duotone" className="size-4" />
+                  ) : theme === 'light' ? (
+                    <Icon
+                      icon="i-solar:sun-2-bold-duotone"
+                      className="size-4"
+                    />
+                  ) : (
+                    <Icon
+                      icon="i-solar:monitor-smartphone-bold-duotone"
+                      className="size-4"
+                    />
+                  )}
+                </Button>
+              </TooltipContainer>
+            )}
             <TooltipContainer tooltip="User Settings">
               <UserAvatar />
             </TooltipContainer>
