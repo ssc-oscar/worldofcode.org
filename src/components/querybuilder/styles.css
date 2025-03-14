@@ -34,6 +34,8 @@
   border-color: hsl(var(--input));
 }
 
-.queryBuilder .ruleGroup-body {
-  overflow: scroll;
+@media screen and (max-width: 768px) {
+  .queryBuilder .ruleGroup-body {
+    overflow-y: scroll;
+  }
 }

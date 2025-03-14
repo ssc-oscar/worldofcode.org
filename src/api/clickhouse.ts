@@ -65,7 +65,13 @@ export enum ClickhouseLanguage {
 export const getClickhouseCommit = async (
   q: ClickhouseCommitQuery
 ): Promise<ClickhouseCommit> =>
-  await request<ClickhouseCommit>('/clickhouse/commit', 'GET', q);
+  await request<ClickhouseCommit>(
+    '/clickhouse/commits',
+    'GET',
+    q,
+    undefined,
+    30000
+  );
 
 export const getClickhouseCommitCount = async (
   q: ClickhouseCommitQuery

@@ -7,15 +7,16 @@ export type Path =
   | `///`
   | `/auth/signin`
   | `/dashboard`
-  | `/dashboard/components/overview`
-  | `/dashboard/components/recent-sales`
   | `/devdash`
+  | `/devdash/:slug`
   | `/explore`
   | `/form`
   | `/lookup`
   | `/sample`;
 
-export type Params = {};
+export type Params = {
+  '/devdash/:slug': { slug: string };
+};
 
 export type ModalPath = never;
 

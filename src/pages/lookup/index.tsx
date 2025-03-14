@@ -43,9 +43,14 @@ import {
 } from '@/api/mongo';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
+import { getClickhouseBlobDeps, getClickhouseCommit } from '@/api/clickhouse';
 
 function getExampleSha(map: string) {
-  if (map === 'author_email') {
+  if (map === 'deps_blob') {
+    return 'glib::object::Downcast';
+  } else if (map === 'commit_msg') {
+    return 'Bump axios from 0.16.2 to 0.18.1';
+  } else if (map === 'author_email') {
     return 'audris@mockus.org';
   } else if (map === 'author') {
     return 'Audris Mockus';
@@ -183,6 +188,10 @@ export function QueryTabs() {
       return getBlob(key);
     } else if (map === 'commit') {
       return getCommit(key);
+    } else if (map === 'commit_msg') {
+      return getClickhouseCommit({ comment: key });
+    } else if (map === 'deps_blob') {
+      return getClickhouseBlobDeps({ deps: key });
     } else if (map === 'tree') {
       return getTree(key, true);
     } else {
@@ -271,8 +280,11 @@ export function QueryTabs() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="current">
+                <Label htmlFor="current" className="flex items-center gap-1">
                   <div className="flex items-center gap-0.5 py-[5px]">Map</div>
+                  <a href="/docs/#/maps" target="_blank">
+                    <div className="i-solar:question-circle-broken size-4"></div>
+                  </a>
                 </Label>
                 <Select
                   disabled={isLoading || mapError != null}
@@ -336,6 +348,12 @@ export function QueryTabs() {
                       <SelectItem value="author">Author (by Name)</SelectItem>
                       <SelectItem value="author_email">
                         Author (by Email)
+                      </SelectItem>
+                      <SelectItem value="commit_msg">
+                        Commit (by Message)
+                      </SelectItem>
+                      <SelectItem value="deps_blob">
+                        Dependency References
                       </SelectItem>
                       <SelectItem value="project">Project</SelectItem>
                       <SelectItem value="api">API</SelectItem>
