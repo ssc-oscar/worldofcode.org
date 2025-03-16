@@ -8,15 +8,12 @@ export type Path =
   | `/auth/signin`
   | `/dashboard`
   | `/devdash`
-  | `/devdash/:slug`
   | `/explore`
   | `/form`
   | `/lookup`
   | `/sample`;
 
-export type Params = {
-  '/devdash/:slug': { slug: string };
-};
+export type Params = {};
 
 export type ModalPath = never;
 

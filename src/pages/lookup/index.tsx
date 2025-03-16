@@ -23,6 +23,13 @@ import WaveLayout from '@/layouts/wave-layout';
 import { useEffect, useState } from 'react';
 // import { useQuery } from '@tanstack/react-query';
 import {
+  InputBase,
+  InputBaseAdornment,
+  InputBaseAdornmentButton,
+  InputBaseControl,
+  InputBaseInput
+} from '@/components/ui/input-base';
+import {
   getMapNames,
   getValue,
   getCommit,
@@ -218,6 +225,28 @@ export function QueryTabs() {
     await fetchData();
   };
 
+  const inputWidget = (
+    <InputBase>
+      <InputBaseControl>
+        <InputBaseInput
+          id="username"
+          placeholder={defaultMapSha}
+          value={mapSha}
+          onChange={(e) => setMapSha(e.target.value)}
+        />
+      </InputBaseControl>
+      {mapSha && (
+        <InputBaseAdornment>
+          <InputBaseAdornmentButton asChild>
+            <Button variant="ghost" size="icon" onClick={() => setMapSha('')}>
+              <div className="i-solar:trash-bin-2-bold-duotone" />
+            </Button>
+          </InputBaseAdornmentButton>
+        </InputBaseAdornment>
+      )}
+    </InputBase>
+  );
+
   return (
     <div className="flex h-full flex-wrap items-center justify-center gap-5 p-3">
       <Tabs
@@ -255,13 +284,7 @@ export function QueryTabs() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="username">Hash</Label>
-                <Input
-                  id="username"
-                  type="search"
-                  placeholder={defaultMapSha}
-                  value={mapSha}
-                  onChange={(e) => setMapSha(e.target.value)}
-                />
+                {inputWidget}
               </div>
             </CardContent>
             <CardFooter>
@@ -310,13 +333,7 @@ export function QueryTabs() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="new">Hash or Name</Label>
-                <Input
-                  id="new"
-                  type="search"
-                  placeholder={defaultMapSha}
-                  value={mapSha}
-                  onChange={(e) => setMapSha(e.target.value)}
-                />
+                {inputWidget}
               </div>
             </CardContent>
             <CardFooter>
@@ -363,13 +380,7 @@ export function QueryTabs() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="new">Name</Label>
-                <Input
-                  id="new"
-                  type="search"
-                  placeholder={defaultMapSha}
-                  value={mapSha}
-                  onChange={(e) => setMapSha(e.target.value)}
-                />
+                {inputWidget}
               </div>
             </CardContent>
             <CardFooter>

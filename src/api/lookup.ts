@@ -103,8 +103,22 @@ export const getTree = async (
   return decodeTreeEntry('', key, resp);
 };
 
-export const getValue = async (map: string, key: string): Promise<unknown> => {
-  const resp = await request<string>(`/lookup/map/${map}/${key}`, 'GET');
+export const getValue = async <T>(map: string, key: string): Promise<T> => {
+  const resp = await request<T>(`/lookup/map/${map}/${key}`, 'GET');
+  return resp;
+};
+
+export const getValues = async <T>(
+  map: string,
+  keys: string[]
+): Promise<Record<string, T>> => {
+  const params = new URLSearchParams();
+  keys.forEach((k) => params.append('q', k));
+  const resp = await request<Record<string, T>>(
+    `/lookup/map/${map}`,
+    'GET',
+    params
+  );
   return resp;
 };
 
