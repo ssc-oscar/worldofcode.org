@@ -53,6 +53,7 @@ import {
   VirtualizedVirtualizer
 } from '@/components/ui/virtualized';
 import UserSearchBar from './_search';
+import ProjectsTable from './_projects';
 
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
@@ -377,7 +378,7 @@ function AuthorDashboard({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <VirtualizerTable projectIds={a2p || []} />
+                <ProjectsTable projectIds={a2p || []} />
               </div>
             </CardContent>
           </Card>

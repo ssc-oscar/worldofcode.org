@@ -94,6 +94,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.26.3",
+    "@faker-js/faker": "^9.6.0",
     "@iconify-json/fluent-color": "^1.2.3",
     "@iconify-json/fluent-emoji-flat": "^1.2.2",
     "@iconify-json/iconoir": "^1.2.7",
