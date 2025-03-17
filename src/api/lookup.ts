@@ -58,6 +58,9 @@ export const getCommit = async (key: string): Promise<LookupCommit> => {
 export const getBlob = async (key: string): Promise<string> =>
   await request<string>(`/lookup/object/blob/${key}`, 'GET');
 
+export const getObjectCount = async (object: ObjectName): Promise<number> =>
+  await request<number>(`/lookup/object/${object}/count`, 'GET');
+
 type RawTreeEntry = Array<[string, string, string | RawTreeEntry]>;
 const decodeTreeEntry = (
   name: string,
@@ -124,5 +127,10 @@ export const getValues = async <T>(
 
 export const getMapNames = async (): Promise<string[]> => {
   const resp = await request<string[]>('/lookup/map', 'GET');
+  return resp;
+};
+
+export const getMapCount = async (map: string): Promise<number> => {
+  const resp = await request<number>(`/lookup/map/${map}/count`, 'GET');
   return resp;
 };

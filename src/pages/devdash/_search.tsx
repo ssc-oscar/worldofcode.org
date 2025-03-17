@@ -32,6 +32,7 @@ import {
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 export default function UserSearchBar({
   setAuthor
@@ -125,7 +126,14 @@ export default function UserSearchBar({
     let filteredAuthorProfiles = authorProfiles.current.filter((author) =>
       data.authorIds.includes(author.AuthorID)
     );
-    if (filteredAuthorProfiles.length == 0) return null;
+    if (filteredAuthorProfiles.length == 0) {
+      toast({
+        title: 'No author selected',
+        description: 'Please select an author from the dropdown.',
+        variant: 'destructive'
+      });
+      return null;
+    }
     let author = filteredAuthorProfiles[0];
     for (let i = 1; i < filteredAuthorProfiles.length; i++) {
       author = mergeAuthors(author, filteredAuthorProfiles[i]);
@@ -151,7 +159,7 @@ export default function UserSearchBar({
   }
 
   return (
-    <Card className="w-[350px]">
+    <Card className="mb-4 w-[350px]">
       <CardHeader>
         <CardTitle>Developer Dashboard</CardTitle>
         <CardDescription>Deploy your new project in one-click.</CardDescription>
@@ -196,7 +204,12 @@ export default function UserSearchBar({
                           {isLoading || searchQuery !== debouncedSearchQuery ? (
                             <ComboboxLoading />
                           ) : (
-                            <ComboboxEmpty>No author found.</ComboboxEmpty>
+                            <ComboboxEmpty>
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="i-fluent-emoji-flat:sad-but-relieved-face size-5" />
+                                No author found.
+                              </div>
+                            </ComboboxEmpty>
                           )}
                           {authorCandidates &&
                             authorCandidates.map((author) => (

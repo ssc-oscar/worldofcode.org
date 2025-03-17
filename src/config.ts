@@ -77,7 +77,8 @@ export const navItems: NavItem[] = [
     title: 'Docs',
     href: '/docs/',
     icon: 'i-material-symbols:book-5-rounded',
-    description: 'Comprehensive World of Code Documentation Collection'
+    description: 'Comprehensive World of Code Documentation Collection',
+    external: true
   },
   {
     title: 'Lookup',
@@ -149,7 +150,7 @@ export const homePageItems: HomePageItem[] = [
   {
     description: `Fun facts about some crazy competitions among git repositories`,
     icon: '😂',
-    linkHref: 'https://osslab-pku.org',
+    linkHref: '/docs/#/crazy',
     linkText: 'Learn More'
   },
   {

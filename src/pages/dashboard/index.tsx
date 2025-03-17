@@ -24,7 +24,6 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import RecentSales from './components/recent-sales.js';
 import WaveLayout from '@/layouts/wave-layout';
 import { useContext, useEffect, useRef, useState } from 'react';
 import {

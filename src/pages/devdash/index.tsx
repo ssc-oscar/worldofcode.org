@@ -139,14 +139,18 @@ function FileInfoPie(
 }
 
 function ProjectTableRow({ projectId }: { projectId: string }) {
-  const { data, isLoading, error } = useSWR(`/mongo/project/${projectId}`, () =>
-    getProject(projectId)
-  );
+  const data = {
+    ProjectID: projectId,
+    NumCommits: 100,
+    NumFiles: 100,
+    NumAuthors: 100,
+    EarliestCommitDate: 1715721600,
+    LatestCommitDate: 1715721600
+  };
   return data ? (
     <>
       <TableCell className="font-medium">{data.ProjectID}</TableCell>
       <TableCell>{data.NumCommits.toLocaleString()}</TableCell>
-      <TableCell>{data.NumFiles.toLocaleString()}</TableCell>
       <TableCell>{data.NumAuthors.toLocaleString()}</TableCell>
       <TableCell>
         {new Date(data.EarliestCommitDate * 1000).toLocaleDateString()} -
@@ -194,7 +198,13 @@ export function VirtualizerTable({ projectIds }: { projectIds: string[] }) {
   );
 }
 
-function AuthorDashboard({ author }: { author: MongoAuthor }) {
+function AuthorDashboard({
+  author,
+  setAuthor
+}: {
+  author: MongoAuthor;
+  setAuthor: (author?: MongoAuthor) => void;
+}) {
   if (author) {
     // Format dates from timestamps
     const earliestDate = new Date(
@@ -210,7 +220,7 @@ function AuthorDashboard({ author }: { author: MongoAuthor }) {
       error
     } = useSWR(`/lookup/map/a2P&q=${author.AuthorID}`, async () => {
       const allQueries = [author.AuthorID, ...author.Alias];
-      const results: string[] = [];
+      let results: string[] = [];
 
       // Split queries into batches of 10 and execute them concurrently
       // ignore 404
@@ -240,6 +250,8 @@ function AuthorDashboard({ author }: { author: MongoAuthor }) {
         }
       });
       console.log(results);
+      // Unique
+      results = [...new Set(results)];
       // Sort
       results.sort((a, b) => a.localeCompare(b));
       return results;
@@ -253,19 +265,31 @@ function AuthorDashboard({ author }: { author: MongoAuthor }) {
 
     return (
       <>
-        <div className="bg-primary/2 border-primary/10 mb-8 rounded-full border-2 p-2">
-          <div className="flex items-center gap-1">
-            <TooltipContainer
-              tooltip={author.Gender ? author.Gender : 'Unknown'}
-            >
-              <div className="bg-primary/20 rounded-full p-2">
-                <div className={cn('size-6', getGenderEmoji(author.Gender))} />
-              </div>
-            </TooltipContainer>
-            <h1 className="text-xl font-bold">
-              <AuthorIDBadge authorId={author.AuthorID} />
-            </h1>
+        <div className="mb-8 flex items-center justify-between gap-2">
+          <div className="bg-primary/2 border-primary/10 rounded-full border-2 p-1">
+            <div className="flex items-center gap-1">
+              <TooltipContainer
+                tooltip={author.Gender ? author.Gender : 'Unknown'}
+              >
+                <div className="bg-primary/20 rounded-full p-1.5">
+                  <div
+                    className={cn('size-6', getGenderEmoji(author.Gender))}
+                  />
+                </div>
+              </TooltipContainer>
+              <h1 className="text-xl font-bold">
+                <AuthorIDBadge authorId={author.AuthorID} />
+              </h1>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            onClick={() => setAuthor(null)}
+            className="bg-primary/2 border-primary/10 size-12 rounded-full border-2"
+            size="icon"
+          >
+            <div className="i-solar:restart-line-duotone size-5 hover:animate-spin"></div>
+          </Button>
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="shadow-sm">
@@ -349,22 +373,22 @@ function AuthorDashboard({ author }: { author: MongoAuthor }) {
 
           <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Raw Data</CardTitle>
+              <CardTitle>Projects</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-h-[300px] overflow-auto">
-                <JsonView src={author} className="text-sm" />
+              <div className="space-y-4">
+                <VirtualizerTable projectIds={a2p || []} />
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Projects</CardTitle>
+              <CardTitle>Raw Data</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <VirtualizerTable projectIds={a2p || []} />
+              <div className="max-h-[300px] overflow-auto">
+                <JsonView src={author} className="text-sm" />
               </div>
             </CardContent>
           </Card>
@@ -382,7 +406,7 @@ export default function DashboardPage() {
   return (
     <WaveLayout className="p-4">
       {author ? (
-        <AuthorDashboard author={author} />
+        <AuthorDashboard author={author} setAuthor={setAuthor} />
       ) : (
         <UserSearchBar setAuthor={setAuthor} />
       )}
