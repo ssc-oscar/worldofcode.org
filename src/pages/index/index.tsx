@@ -27,6 +27,10 @@ export function WocNumberTicker({
       } else {
         return getMapCount(variant);
       }
+    },
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false
     }
   );
 

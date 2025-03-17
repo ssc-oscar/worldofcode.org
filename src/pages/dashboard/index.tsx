@@ -50,6 +50,7 @@ import useSWRMutation from 'swr/mutation';
 
 function UALabel({ userAgent }: { userAgent: string }) {
   const getBrowserIconName = (browser: string) => {
+    if (!browser) return 'i-solar:question-square-line-duotone';
     if (browser.indexOf('Chrome') > -1) return 'i-simple-icons:googlechrome';
     if (browser.indexOf('Firefox') > -1) return 'i-simple-icons:firefoxbrowser';
     if (browser.indexOf('Safari') > -1) return 'i-simple-icons:safari';
@@ -61,6 +62,7 @@ function UALabel({ userAgent }: { userAgent: string }) {
     return 'i-solar:question-square-line-duotone';
   };
   const getOSIconName = (os: string) => {
+    if (!os) return 'i-solar:question-square-line-duotone';
     if (os.indexOf('Windows') > -1) return 'i-simple-icons:windows10';
     if (os.indexOf('Android') > -1) return 'simple-icons:android';
     if (os.indexOf('mac') > -1) return 'i-simple-icons:apple';
@@ -75,9 +77,9 @@ function UALabel({ userAgent }: { userAgent: string }) {
   return (
     <div className="color-foreground flex items-center gap-1">
       <div className={getBrowserIconName(browser.name)} />
-      {browser.major}
-      <div className={cn('ml-1', getOSIconName(os.name))} />
-      {os.version}
+      {browser ? browser.major : 'Unk'}
+      <div className={cn('ml-1', os ? getOSIconName(os.name) : '')} />
+      {os ? os.version : 'own'}
     </div>
   );
 }

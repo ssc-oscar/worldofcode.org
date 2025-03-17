@@ -43,6 +43,7 @@ function UserAvatar() {
     suspense: false, // Changed from true to false to prevent blocking
     keepPreviousData: true,
     revalidateOnMount: true,
+    revalidateIfStale: false,
     onSuccess: (data) => {
       setUser(data);
     }

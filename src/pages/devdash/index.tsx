@@ -119,7 +119,7 @@ function FileInfoPie(
       {
         text: 'name',
         style: { fontSize: 13, fontWeight: 'bold' },
-        fill: useTheme().resolvedTheme === 'dark' ? '#bbb' : '#333'
+        fill: useTheme().resolvedTheme === 'dark' ? '#eee' : '#111'
       },
       {
         text: (d, i, data) => d.value,
@@ -127,7 +127,7 @@ function FileInfoPie(
           fontSize: 12,
           dy: 12
         },
-        fill: useTheme().resolvedTheme === 'dark' ? '#bbb' : '#333'
+        fill: useTheme().resolvedTheme === 'dark' ? '#eee' : '#111'
       }
     ],
     style: {
@@ -335,7 +335,7 @@ function AuthorDashboard({
               <CardTitle>Raw Data</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-h-[300px] overflow-auto">
+              <div className="max-h-96 overflow-auto">
                 <JsonView src={author} className="text-sm" />
               </div>
             </CardContent>

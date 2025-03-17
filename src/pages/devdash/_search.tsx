@@ -162,7 +162,9 @@ export default function UserSearchBar({
     <Card className="mb-4 w-[350px]">
       <CardHeader>
         <CardTitle>Developer Dashboard</CardTitle>
-        <CardDescription>Deploy your new project in one-click.</CardDescription>
+        <CardDescription>
+          Search author profiles by name or email.
+        </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form
