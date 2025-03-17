@@ -111,30 +111,44 @@ export function ProjectTableRow({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <TableCell className="w-[180px] truncate font-medium">
+      <TableCell className="w-[300px] font-medium">
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
+          className="break-all hover:underline"
         >
           {displayName}
         </a>
       </TableCell>
-      <TableCell className="w-[120px]">
-        {project ? project.NumCommits : <Skeleton className="h-4 w-full" />}
+      <TableCell className="w-[60px] text-right">
+        {isLoading ? (
+          <Skeleton className="h-4 w-full" />
+        ) : project ? (
+          project.NumCommits
+        ) : (
+          <span className="text-red-500">Error</span>
+        )}
       </TableCell>
-      <TableCell className="w-[200px]">
-        {project ? project.NumAuthors : <Skeleton className="h-4 w-full" />}
+      <TableCell className="w-[60px] text-right">
+        {isLoading ? (
+          <Skeleton className="h-4 w-full" />
+        ) : project ? (
+          project.NumAuthors
+        ) : (
+          <span className="text-red-500">Error</span>
+        )}
       </TableCell>
-      <TableCell className="w-[120px] text-right">
-        {project ? (
+      <TableCell className="w-[180px] text-right">
+        {isLoading ? (
+          <Skeleton className="h-4 w-full" />
+        ) : project ? (
           <>
             {new Date(project.EarliestCommitDate * 1000).toLocaleDateString()} -{' '}
             {new Date(project.LatestCommitDate * 1000).toLocaleDateString()}
           </>
         ) : (
-          <Skeleton className="h-4 w-full" />
+          <span className="text-red-500">Error</span>
         )}
       </TableCell>
     </>
@@ -148,13 +162,13 @@ export default function ProjectsTable({
 }) {
   return (
     <Virtualized className="h-96 overflow-y-auto">
-      <Table className="w-full table-fixed caption-bottom border-separate border-spacing-0 text-sm">
+      <table className="w-[600px] table-fixed caption-bottom border-separate border-spacing-0 text-sm">
         <TableHeader className="bg-background sticky top-0 z-20 [&_tr>*]:border-b">
           <TableRow>
-            <TableHead className="w-[180px]">Name</TableHead>
-            <TableHead className="w-[120px]">Commits</TableHead>
-            <TableHead className="w-[200px]">Authors</TableHead>
-            <TableHead className="w-[120px] text-right">
+            <TableHead className="w-[300px]">Name</TableHead>
+            <TableHead className="w-[60px] text-right">Commit</TableHead>
+            <TableHead className="w-[60px] text-right">Author</TableHead>
+            <TableHead className="w-[180px] text-right">
               Active Period
             </TableHead>
           </TableRow>
@@ -168,7 +182,7 @@ export default function ProjectsTable({
             <ProjectTableRow key={projectId} projectId={projectId} />
           ))}
         </VirtualizedVirtualizer>
-      </Table>
+      </table>
     </Virtualized>
   );
 }

@@ -139,66 +139,6 @@ function FileInfoPie(
   return <Pie {...defaultConfig} {...props} />;
 }
 
-function ProjectTableRow({ projectId }: { projectId: string }) {
-  const data = {
-    ProjectID: projectId,
-    NumCommits: 100,
-    NumFiles: 100,
-    NumAuthors: 100,
-    EarliestCommitDate: 1715721600,
-    LatestCommitDate: 1715721600
-  };
-  return data ? (
-    <>
-      <TableCell className="font-medium">{data.ProjectID}</TableCell>
-      <TableCell>{data.NumCommits.toLocaleString()}</TableCell>
-      <TableCell>{data.NumAuthors.toLocaleString()}</TableCell>
-      <TableCell>
-        {new Date(data.EarliestCommitDate * 1000).toLocaleDateString()} -
-        {new Date(data.LatestCommitDate * 1000).toLocaleDateString()}
-      </TableCell>
-    </>
-  ) : null;
-}
-
-const VirtualizedTableRow = React.forwardRef<
-  React.ElementRef<typeof TableRow>,
-  CustomItemComponentProps
->((props, ref) => <TableRow ref={ref} {...props} />);
-VirtualizedTableRow.displayName = 'VirtualizedTableRow';
-
-const VirtualizedTableBody = React.forwardRef<
-  React.ElementRef<typeof TableBody>,
-  CustomContainerComponentProps
->((props, ref) => <TableBody ref={ref} className="max-h-96" {...props} />);
-VirtualizedTableBody.displayName = 'VirtualizedTableBody';
-
-export function VirtualizerTable({ projectIds }: { projectIds: string[] }) {
-  return (
-    <Virtualized className="h-96 overflow-y-auto">
-      <table className="w-full table-fixed caption-bottom border-separate border-spacing-0 text-sm">
-        <TableHeader className="bg-background sticky top-0 z-10 [&_tr>*]:border-b">
-          <TableRow>
-            <TableHead className="w-[120px]">Invoice</TableHead>
-            <TableHead className="w-[120px]">Status</TableHead>
-            <TableHead className="w-[200px]">Method</TableHead>
-            <TableHead className="w-[120px] text-right">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
-        <VirtualizedVirtualizer
-          as={VirtualizedTableBody}
-          item={VirtualizedTableRow}
-          startMargin={48}
-        >
-          {projectIds.map((projectId) => (
-            <ProjectTableRow projectId={projectId} key={projectId} />
-          ))}
-        </VirtualizedVirtualizer>
-      </table>
-    </Virtualized>
-  );
-}
-
 function AuthorDashboard({
   author,
   setAuthor
@@ -377,7 +317,7 @@ function AuthorDashboard({
               <CardTitle>Projects</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="flex items-center justify-center space-y-4">
                 <ProjectsTable projectIds={a2p || []} />
               </div>
             </CardContent>
