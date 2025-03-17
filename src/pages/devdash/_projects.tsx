@@ -49,7 +49,7 @@ function getProjectInfo(projectId: string): {
   }
 
   const url = `https://${platform}/${repoPath}`;
-  const displayName = projectId.replace(/_/g, '/');
+  const displayName = repoPath;
 
   return { displayName, url };
 }
@@ -71,11 +71,14 @@ import {
 import useSWR from 'swr';
 import { getProject, MongoProject } from '@/api/mongo';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const VirtualizedTableRow = React.forwardRef<
   React.ElementRef<typeof TableRow>,
-  CustomItemComponentProps
->((props, ref) => <TableRow ref={ref} {...props} />);
+  React.ComponentPropsWithRef<typeof TableRow>
+>((props, ref) => (
+  <TableRow ref={ref} className={cn(props.className, 'table')} {...props} />
+));
 VirtualizedTableRow.displayName = 'VirtualizedTableRow';
 
 const VirtualizedTableBody = React.forwardRef<
@@ -111,12 +114,12 @@ export function ProjectTableRow({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <TableCell className="w-[300px] font-medium">
+      <TableCell className="w-[calc(100%-400px)] font-medium">
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="break-all hover:underline"
+          className="flex items-center break-all hover:underline"
         >
           {displayName}
         </a>
@@ -139,7 +142,7 @@ export function ProjectTableRow({ projectId }: { projectId: string }) {
           <span className="text-red-500">Error</span>
         )}
       </TableCell>
-      <TableCell className="w-[180px] text-right">
+      <TableCell className="w-[200px] text-right">
         {isLoading ? (
           <Skeleton className="h-4 w-full" />
         ) : project ? (
@@ -162,13 +165,13 @@ export default function ProjectsTable({
 }) {
   return (
     <Virtualized className="h-96 overflow-y-auto">
-      <table className="w-[600px] table-fixed caption-bottom border-separate border-spacing-0 text-sm">
-        <TableHeader className="bg-background sticky top-0 z-20 [&_tr>*]:border-b">
+      <table className="w-full table-fixed caption-bottom border-separate border-spacing-0 text-sm">
+        <TableHeader className="bg-background sticky top-0 z-20 w-full [&_tr>*]:border-b">
           <TableRow>
-            <TableHead className="w-[300px]">Name</TableHead>
+            <TableHead className="">Name</TableHead>
             <TableHead className="w-[60px] text-right">Commit</TableHead>
             <TableHead className="w-[60px] text-right">Author</TableHead>
-            <TableHead className="w-[180px] text-right">
+            <TableHead className="w-[200px] text-right">
               Active Period
             </TableHead>
           </TableRow>

@@ -260,8 +260,8 @@ export const ComboboxTagGroupItem = React.forwardRef<
             inputRef.current?.focus();
           }
           if (event.key === 'Backspace' || event.key === 'Delete') {
-            onValueChange(value.filter((v) => v !== currentTabStopId));
-            inputRef.current?.focus();
+            // onValueChange(value.filter((v) => v !== currentTabStopId));
+            // inputRef.current?.focus();
           }
         })}
         onClick={composeEventHandlers(

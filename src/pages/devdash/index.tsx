@@ -64,6 +64,7 @@ import { getValues } from '@/api/lookup';
 import { AxiosError } from 'axios';
 import { cn } from '@/lib/utils';
 import TooltipContainer from '@/components/tooltip-container';
+import { useTheme } from '@/providers/theme-provider';
 
 function AuthorIDBadge({ authorId }: { authorId: string }) {
   let _emailIdx = authorId.indexOf('<');
@@ -115,17 +116,22 @@ function FileInfoPie(
     legend: true,
     innerRadius: 0.6,
     labels: [
-      { text: 'name', style: { fontSize: 10, fontWeight: 'bold' } },
       {
-        text: (d, i, data) => (i < data.length - 3 ? d.value : ''),
+        text: 'name',
+        style: { fontSize: 13, fontWeight: 'bold' },
+        fill: useTheme().resolvedTheme === 'dark' ? '#bbb' : '#333'
+      },
+      {
+        text: (d, i, data) => d.value,
         style: {
-          fontSize: 9,
+          fontSize: 12,
           dy: 12
-        }
+        },
+        fill: useTheme().resolvedTheme === 'dark' ? '#bbb' : '#333'
       }
     ],
     style: {
-      stroke: '#fff',
+      stroke: '#bbb',
       inset: 1,
       radius: 10
     },
@@ -134,7 +140,8 @@ function FileInfoPie(
         palette: 'spectral',
         offset: (t) => t * 0.8 + 0.1
       }
-    }
+    },
+    theme: useTheme().resolvedTheme
   } satisfies PieConfig;
   return <Pie {...defaultConfig} {...props} />;
 }
