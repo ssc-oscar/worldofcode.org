@@ -1,5 +1,5 @@
 import sys
-import re
+from loguru import logger
 from typing import TYPE_CHECKING, List, Union, Dict, Any, Tuple, Optional
 from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
 from woc.local import decomp
@@ -32,13 +32,13 @@ def _build_commits_query(**kwargs: Any) -> str:
     if kwargs["end"] is not None:
         where_clauses.append("time <= %(end)s")
         params["end"] = kwargs["end"]
-    if kwargs["author"]:
+    if kwargs["author"] is not None:
         where_clauses.append("match(author, %(author)s)")
         params["author"] = kwargs["author"]
-    if kwargs["project"]:
+    if kwargs["project"] is not None:
         where_clauses.append("match(project, %(project)s)")
         params["project"] = kwargs["project"]
-    if kwargs["comment"]:
+    if kwargs["comment"] is not None:
         where_clauses.append("match(comment, %(comment)s)")
         params["comment"] = kwargs["comment"]
 
@@ -51,11 +51,12 @@ def _build_commits_query(**kwargs: Any) -> str:
             params["offset"] = kwargs["offset"]
     else:
         limit = ""
-
-    return (
+    q = (
         f"SELECT {select} FROM {settings.clickhouse.table_commits} {where} {limit}",
         params,
     )
+    logger.debug("Generated CLickhouse query: {}", q)
+    return q
 
 
 @api.get(
@@ -125,7 +126,11 @@ def get_commits(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api.get("/commits/count", response_model=WocResponse[int],response_model_exclude_none=True,)
+@api.get(
+    "/commits/count",
+    response_model=WocResponse[int],
+    response_model_exclude_none=True,
+)
 def count_commits(
     request: Request,
     start: int = Query(None, ge=0),
@@ -148,7 +153,12 @@ def count_commits(
     ch_client = request.app.state.ch_client
 
     q = _build_commits_query(
-        start=start, end=end, author=author, project=project, comment=comment, count=True
+        start=start,
+        end=end,
+        author=author,
+        project=project,
+        comment=comment,
+        count=True,
     )
     try:
         return WocResponse(data=ch_client.execute(*q)[0][0])
@@ -173,16 +183,16 @@ def _build_deps_query(**kwargs: Any) -> str:
     if kwargs["end"] is not None:
         where_clauses.append("time <= %(end)s")
         params["end"] = kwargs["end"]
-    if kwargs["author"]:
+    if kwargs["author"] is not None:
         where_clauses.append("author = %(author)s")
         params["author"] = kwargs["author"]
-    if kwargs["language"]:
+    if kwargs["language"] is not None:
         where_clauses.append("language = %(language)s")
         params["language"] = kwargs["language"]
-    if kwargs["blob"]:
+    if kwargs["blob"] is not None:
         where_clauses.append("blob = unhex(%(blob)s)")
         params["blob"] = kwargs["blob"]
-    if kwargs["project"]:
+    if kwargs["project"] is not None:
         where_clauses.append("project = %(project)s")
         params["project"] = kwargs["project"]
     # match '^{dep) or ';(dep): too slow for now
@@ -190,7 +200,7 @@ def _build_deps_query(**kwargs: Any) -> str:
     #     where_clauses.append(f"match(deps, '^{re.escape(kwargs['deps'])}|;{re.escape(kwargs['deps'])}')")
     # if kwargs["deps"]:
     #     where_clauses.append("deps = %(deps)s")
-    if kwargs["deps"]:
+    if kwargs["deps"] is not None:
         where_clauses.append("has(imports, %(deps)s)")
         params["deps"] = kwargs["deps"]
     where = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
@@ -202,10 +212,12 @@ def _build_deps_query(**kwargs: Any) -> str:
             params["offset"] = kwargs["offset"]
     else:
         limit = ""
-    return (
+    q = (
         f"SELECT {select} FROM {settings.clickhouse.table_deps} {where} {limit}",
         params,
     )
+    logger.debug("Generated CLickhouse query: {}", q)
+    return q
 
 
 @api.get(
@@ -254,7 +266,7 @@ def get_deps(
     q = _build_deps_query(
         start=start,
         end=end,
-        language=str(language),
+        language=language,
         author=author,
         deps=deps,
         project=project,
@@ -283,7 +295,11 @@ def get_deps(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api.get("/deps/count", response_model=WocResponse[int], response_model_exclude_none=True,)
+@api.get(
+    "/deps/count",
+    response_model=WocResponse[int],
+    response_model_exclude_none=True,
+)
 def count_deps(
     request: Request,
     start: int = Query(None, ge=0),

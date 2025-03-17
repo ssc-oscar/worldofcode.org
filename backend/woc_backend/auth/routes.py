@@ -166,6 +166,15 @@ async def revoke_token(
         r.delete_cookie("token")
     return r
 
+def _get_api_base(one_time_code, base_url):
+    api_base = one_time_code.referrer or base_url
+    if settings_base := settings.get("base_url"):
+        if "://" in settings_base:
+            api_base = settings_base
+        else:
+            api_base += settings_base
+    return api_base
+
 
 @api.post("/email/login", dependencies=[Depends(validate_turnstile)])
 async def email_login(
@@ -197,12 +206,7 @@ async def email_login(
     assert settings.smtp.title_template is not None, "title_template is not set"
     assert settings.smtp.content_template is not None, "content_template is not set"
     # generate redirect url
-    api_base = one_time_code.referrer or base_url
-    if settings_base := settings.get("base_url"):
-        if "://" in settings_base:
-            api_base = settings_base
-        else:
-            api_base += settings_base
+    api_base = _get_api_base(one_time_code, base_url)
     title = jinja2.Template(settings.smtp.title_template).render(email=email)
     content = jinja2.Template(settings.smtp.content_template).render(
         is_signup=is_signup,
@@ -248,12 +252,7 @@ async def github_login(
         raise ValueError("github.app_id or github.app_secret is not set")
     # creates a one_time_code
     one_time_code = await _create_one_time_code("github|", client_info)
-    api_base = one_time_code.referrer or base_url
-    if settings_base := settings.get("base_url"):
-        if "://" in settings_base:
-            api_base = settings_base
-        else:
-            api_base += settings_base
+    api_base = _get_api_base(one_time_code, base_url)
     redirect_url = f"{api_base}/auth/github/callback"
     _params = {
         "client_id": settings.github.app_id,
@@ -278,7 +277,8 @@ async def github_callback(
     if error is not None:
         raise HTTPException(status_code=400, detail=f"Github login failed: {error}")
     # get github user info
-    redirect_url = f"{base_url}/auth/github/callback"
+    api_base = _get_api_base(one_time_code, base_url)
+    redirect_url = f"{api_base}/auth/github/callback"
 
     try:
         async with get_httpx_client(request) as client:
@@ -295,6 +295,7 @@ async def github_callback(
             r.raise_for_status()
             access_token = r.json().get("access_token")
             if access_token is None:
+                logger.error(f"Failed to get access token, {r.json()}")
                 raise HTTPException(
                     status_code=400, detail="Failed to get access token"
                 )
@@ -331,13 +332,7 @@ async def microsoft_login(
     base_url: str = Depends(get_base_url), client_info=Depends(get_client_info)
 ):
     one_time_code = await _create_one_time_code("microsoft|", client_info)
-    api_base = one_time_code.referrer or base_url
-    logger.debug(f"api_base: {api_base}")
-    if settings_base := settings.get("base_url"):
-        if "://" in settings_base:
-            api_base = settings_base
-        else:
-            api_base += settings_base
+    api_base = _get_api_base(one_time_code, base_url)
     redirect_url = f"{api_base}/auth/microsoft/callback"
     logger.debug(f"Redirecting to {redirect_url}")
     _params = {

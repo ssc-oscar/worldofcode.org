@@ -42,7 +42,7 @@ async def _sample(cls: Union[MongoAuthor, MongoProject, MongoAPI], filter, limit
         filter = json.loads(filter)
     # sampling can be slow if it is not the first pipeline:
     # https://stackoverflow.com/questions/37679999/mongodb-aggregation-with-sample-very-slow
-    # 1) Sample 1000 documents, then filter
+    # 1) Sample 1000,20000,200000 documents, then filter
     results = []
     for samples in (1000, 20000, 200000):
         if len(results) >= limit:
@@ -59,10 +59,10 @@ async def _sample(cls: Union[MongoAuthor, MongoProject, MongoAPI], filter, limit
         )
         logger.debug(f"sampled {len(results)} from {samples}, filter={filter}")
 
-    # 3) fallback to full scan
+    # 2) fallback to full scan
     if len(results) < limit:
         logger.warning(
-            f"Failed to sample enough projects, falling back to full scan, filter={filter}"
+            f"falling back to full scan, filter={filter}"
         )
         results.extend(await cls.find(filter).limit(limit - len(results)).to_list())
         logger.debug(f"sampled {len(results)} from full scan, filter={filter}")
@@ -92,13 +92,10 @@ async def get_author(q: str):
     """
     Get author information by email address.
     """
-    try:
-        return WocResponse[MongoAuthor](
-            data=await MongoAuthor.find_one({"AuthorID": q})
-        )
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=e.args[0])
-
+    r = await MongoAuthor.find_one({"AuthorID": q})
+    if not r:
+        raise HTTPException(status_code=404, detail=f"Author not found:{q}")
+    return WocResponse[MongoAuthor](data=r)
 
 @api.get(
     "/project/search",
@@ -145,13 +142,10 @@ async def get_project(q: str):
     """
     Get project information by name.
     """
-    try:
-        return WocResponse[MongoProject](
-            data=await MongoProject.find_one({"ProjectID": q})
-        )
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=e.args[0])
-
+    r =await MongoProject.find_one({"ProjectID": q})
+    if not r:
+        raise HTTPException(status_code=404, detail=f"Project not found: {q}")
+    return WocResponse[MongoProject](data=r)
 
 @api.get(
     "/api/search",
@@ -196,7 +190,8 @@ async def get_api(q: str):
     """
     Get API information by name.
     """
-    try:
-        return WocResponse[MongoAPI](data=await MongoAPI.find_one({"API": q}))
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=e.args[0])
+    r = await MongoAPI.find_one({"API": q})
+    if not r:
+        raise HTTPException(status_code=404, detail=f"API not found:{q}")
+    return WocResponse[MongoAPI](data=r)
+        

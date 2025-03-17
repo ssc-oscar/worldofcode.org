@@ -11,21 +11,30 @@ if TYPE_CHECKING:
 
 api = APIRouter()
 
+
 def _traverse_tree(woc: "WocMapsLocal", key: str):
     _ret = []
-    for mode, fname, sha in woc.show_content('tree', key):
+    for mode, fname, sha in woc.show_content("tree", key):
         if mode != "40000":
             _ret.append(mode, fname, sha)
         else:
             _ret.append((mode, fname, _traverse_tree(woc, sha)))
     return _ret
 
-def _show_content(woc: "WocMapsLocal", type_: ObjectName, key: str, raw: bool = False, traverse: bool = False):
+
+def _show_content(
+    woc: "WocMapsLocal",
+    type_: ObjectName,
+    key: str,
+    raw: bool = False,
+    traverse: bool = False,
+):
     if type_ != ObjectName.blob and raw:
         return decode_str(decomp_or_raw(woc._get_tch_bytes(type_, key)[0]))
     if type == ObjectName.tree and traverse:
         return _traverse_tree(woc, key)
     return woc.show_content(str(type_), key)
+
 
 @api.get(
     "/object/{type_}",
@@ -54,10 +63,38 @@ def show_contents(
 
 
 @api.get(
-    "/object/{type_}/{key}", response_model=Union[WocResponse[Union[str, list]], str],
+    "/object/{type_}/count",
+    response_model=WocResponse[int],
     response_model_exclude_none=True,
 )
-def show_content(request: Request, type_: ObjectName, key: str, raw: bool = False, traverse: bool = False):
+def count_objects(request: Request, type_: ObjectName):
+    """
+    Count the number of objects of a commit, tree, or blob.
+    """
+    woc: WocMapsLocal = request.app.state.woc
+    return WocResponse[int](data=woc.count(str(type_)))
+
+
+def _get_values_with_cursor(
+    woc: "WocMapsLocal", map_name: str, key: str, cursor: int = 0
+):
+    _bytes, decode_dtype, next_cursor = woc._get_tch_bytes(map_name, key, cursor)
+    _decoded = decode_value(_bytes, decode_dtype)
+    return _decoded, next_cursor
+
+
+@api.get(
+    "/object/{type_}/{key}",
+    response_model=Union[WocResponse[Union[str, list]], str],
+    response_model_exclude_none=True,
+)
+def show_content(
+    request: Request,
+    type_: ObjectName,
+    key: str,
+    raw: bool = False,
+    traverse: bool = False,
+):
     """
     Show the content of a single object of a commit, tree, or blob.
 
@@ -69,18 +106,17 @@ def show_content(request: Request, type_: ObjectName, key: str, raw: bool = Fals
     try:
         if raw is True:
             return Response(
-                content=_show_content(woc, type_, key, raw=True), media_type="text/plain"
+                content=_show_content(woc, type_, key, raw=True),
+                media_type="text/plain",
             )
-        return WocResponse[Union[str, list]](data=_show_content(woc, type_, key, raw=False, traverse=traverse))
+        return WocResponse[Union[str, list]](
+            data=_show_content(woc, type_, key, raw=False, traverse=traverse)
+        )
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
     except ValueError as e:
         raise HTTPException(status_code=400, detail=e.args[0])
 
-def _get_values_with_cursor(woc: "WocMapsLocal", map_name: str, key: str, cursor: int=0):
-    _bytes, decode_dtype, next_cursor = woc._get_tch_bytes(map_name, key, cursor)
-    _decoded = decode_value(_bytes, decode_dtype)
-    return _decoded, next_cursor
 
 @api.get(
     "/map",
@@ -93,6 +129,7 @@ def get_maps(request: Request):
     """
     woc: WocMapsLocal = request.app.state.woc
     return WocResponse[List[str]](data=set([m.name for m in woc.maps]))
+
 
 @api.get(
     "/map/{map_}",
@@ -125,7 +162,29 @@ def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     return WocResponse[Dict[str, list]](data=ret, errors=errors if errors else None)
 
 
-@api.get("/map/{map_}/{key}", response_model=WocResponse[list], response_model_exclude_none=True,)
+@api.get(
+    "/map/{map_}/count",
+    response_model=WocResponse[int],
+    response_model_exclude_none=True,
+)
+def count_values(request: Request, map_: str):
+    """
+    Count the number of values in a map.
+
+    The map can be any of the following:
+    c2fbb obb2cf bb2cf a2f A2f P2a b2P b2f a2P b2fa b2tac c2p c2cc p2a A2a a2A c2dat
+    a2c P2c P2p c2P p2P A2c A2P P2A a2p A2b A2fb P2b P2fb c2b p2c
+    Check
+    """
+    woc: WocMapsLocal = request.app.state.woc
+    return WocResponse[int](data=woc.count(map_))
+
+
+@api.get(
+    "/map/{map_}/{key}",
+    response_model=WocResponse[list],
+    response_model_exclude_none=True,
+)
 def get_value(request: Request, map_: str, key: str, cursor: int = 0):
     """
     Get the value of a key from a map.

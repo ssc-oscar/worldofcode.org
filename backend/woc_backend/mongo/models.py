@@ -43,7 +43,7 @@ class MongoLanguage(str, Enum):
 
 class MongoAuthor(Document, BaseModel):
     Alias: List[str] = Field(default_factory=list)
-    AuthorID: str = Indexed(unique=True, sparse=True)
+    AuthorID: str = Indexed(sparse=True)
     EarliestCommitDate: int = -1
     FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
     Gender: Optional[str] = None
@@ -62,7 +62,7 @@ class MongoAuthor(Document, BaseModel):
 
 
 class MongoAPI(Document, BaseModel):
-    API: str = Indexed(unique=True, sparse=True)
+    API: str = Indexed(sparse=True)
     EarliestCommitDate: int = -1
     FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
     LatestCommitDate: int = -1
@@ -90,8 +90,7 @@ class MongoProject(Document, BaseModel):
     NumFiles: int = -1
     NumForks: int = -1
     NumProjects: int = -1
-    # create a sparse index on ProjectID
-    ProjectID: str = Indexed(unique=True, sparse=True)
+    ProjectID: str = Indexed(sparse=True)
 
     class Settings:
         name = "P_metadata.V3"
