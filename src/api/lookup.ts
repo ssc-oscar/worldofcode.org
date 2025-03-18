@@ -126,8 +126,8 @@ export const getValues = async <T>(
 };
 
 export const getMapNames = async (): Promise<string[]> => {
-  const resp = await request<string[]>('/lookup/map', 'GET');
-  return resp;
+  const resp = await request<{ name: string }[]>('/lookup/map', 'GET');
+  return Array.from(new Set<string>(resp.map((m) => m.name)));
 };
 
 export const getMapCount = async (map: string): Promise<number> => {
