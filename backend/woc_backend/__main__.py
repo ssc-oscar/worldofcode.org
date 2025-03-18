@@ -1,24 +1,51 @@
 import argparse
-import uvicorn
-import shortuuid
+import asyncio
+import fcntl
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
-from woc.local import WocMapsLocal
-from motor.motor_asyncio import AsyncIOMotorClient
+
+import uvicorn
 from beanie import init_beanie
 from clickhouse_driver import Client as Ch
+from fastapi import Depends, FastAPI
+from loguru import logger
+from motor.motor_asyncio import AsyncIOMotorClient
+from woc.local import WocMapsLocal
 
+from .auth.models import OneTimeCode, Token, User
+from .auth.routes import api as auth_api
+from .clickhouse.routes import api as clickhouse_api
 from .config import settings
 from .lookup.routes import api as lookup_api
-from .mongo.routes import api as mongo_api
 from .mongo.models import MongoAPI, MongoAuthor, MongoProject
-from .auth.routes import api as auth_api
-from .auth.models import Token, OneTimeCode, User
-from .clickhouse.routes import api as clickhouse_api
+from .mongo.routes import api as mongo_api
 from .utils.cache import TTLCache
+from .utils.cleanup import cleanup_tokens
 from .utils.validate import validate_token_nullable
+
+
+async def _background_cleanup_job():
+    # Uvicorn does not have a way to run a task only on the main worker,
+    # so let's race!
+    try:
+        lock_file = open("/tmp/woc_cleanup_lock", "w+")
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        logger.info(f"Starting background cleanup job on process {os.getpid()}")
+    except IOError:
+        return
+
+    error_count = 0
+    while True:
+        try:
+            await cleanup_tokens()
+            await asyncio.sleep(3600)
+        except Exception as e:
+            if error_count > 10:
+                logger.error("Error in background cleanup job: {}", e)
+                raise e
+            logger.error("Error in background cleanup job: {}", e)
+            error_count += 1
+            await asyncio.sleep(60)
 
 
 @asynccontextmanager
@@ -35,11 +62,15 @@ async def lifespan(app: FastAPI):
     app.state.ch_client = Ch.from_url(settings.clickhouse.url)
     # init cache
     app.state.token_cache = TTLCache(settings.auth.get("cache_ttl", 100))
+    # mount background cleanup job
+    app.state.background_cleanup_job = asyncio.create_task(_background_cleanup_job())
     yield
     # close mongo
     app.state.mongo_client.close()
     # close clickhouse
     app.state.ch_client.disconnect()
+    # cancel background cleanup job
+    app.state.background_cleanup_job.cancel()
 
 
 app = FastAPI(title="woc-backend", version="0.1.0", lifespan=lifespan)
@@ -85,6 +116,12 @@ if __name__ == "__main__":
         default=False,
         help="Reload on code changes",
     )
+    parser.add_argument(
+        "--workers",
+        default=None,
+        type=int,
+        help="Number of workers to run",
+    )
     args = parser.parse_args()
 
     logger.info("Starting uvicorn server on port {}", args.port)
@@ -96,4 +133,6 @@ if __name__ == "__main__":
         reload=args.reload,
         proxy_headers=True,
         forwarded_allow_ips="*",
+        reload_dirs=["woc_backend"],
+        workers=args.workers,
     )

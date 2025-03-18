@@ -8,6 +8,6 @@
         "clickhouse.clickhouse-client", // ClickHouse driver integration
         "wholroyd.jinja", // Jinja2 template support
         "matangover.mypy", // mypy support
-        "tamasfe.even-better-toml" // toml support 
+        "tamasfe.even-better-toml", // toml support
     ]
 }

@@ -21,4 +21,4 @@ COPY woc_backend/ ./woc_backend/
 EXPOSE 8234
 
 # Command to run the application
-CMD ["uvicorn", "woc_backend", "--host", "0.0.0.0", "--port", "8234"]
+CMD ["python3", "-m", "woc_backend", "--host", "0.0.0.0", "--port", "8234", "--workers", "1"]

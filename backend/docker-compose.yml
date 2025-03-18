@@ -14,15 +14,24 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: backend.dockerfile
     environment:
       - PYTHONUNBUFFERED=1
+      - WOC_MONGO__URL="mongodb://host.docker.internal:27017/woc"
+      - WOC_CLICKHOUSE__URL="clickhouse://host.docker.internal:9000/woc"
     volumes:
       - ./settings.toml:/app/settings.toml:ro
-      - ./.secrets.docker.toml:/app/.secrets.toml:ro
+      - ./.secrets.toml:/app/.secrets.toml:ro
+      - /woc:/woc:ro
+      - ./wocprofile.json:/etc/wocprofile.json
     <<: *common-options
   nginx:
-    image: nginx:alpine
+    build:
+      context: woc-frontend
+      dockerfile: ../frontend.dockerfile
+      args:
+        - VITE_TURNSTILE_SITE_ID
+        - VITE_BASE_URL
     ports:
       - "35080:80"
     volumes:
@@ -30,6 +39,6 @@ services:
     depends_on:
       - app
     environment:
-      - API_HOST=host.docker.internal
+      - API_HOST=app
       - API_PORT=8234
     <<: *common-options

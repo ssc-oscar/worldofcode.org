@@ -1,0 +1,3 @@
+[submodule "woc-frontend"]
+	path = woc-frontend
+	url = https://github.com/hrz6976/woc-frontend
