@@ -20,6 +20,13 @@ export default defineConfig({
         compact: true,
         generatedCode: 'es2015',
         manualChunks: {
+          react: [
+            'react',
+            'react/jsx-runtime',
+            'react-dom',
+            'react-dom/client',
+            'react-router-dom'
+          ],
           query: ['react-querybuilder'],
           charts: ['@ant-design/charts']
         }
@@ -48,10 +55,10 @@ export default defineConfig({
       }
     }),
     visualizer({
-      open: true,           // Open visualization in browser
-      gzipSize: true,       // Show gzipped sizes
-      brotliSize: true,     // Show brotli sizes
-      filename: "stats.html" // Output file
+      open: true, // Open visualization in browser
+      gzipSize: true, // Show gzipped sizes
+      brotliSize: true, // Show brotli sizes
+      filename: 'stats.html' // Output file
     })
   ],
   resolve: {
