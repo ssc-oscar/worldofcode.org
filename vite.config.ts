@@ -4,6 +4,7 @@ import generouted from '@generouted/react-router/plugin';
 import { compression } from 'vite-plugin-compression2';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 import UnoCSS from 'unocss/vite';
 import zlib from 'zlib';
 
@@ -19,7 +20,8 @@ export default defineConfig({
         compact: true,
         generatedCode: 'es2015',
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom']
+          query: ['react-querybuilder'],
+          charts: ['@ant-design/charts']
         }
       }
     }
@@ -44,6 +46,12 @@ export default defineConfig({
             zlib.constants.BROTLI_MAX_QUALITY
         }
       }
+    }),
+    visualizer({
+      open: true,           // Open visualization in browser
+      gzipSize: true,       // Show gzipped sizes
+      brotliSize: true,     // Show brotli sizes
+      filename: "stats.html" // Output file
     })
   ],
   resolve: {

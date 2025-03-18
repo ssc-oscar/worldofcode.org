@@ -55,7 +55,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
 const LoadingFallback = () => {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center">
-      <div className="i-solar:loading-bold-duotone text-primary/80 size-12 animate-spin" />
+      <div className="i-line-md:loading-twotone-loop text-primary/80 size-12 animate-spin" />
       <p className="text-primary/80 mt-4 text-lg">Loading...</p>
     </div>
   );

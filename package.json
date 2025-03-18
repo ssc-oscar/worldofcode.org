@@ -105,6 +105,7 @@
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
+    "rollup-plugin-visualizer": "^5.14.0",
     "sass-embedded": "^1.85.1",
     "terser": "^5.37.0",
     "type-fest": "^4.31.0",
