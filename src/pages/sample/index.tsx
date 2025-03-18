@@ -186,7 +186,7 @@ export default function SamplePage() {
         <div className="i-solar:restart-line-duotone size-4" />
         Reset
       </Button>
-      {!!queryResult ? (
+      {queryResult ? (
         <Button
           className="bg-green-4 hover:bg-green-5 w-full gap-1 text-black"
           onClick={() => {

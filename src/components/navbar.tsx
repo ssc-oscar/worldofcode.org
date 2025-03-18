@@ -87,14 +87,12 @@ function UserAvatar() {
 
 export default function NavBar({ items }: { items: NavItem[] }) {
   const path = usePathname();
+  const { theme, setTheme } = useTheme();
+  const { width } = useWindowSize();
 
   if (!items?.length) {
     return null;
   }
-
-  const { theme, setTheme } = useTheme();
-
-  const { width } = useWindowSize();
 
   return (
     <nav className="supports-[backdrop-filter]:bg-background/60 fixed inset-x-0 top-0 z-50 bg-white shadow-sm backdrop-blur dark:bg-slate-900">

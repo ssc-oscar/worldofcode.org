@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { useRouter } from '@/hooks/use-router';
 import { Suspense } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
@@ -10,7 +8,6 @@ import { parseError } from '@/lib/error';
 import { AxiosError } from 'axios';
 import { SWRConfig } from 'swr';
 import { UserContextProvider } from './user-provider';
-import { Link, useLocation } from 'react-router-dom';
 import { ToastAction } from '@/components/ui/toast';
 
 const ErrorFallback = ({ error }: FallbackProps) => {
@@ -55,6 +52,15 @@ const ErrorFallback = ({ error }: FallbackProps) => {
   );
 };
 
+const LoadingFallback = () => {
+  return (
+    <div className="flex h-screen w-screen flex-col items-center justify-center">
+      <div className="i-solar:loading-bold-duotone text-primary/80 size-12 animate-spin" />
+      <p className="text-primary/80 mt-4 text-lg">Loading...</p>
+    </div>
+  );
+};
+
 const SWRErrorHandler = (error: Error) => {
   console.log('Reached SWR ERROR HANDLER', error);
   if (error instanceof AxiosError && error.response?.status === 401) {
@@ -77,9 +83,9 @@ export default function AppProvider({
   children: React.ReactNode;
 }) {
   return (
-    <Suspense>
-      <HelmetProvider>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Suspense fallback={<LoadingFallback />}>
+        <HelmetProvider>
           <SWRConfig
             value={{
               onError: SWRErrorHandler,
@@ -91,9 +97,8 @@ export default function AppProvider({
               <Toaster />
             </ThemeProvider>
           </SWRConfig>
-          {/* </QueryClientProvider> */}
-        </ErrorBoundary>
-      </HelmetProvider>
-    </Suspense>
+        </HelmetProvider>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

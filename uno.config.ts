@@ -15,7 +15,8 @@ import { presetShadcn } from 'unocss-preset-shadcn';
 export default defineConfig({
   presets: [
     presetUno(),
-    presetAnimations(), // @ts-ignore
+    // @ts-ignore
+    presetAnimations(), 
     presetShadcn({
       color: 'slate',
       darkSelector: ':root[class~="dark"]'

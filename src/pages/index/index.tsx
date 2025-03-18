@@ -4,20 +4,24 @@ import { Button, ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { HomePageItem } from '@/config';
 import { CITATION, homePageItems } from '@/config';
-
+import CountUp from 'react-countup';
 import Icon from '@/components/icon';
-
-import { NumberTicker } from '@/components/magicui/number-ticker';
 import { getMapCount, getObjectCount, ObjectName } from '@/api/lookup';
 import useSWR from 'swr';
 import { Skeleton } from '@/components/ui/skeleton';
+import '@/styles/gradient-text.css';
+import { Separator } from '@/components/ui/separator';
 
 export function WocNumberTicker({
   variant = 'project',
-  title
+  title,
+  className,
+  ...props
 }: {
   variant: string;
-  title?: string;
+  title?: string | React.ReactNode;
+  className?: string;
+  [key: string]: any;
 }) {
   const { data, isLoading, error } = useSWR(
     `/lookup/object/${variant}/count`,
@@ -56,18 +60,19 @@ export function WocNumberTicker({
 
   return (
     <div className="hover:scale-102 w-45 flex flex-col items-center justify-center gap-2 transition-all duration-300">
-      <NumberTicker
-        value={data}
-        className="color-primary/80 text-2xl font-bold"
+      <CountUp
+        end={data}
+        className={cn(
+          'font-600 text-primary/80 inline-block text-2xl tabular-nums tracking-wider',
+          className
+        )}
+        {...props}
       />
       <Separator className="color-primary/80 w-3/4 transition-all duration-300 group-hover:w-full" />
       <p className="text-primary/80 text-md font-medium">{title || variant}</p>
     </div>
   );
 }
-
-import '@/styles/gradient-text.css';
-import { Separator } from '@/components/ui/separator';
 
 function HomePageCardHeader({ ...props }: Partial<HomePageItem>) {
   if (props.title)
@@ -181,9 +186,33 @@ function WocLogoAndButtons() {
         </Button>
       </div>
       <div className="z-1 mb-2 flex flex-wrap items-center justify-center gap-6">
-        <WocNumberTicker variant="p2c" title="Projects" />
-        <WocNumberTicker variant="commit" title="Commits" />
-        <WocNumberTicker variant="a2c" title="Authors" />
+        <WocNumberTicker
+          variant="a2c"
+          title={
+            <div className="flex items-center gap-2">
+              <span className="i-mdi:account-group" />
+              Authors
+            </div>
+          }
+        />
+        <WocNumberTicker
+          variant="p2c"
+          title={
+            <div className="flex items-center gap-2">
+              <span className="i-mdi:source-repository" />
+              Projects
+            </div>
+          }
+        />
+        <WocNumberTicker
+          variant="commit"
+          title={
+            <div className="flex items-center gap-2">
+              <span className="i-mdi:source-commit" />
+              Commits
+            </div>
+          }
+        />
       </div>
     </>
   );
