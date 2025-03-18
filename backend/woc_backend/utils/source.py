@@ -4,17 +4,18 @@ import ipaddress
 from urllib.parse import urlparse
 from ..config import settings
 
+
 def get_client_info(request: Request) -> Dict[str, str]:
     """
     Best-effort dependency to extract client IP address and user agent,
     handling various proxy scenarios.
-    
+
     Returns:
         Dict with 'request_ip' and 'user_agent' keys
     """
     # Get User-Agent
     user_agent = request.headers.get("User-Agent", "")
-    
+
     # Try to get the real client IP by checking common proxy headers
     ip = _extract_real_ip(request)
 
@@ -24,17 +25,14 @@ def get_client_info(request: Request) -> Dict[str, str]:
         # only keep the scheme and netloc
         _parsed = urlparse(referrer)
         referrer = f"{_parsed.scheme}://{_parsed.netloc}"
-    
-    return {
-        "request_ip": ip,
-        "user_agent": user_agent,
-        "referrer": referrer
-    }
+
+    return {"request_ip": ip, "user_agent": user_agent, "referrer": referrer}
+
 
 def _extract_real_ip(request: Request) -> str:
     """
     Extract the real client IP from request headers, checking common proxy headers.
-    
+
     Uses a fallback strategy checking headers in priority order.
     """
     # Priority ordered list of headers to check
@@ -49,7 +47,7 @@ def _extract_real_ip(request: Request) -> str:
         "X-Cluster-Client-IP",
         "Fastly-Client-IP",
     ]
-    
+
     # First try the standard headers
     for header in ip_headers:
         if header in request.headers:
@@ -77,42 +75,44 @@ def _extract_real_ip(request: Request) -> str:
                 ip = request.headers[header].strip()
                 if _is_valid_ip(ip):
                     return ip
-    
+
     # Fallback to the request client host
     return request.client.host if request.client else ""
+
 
 def _is_valid_ip(ip: str) -> bool:
     """Validate if a string is a valid IP address (v4 or v6)."""
     ip = ip.strip()
-    
+
     # Strip port if present
     if ":" in ip and ip.count(":") == 1:  # IPv4 with port
         ip = ip.split(":")[0]
-    
+
     try:
         ipaddress.ip_address(ip)
         return True
     except ValueError:
         return False
-    
+
+
 def get_base_url(request: Request) -> Dict[str, str]:
     """
     Extract the base URL from the request, handling proxy headers.
     """
     if settings.get("base_url"):
         return settings.base_url
-    
+
     # Get the original scheme determined by FastAPI
     scheme = request.url.scheme
-    
+
     # Check for proxy headers that indicate the original scheme
     forwarded_proto = request.headers.get("X-Forwarded-Proto")
     forwarded_scheme = request.headers.get("X-Forwarded-Scheme")
     forwarded_ssl = request.headers.get("X-Forwarded-Ssl")
-    
+
     # Standard Forwarded header (RFC 7239)
     forwarded = request.headers.get("Forwarded")
-    
+
     # Determine the actual scheme based on headers
     if settings.get("scheme"):
         scheme = settings.scheme
@@ -132,7 +132,7 @@ def get_base_url(request: Request) -> Dict[str, str]:
                 break
     if not scheme:
         scheme = request.url.scheme
-    
+
     # Get the host from headers if behind proxy
     if settings.get("host"):
         host = settings.host
@@ -142,6 +142,6 @@ def get_base_url(request: Request) -> Dict[str, str]:
         host = request.headers["Host"]
     else:
         host = request.url.netloc
-        
+
     # Build the base URL
     return f"{scheme}://{host}"

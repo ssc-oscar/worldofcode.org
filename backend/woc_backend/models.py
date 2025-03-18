@@ -11,4 +11,6 @@ class WocResponse(BaseModel, Generic[T]):
 
     class Config:
         json_encoders = {None: lambda x: None, "_id": lambda x: None}
-        json_dumps = lambda obj, **kwargs: obj.dict(exclude_none=True, **kwargs)  # Exclude None globally
+        json_dumps = lambda obj, **kwargs: obj.dict(
+            exclude_none=True, **kwargs
+        )  # Exclude None globally

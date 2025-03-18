@@ -166,6 +166,7 @@ async def revoke_token(
         r.delete_cookie("token")
     return r
 
+
 def _get_api_base(one_time_code, base_url):
     api_base = one_time_code.referrer or base_url
     if settings_base := settings.get("base_url"):

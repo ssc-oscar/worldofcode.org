@@ -17,7 +17,6 @@ dependencies = [
     "aiosmtplib>=3.0.2,<4",
     "jinja2>=3.1.6",
     "python-multipart>=0.0.20",
-    "itsdangerous>=2.2.0",
     "email-validator>=2.2.0",
 ]
 

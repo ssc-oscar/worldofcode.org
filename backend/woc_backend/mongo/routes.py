@@ -1,14 +1,13 @@
 import json
-import sys
-import logging
-from typing import TYPE_CHECKING, List, Literal, Optional, Union, Dict, Any
-from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
+from typing import List, Literal, Optional, Union
+
 from beanie.operators import Text
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
+from ..models import WocResponse
 from ..utils.validate import validate_limit
 from .models import MongoAPI, MongoAuthor, MongoProject
-from ..models import WocResponse
 
 api = APIRouter()
 
@@ -61,9 +60,7 @@ async def _sample(cls: Union[MongoAuthor, MongoProject, MongoAPI], filter, limit
 
     # 2) fallback to full scan
     if len(results) < limit:
-        logger.warning(
-            f"falling back to full scan, filter={filter}"
-        )
+        logger.warning(f"falling back to full scan, filter={filter}")
         results.extend(await cls.find(filter).limit(limit - len(results)).to_list())
         logger.debug(f"sampled {len(results)} from full scan, filter={filter}")
     return results
@@ -96,6 +93,7 @@ async def get_author(q: str):
     if not r:
         raise HTTPException(status_code=404, detail=f"Author not found:{q}")
     return WocResponse[MongoAuthor](data=r)
+
 
 @api.get(
     "/project/search",
@@ -142,10 +140,11 @@ async def get_project(q: str):
     """
     Get project information by name.
     """
-    r =await MongoProject.find_one({"ProjectID": q})
+    r = await MongoProject.find_one({"ProjectID": q})
     if not r:
         raise HTTPException(status_code=404, detail=f"Project not found: {q}")
     return WocResponse[MongoProject](data=r)
+
 
 @api.get(
     "/api/search",
@@ -194,4 +193,3 @@ async def get_api(q: str):
     if not r:
         raise HTTPException(status_code=404, detail=f"API not found:{q}")
     return WocResponse[MongoAPI](data=r)
-        
