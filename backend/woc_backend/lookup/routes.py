@@ -1,10 +1,12 @@
-from typing import TYPE_CHECKING, List, Union, Dict
-from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
-from woc.local import decode_str, decomp_or_raw, decode_value
+from dataclasses import asdict
+from typing import TYPE_CHECKING, Dict, List, Union
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from woc.local import decode_str, decode_value, decomp_or_raw
 
 from ..models import WocResponse
-from .models import ObjectName
 from ..utils.validate import validate_q_length
+from .models import ObjectName, WocMap, WocObject
 
 if TYPE_CHECKING:
     from woc.local import WocMapsLocal
@@ -31,9 +33,22 @@ def _show_content(
 ):
     if type_ != ObjectName.blob and raw:
         return decode_str(decomp_or_raw(woc._get_tch_bytes(type_, key)[0]))
-    if type == ObjectName.tree and traverse:
+    if type_ == ObjectName.tree and traverse:
         return _traverse_tree(woc, key)
     return woc.show_content(str(type_), key)
+
+
+@api.get(
+    "/object",
+    response_model=WocResponse[List[WocObject]],
+    response_model_exclude_none=True,
+)
+def get_objects(request: Request):
+    """
+    Get the list of available objects.
+    """
+    woc: WocMapsLocal = request.app.state.woc
+    return WocResponse[List[WocObject]](data=[asdict(o) for o in woc.objects])
 
 
 @api.get(
@@ -72,7 +87,10 @@ def count_objects(request: Request, type_: ObjectName):
     Count the number of objects of a commit, tree, or blob.
     """
     woc: WocMapsLocal = request.app.state.woc
-    return WocResponse[int](data=woc.count(str(type_)))
+    try:
+        return WocResponse[int](data=woc.count(str(type_)))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=e.args[0])
 
 
 def _get_values_with_cursor(
@@ -120,7 +138,7 @@ def show_content(
 
 @api.get(
     "/map",
-    response_model=WocResponse[List[str]],
+    response_model=WocResponse[List[WocMap]],
     response_model_exclude_none=True,
 )
 def get_maps(request: Request):
@@ -128,7 +146,7 @@ def get_maps(request: Request):
     Get the list of available maps.
     """
     woc: WocMapsLocal = request.app.state.woc
-    return WocResponse[List[str]](data=set([m.name for m in woc.maps]))
+    return WocResponse[List[WocMap]](data=[asdict(m) for m in woc.maps])
 
 
 @api.get(
@@ -177,7 +195,10 @@ def count_values(request: Request, map_: str):
     Check
     """
     woc: WocMapsLocal = request.app.state.woc
-    return WocResponse[int](data=woc.count(map_))
+    try:
+        return WocResponse[int](data=woc.count(map_))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=e.args[0])
 
 
 @api.get(

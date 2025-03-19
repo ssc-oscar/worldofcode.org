@@ -1,8 +1,8 @@
-from typing import Optional, List, Union, Literal, Dict, Any
-from pydantic import BaseModel
 from datetime import datetime
-from beanie import Document
 from enum import Enum
+from typing import List, Optional, Tuple, Union
+
+from pydantic import BaseModel
 
 
 class _GitObject(BaseModel):
@@ -47,3 +47,38 @@ class ObjectName(str, Enum):
 
     def __str__(self) -> str:
         return self.value
+
+
+class WocFile(BaseModel):
+    """Represents a file in the WoC database."""
+
+    path: str
+    """Path to the file in the local filesystem."""
+
+    size: Optional[int] = None
+    """Size of file in bytes."""
+
+    digest: Optional[str] = None
+    """16-char digest calculated by woc.utils.fast_digest."""
+
+
+class WocObject(BaseModel):
+    name: str
+    """Name of the map, e.g. 'c2p', 'c2r', 'P2c'."""
+
+    sharding_bits: int
+    """Number of bits used for sharding."""
+
+
+class WocMap(BaseModel):
+    name: str
+    """Name of the map, e.g. 'c2p', 'c2r', 'P2c'."""
+
+    sharding_bits: int
+    """Number of bits used for sharding."""
+
+    version: str
+    """version of the map, e.g. 'R', 'U'."""
+
+    dtypes: Tuple[str, str]
+    """Data types of the map, e.g. ('h', 'cs'), ('h', 'hhwww')."""
