@@ -194,7 +194,11 @@ export default function UserSearchBar({
                         }}
                       >
                         {field.value.map((value) => (
-                          <ComboboxTag key={value} value={value}>
+                          <ComboboxTag
+                            key={value}
+                            value={value}
+                            className="break-anywhere"
+                          >
                             {value}
                           </ComboboxTag>
                         ))}
