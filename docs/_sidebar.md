@@ -10,7 +10,7 @@ Example:
 - [External Link](https://example.com)
 -->
 
-- [Overview](README.md)
+- [Overview](overview.md)
 - [Tutorial](tutorial.md)
 - [Terms of Service](terms.md)
 - [License](license.md)

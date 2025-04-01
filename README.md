@@ -1,48 +1,44 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/9113740/201498864-2a900c64-d88f-4ed4-b5cf-770bcb57e1f5.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/9113740/201498152-b171abb8-9225-487a-821c-6ff49ee48579.png">
-</picture>
+<div align="center">
+  <img src="/public/woc.webp" alt="World of Code" style="max-height: 100px; @media (prefers-color-scheme: dark) { filter: invert(1); }">
+</div>
 
-<div align="center"><strong>React Admin Dashboard Starter Template With Shadcn-ui</strong></div>
-<div align="center">Built with the Vite + React Ts</div>
+<div align="center"><strong>Next Generation WoC Website</strong></div>
+<div align="center">Built with the Vite + React + Shadcn-ui</div>
 <br />
 <div align="center">
-<a href="https://react-shadcn-dashboard-starter.vercel.app/">View Demo</a>
+  <a href="https://woc-preview.netlify.app/">
+    <img src="https://img.shields.io/badge/View%20on-Netlify-00C7B7?logo=netlify" alt="View Demo">
+  </a>
 <span>
 </div>
 
-## Overview
+## Stack
 
-This is a starter template using the following stack:
-
-- Js Library - [React 18](https://react.dev/)
+- Framework - [React 19](https://react.dev/)
 - Language - [TypeScript](https://www.typescriptlang.org)
-- Styling - [Tailwind CSS](https://tailwindcss.com)
+- Styling - [Unocss](https://unocss.dev)
 - Components - [Shadcn-ui](https://ui.shadcn.com)
-- Schema Validations - [Zod](https://zod.dev)
-- Async state management - [Tanstack Query aka React Query](https://tanstack.com/query/latest/docs/framework/react/overview)
-- Tables - [Tanstack Tables](https://ui.shadcn.com/docs/components/data-table)
-- Forms - [React Hook Form](https://ui.shadcn.com/docs/components/form)
+- Charts and Graphs - [Ant Design Charts](https://charts.ant.design)
 - Linting - [ESLint](https://eslint.org)
 - Formatting - [Prettier](https://prettier.io)
-- Pre-commit hook - [Husky](https://typicode.github.io/husky/)
 
-## Pages
-
-| Pages                                                                  | Specifications                                                                   |
-| :--------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
-| [Signup](https://react-shadcn-dashboard-starter.vercel.app/login)      | Custom auth.                                                                     |
-| [Dashboard](https://react-shadcn-dashboard-starter.vercel.app/)        | Cards with recharts graphs for analytics with dark mode ✅.                      |
-| [Students](https://react-shadcn-dashboard-starter.vercel.app/students) | Tanstack tables with students details with server side searching, pagination etc |
-| [404](https://react-shadcn-dashboard-starter.vercel.app/404)           | Not Found Page                                                                   |
-| -                                                                      | -                                                                                |
-
-## Getting Started
+## Setup
 
 Follow these steps to clone the repository and start the development server:
 
-- `git clone https://github.com/Kiranism/react-shadcn-dashboard-starter.git`
-- `npm install`
-- `npm run dev`
+```bash
+git clone https://github.com/ssc-oscar/woc-frontend.git
+cd woc-frontend
+npm install -g pnpm  # if you haven't installed pnpm yet
+pnpm install
+pnpm run dev
+```
 
-You should now be able to access the application at http://localhost:5173.
+You should now be able to access the application at http://localhost:4000.
+
+If you want to connect the live backend, add a `.env.local` file in the root directory with the following:
+
+```ini
+VITE_BASE_URL="https://replace.with.your.backend.url"
+VITE_TURNSTILE_SITE_ID="0xREPLACE_WITH_YOUR_SITE_ID"
+```
