@@ -24,6 +24,7 @@ services:
       - ./.secrets.toml:/app/.secrets.toml:ro
       - /woc:/woc:ro
       - ./wocprofile.json:/etc/wocprofile.json
+    command: --host 0.0.0.0 --port 8234 --workers ${WOC_WORKERS:-1}
     <<: *common-options
   nginx:
     build:

@@ -21,4 +21,6 @@ COPY woc_backend/ ./woc_backend/
 EXPOSE 8234
 
 # Command to run the application
-CMD ["python3", "-m", "woc_backend", "--host", "0.0.0.0", "--port", "8234", "--workers", "1"]
+ENTRYPOINT ["python3", "-m", "woc_backend"]
+
+CMD ["--host", "0.0.0.0", "--port", "8234", "--workers", "1"]
