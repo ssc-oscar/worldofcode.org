@@ -10,9 +10,25 @@ This site use Docsify to generate the documentation site. It's fairly simple to 
 - [New Page](new-page.md)
 ```
 
-## Removing docs
+## Remove docs
 
 To remove a page from the docs, simply remove it from the `_sidebar.md` file.
+
+## Include remote markdown files
+
+You can "link" remote markdown files in your docs. This is useful for including documentation from other repositories.
+
+For example, you can include the `guide_remote.md` like this:
+
+```markdown
+[remoteMarkdownUrl](https://raw.githubusercontent.com/ssc-oscar/python-woc/refs/heads/master/docs/guide_remote.md)
+```
+
+And add it to the sidebar:
+
+```markdown
+- [Remote Markdown](guide_remote.md)
+```
 
 ## Insert graphviz dot files
 

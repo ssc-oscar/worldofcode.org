@@ -12,6 +12,8 @@ Example:
 
 - [Overview](overview.md)
 - [Tutorial](tutorial.md)
+- [Tutorial (Python)](guide.md)
+- [Tutorial (Remote)](guide_remote.md)
 - [Terms of Service](terms.md)
 - [License](license.md)
 - [Fun Facts](crazy.md)
