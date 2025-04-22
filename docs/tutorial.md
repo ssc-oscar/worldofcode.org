@@ -178,7 +178,7 @@ Log in to da0 and clone two repositories that contain APIs to access WoC data
 
 ```bash
 [username@da0]~% git clone https://bitbucket.org/swsc/lookup
-[username@da0]~% git clone https://github.com/ssc-oscar/oscar.py
+[username@da0]~% git clone https://github.com/ssc-oscar/python-woc
 ```
 
 Log in to da4 from da0:
@@ -197,7 +197,7 @@ Make sure to access these directories and execute a `git pull` frequently to ens
 
 ## Activity 2: Shell APIs - Basic Operations
 
-Shell APIs might be useful to accsess content of the commit, trees, blobs,
+Shell APIs might be useful to access content of the commit, trees, blobs,
 to calculate the diff produced by a commit, etc.
 
 For more examples [see full API](https://bitbucket.org/swsc/lookup/src/master/README.md).
@@ -352,9 +352,9 @@ Warner Losh <imp@FreeBSD.org>
 0001246ed9e02765dfc9044a1804c3c614d25dde
 ```
 
-In addition to variable-length records (key;val1,;val2;...;valn),
+In addition to variable-length records (key;val1;val2;...;valn),
 the output can be produced as a flat table (key;val1\nkey;val2\n...\nkey;valn)
-using -f option:
+using `-f` option:
 
 ```bash
 [username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues -f a2c | head -n 5
@@ -401,7 +401,7 @@ Author ID to File or a2f
 [username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2f
 ```
 
-Find all commits developers who have your last and your first name:
+Get the number of all commits from developers who have your last and your first name:
 
 Hint 1: use wc (word count), e.g. (example takes a long time to compute),
 
@@ -412,6 +412,7 @@ Hint 1: use wc (word count), e.g. (example takes a long time to compute),
 b) Find all files modified by all author IDs used by a developer 'Warner Losh <imp@FreeBSD.org>'
 
 Hint 1: What is the map name?
+
 A represents all author IDs so we first get the group name:
 
 ```bash
@@ -433,8 +434,8 @@ For any key provided on standard input, a list of values is provided
 ~/lookup/getValues [-f] a2c|c2dat|b2ta|b2fa|c2b|b2f|c2f|p2c|c2p|c2P|P2c
 ```
 
-option -f replaces one output line per input line into the number of lines corresponding to the number of values.
-(or single-value maps such as c2dat, b2fa) -f makes no sense as it prints distinct fields on separate lines)
+Option `-f` replaces one output line per input line into a number of individual lines corresponding to the number of output values.
+For single-value maps, such as c2dat, b2fa, `-f` makes no sense as it prints distinct fields on separate lines.
 
 Also, only the first column of the input is considered as the key, other fields are passed through, e.g.,
 
@@ -447,7 +448,7 @@ Warner Losh <imp@FreeBSD.org>;zz;0001246ed9e02765dfc9044a1804c3c614d25dde
 
 ## Activity 4: Exploring the State of a Repo at the Last Commit
 
-Lets suppose we only care for the last version of the files in a project, e.g last version of readme.
+Lets suppose we only care for the last version of the files in a project, e.g., last version of readme.
 lb2f (last blob to file) provides this relationship
 
 ```bash
@@ -487,11 +488,11 @@ In fact, lb2f is computed from lc2dat by taking the tree (column 6 of lc2Pdat) a
 
 ## Activity 5: Using Python APIs from oscar.py
 
-**oscar.py Tutorial:** oscar.py has their own tutorial for hackathon purposes. We suggest that you go [here](https://github.com/ssc-oscar/oscar.py/blob/master/docs/tutorial.md) and read through it. The tutorial contains information about the current available functions, how to implement applications (simple and complex), and useful imports for applications.
+**python-woc Tutorial:** [python-woc](https://github.com/ssc-oscar/python-woc) has its own tutorial for hackathon purposes. We suggest that you go [here](https://github.com/ssc-oscar/python-woc/blob/master/docs/tutorial.md) and read through it. The tutorial contains information about the current available functions, how to implement applications (simple and complex), and useful imports for applications.
 
-**Important Note:** If you experience any difficulties in retrieving data from oscar.py's function calls (i.e., you receive an empty tuple on function return), please run `git pull` in your cloned repo to stay up-to-date with the latest version of oscar.py.
+**Important Note:** If you experience any difficulties in retrieving data from python-woc's function calls (i.e., you receive an empty tuple on function return), please run `git pull` in your cloned repo to stay up-to-date with the latest version of python-woc.
 
-These are corresponding functions in oscar.py that open the .tch files listed below for a given entity. `/function_name` after a function name denotes the version of that function that returns a Generator object.
+These are corresponding functions in python-woc that open the .tch files listed below for a given entity. `/function_name` after a function name denotes the version of that function that returns a Generator object.
 
 1. `Author('...')` - initialized with a combination of name and email
    - `.blobs`
@@ -542,16 +543,14 @@ for commit in Author(author_name).commit_shas:
 
 ### Exercise 5a: Get a list of commits made by a specific author
 
-Install the latest oscar.py
+Install the latest version of python-woc:
 
 ```bash
-[username@da0]~% cd ~/oscar.py
+[username@da0]~% cd python-woc
+[username@da0:python-woc]~% pip3 install python-woc
 ```
 
-If "import oscar" fails
-
-```bash
-[username@da0]~% easy_install --user clickhouse-driver
+If you need to install python-woc from source, see the installation guide [here](https://github.com/ssc-oscar/python-woc/tree/master?tab=readme-ov-file#install-python-woc).
 ```
 
 As we learned before, we can do that in shell
@@ -563,12 +562,12 @@ As we learned before, we can do that in shell
 "Albert Krawczyk" <pro-logic@optusnet.com.au>;3cdd0e1cefbec43a9c3d3138dd6734191529763a
 ```
 
-Now the same thing can be done using oscar.py:
+Now the same thing can be done using python-woc:
 
 ```bash
-[username@da0]~% cd oscar.py
-[username@da0:oscar.py]~% python3
->>> from oscar import Author, Commit
+[username@da0]~% cd python-woc
+[username@da0:python-woc]~% python3
+>>> from woc.objects import Author, Commit
 >>> for i, commit in enumerate(Author('"Albert Krawczyk" <pro-logic@optusnet.com.au>').commit_shas):
 ...     if i >= 3:
 ...         break
@@ -580,25 +579,24 @@ Now the same thing can be done using oscar.py:
 >>>
 ```
 
-### Exercise 5b: Get the URL of a projects repository using the oscar.py `Project(...).url` attribute:
+### Exercise 5b: Get the URL of a project's repository using the python-woc `Project(...).url` attribute:
 
 ```bash
-[username@da0:oscar.py]~%  python3
->>> from oscar import Project
+[username@da0:python-woc]~%  python3
+>>> from woc.objects import Project
 >>> Project('notcake_gcad').url
 'https://github.com/notcake/gcad'
 ```
 
-### Exercise 5c
-
-Get list of files modified by commit 17abdbdc90195016442a6a8dd8e38dea825292ae
+### Exercise 5c: Get list of files modified by commit 17abdbdc90195016442a6a8dd8e38dea825292ae
 
 Hint 1: What class to use?
+
 Commit
 
 ```bash
-[username@da0:oscar.py]~%  python3
->>> from oscar import Commit
+[username@da0:python-woc]~%  python3
+>>> from woc.objects import Commit
 >>> Commit('17abdbdc90195016442a6a8dd8e38dea825292ae').changed_file_names
 ```
 
