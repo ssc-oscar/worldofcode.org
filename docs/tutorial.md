@@ -619,10 +619,11 @@ The location of the file can be identified via a pathname as described below.
 
 ### da0/../da5 Servers
 
-#### {relationship}.{0-31}.tch files can be found in `/da[0-5]_fast/` or `/da[0-5]_data/basemaps`
+#### `{relationship}.{0-31}.tch` files can be found in `/da[0-5]_fast/` or `/da[0-5]_data/basemaps`
 
-(.s) signifies that there are either .s or .gz versions of these files in /da[0-5]\_data/basemaps/gz/ folder, which can be opened with Python gzip module or Unix zcat.
-all five da[0-5] server may have these .s/.gz files
+(.s) signifies that there are either .s or .gz versions of these files in `/da[0-5]\_data/basemaps/gz/` folder, which can be opened with Python gzip module or Unix zcat.
+all five da[0-5] servers may have these .s/.gz files.
+
 Keys for identifying letters:
 
 - a = Author
@@ -636,7 +637,7 @@ Keys for identifying letters:
 - pc = Parent Commit
 - P = Forked/Root Project (see Note below)
 - ta = Time;Author
-- fa = First;Author;commit
+- fa = FirstTime;Author;Commit
 - r = root commit obtained by traversing commit history
 - h = head commit obtained by traversing commit history
 - td = Tdiff
@@ -662,10 +663,12 @@ List of relationships can be obtained via
 
 ```
 echo $(ls /da?_data/basemaps/gz/*FullV0.s| sed 's|.*/||;s|FullV0.s||')
-A2P A2c A2mnc P2A P2a P2c P2core P2g P2mnc P2tac a2P a2c a2p c2P c2acp c2cc c2dat c2p c2pc p2a
-p2c A2b A2f A2fb A2tPc A2tPlPkg A2tspan P2b P2binf P2f P2fb P2nfb P2tAlPkg P2tspan Pkg2tPA Pt2Ptb
-Ptb2Pt a2f a2fb b2P b2def b2fA b2f b2fa b2ob b2ptf b2tA b2tP b2ta b2tk b bb2cf c2PtAbflDef
-c2PtAbflPk g c2PtabflDef c2PtabflPkg c2b c2f c2fbb lb2f lc2Pdat ob2b obb2cf t2all t2ptf tk2b
+a2c A2c A2mnc a2p a2P A2P c2acp c2cc c2dat c2pc c2p c2P p2a P2a P2A p2c
+P2c P2core P2g P2mnc P2tac c2PtAbflPkg A2b a2fb A2fb a2f A2f A2tPc
+A2tPlPkg A2tspan b2def b2fa b2fA b2f b2ob b2P b2ta b2tA b2tk b2tP bb2cf
+b c2b c2f c2PtabflDef c2PtAbflDef c2PtabflPkg c2PtAbflPkg lb2f lc2Pdat
+ob2b obb2cf P2b P2binf P2fb P2f P2nfb P2tAlPkg P2tspan Pkg2tPA Pt2Ptb
+Ptb2Pt t2all tk2b
 ```
 
 ```
@@ -717,8 +720,8 @@ Hint 1: What is the name of the map?
 ## Activity 7: Investigating Technical dependencies
 
 The technical dependencies have been extracted by parsing the content of all blobs related to
-several different languages: and, for version V, are located in
-`/da7_data/basemaps/gz/c2PtAbflPkgFullVX.s` with X ranging from 0
+several different languages. For version V, they are located in
+`/da78data/basemaps/gz/c2PtAbflPkgFullVX.s` with X ranging from 0
 to 127 based on the 7 bits in the first byte of the commit sha1.
 
 The format of each file is encoded in its name:
