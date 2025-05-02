@@ -20,5 +20,10 @@ COPY / .
 RUN pnpm build
 
 # Copy the artifacts to a new image
-FROM scratch AS artifacts
-COPY --from=builder /app/dist /
+FROM alpine:latest AS artifacts
+
+VOLUME [ "/dist" ]
+
+COPY --from=builder /app/dist /app/dist
+
+CMD cp -r /app/dist/* /dist

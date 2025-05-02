@@ -17,28 +17,43 @@ services:
       dockerfile: backend.dockerfile
     environment:
       - PYTHONUNBUFFERED=1
-      - WOC_MONGO__URL="mongodb://host.docker.internal:27017/woc"
-      - WOC_CLICKHOUSE__URL="clickhouse://host.docker.internal:9000/woc"
+      - WOC_MONGO__URL="mongodb://da5:27017/woc"
+      - WOC_CLICKHOUSE__URL="clickhouse://da1:9000/woc"
     volumes:
       - ./settings.toml:/app/settings.toml:ro
       - ./.secrets.toml:/app/.secrets.toml:ro
-      - /woc:/woc:ro
-      - ./wocprofile.json:/etc/wocprofile.json
-    command: --host 0.0.0.0 --port 8234 --workers ${WOC_WORKERS:-1}
+      # - ./wocprofile.json:/etc/wocprofile.json
+      # - /woc:/woc:ro
+      - /home/wocprofile.json:/etc/wocprofile.json:ro
+      - /da3_fast:/da3_fast:ro
+      - /da8_data:/da8_data:ro
+      - /da3_data:/da3_data:ro
+      - /da0_data:/da0_data:ro
+      - /da9_data:/da9_data:ro
+      - /da1_data:/da1_data:ro
+      - /da2_data:/da2_data:ro
+      - /da4_data:/da4_data:ro
+      - /da4_fast:/da4_fast:ro
+      - /da7_data:/da7_data:ro
+      - /da5_data:/da5_data:ro
+      - /da5_fast:/da5_fast:ro
+    command: --host 0.0.0.0 --port 38580 --workers ${WOC_WORKERS:-1}
+    network_mode: host
     <<: *common-options
-  nginx:
-    build:
-      context: frontend
-      args:
-        - VITE_TURNSTILE_SITE_ID
-        - VITE_BASE_URL
-    ports:
-      - "35080:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
-    depends_on:
-      - app
-    environment:
-      - API_HOST=app
-      - API_PORT=8234
-    <<: *common-options
+
+  # nginx:
+  #   build:
+  #     context: frontend
+  #     args:
+  #       - VITE_TURNSTILE_SITE_ID
+  #       - VITE_BASE_URL
+  #   ports:
+  #     - "35080:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
+  #   depends_on:
+  #     - app
+  #   environment:
+  #     - API_HOST=app
+  #     - API_PORT=8234
+  #   <<: *common-options
