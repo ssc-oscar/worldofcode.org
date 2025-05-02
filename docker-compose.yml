@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 x-common-options: &common-options
   restart: always
@@ -28,8 +28,7 @@ services:
     <<: *common-options
   nginx:
     build:
-      context: woc-frontend
-      dockerfile: ../frontend.dockerfile
+      context: frontend
       args:
         - VITE_TURNSTILE_SITE_ID
         - VITE_BASE_URL

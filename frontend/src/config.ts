@@ -75,7 +75,7 @@ export const CITATION = `@article{ma2021world,
 export const navItems: NavItem[] = [
   {
     title: 'Docs',
-    href: '/docs/',
+    href: '/docs/index.html',
     icon: 'i-material-symbols:book-5-rounded',
     description: 'Comprehensive World of Code Documentation Collection',
     external: true
