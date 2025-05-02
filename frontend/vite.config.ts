@@ -43,7 +43,7 @@ export default defineConfig({
   },
   plugins: [
     // copy /docs to dist/docs
-    viteStaticCopy({ targets: [{ src: 'docs', dest: '.' }] }),
+    viteStaticCopy({ targets: [{ src: '../docs', dest: '.' }] }),
     react(),
     UnoCSS(),
     generouted(),
