@@ -12,7 +12,7 @@ Next generation frontend of worldofcode.org.
 - Linting - [ESLint](https://eslint.org)
 - Formatting - [Prettier](https://prettier.io)
 
-## Build for production
+## Dev Setup
 
 Follow these steps to clone the repository and start the development server:
 
@@ -31,4 +31,18 @@ If you want to connect the live backend, add a `.env.local` file in the root dir
 ```ini
 VITE_BASE_URL="https://replace.with.your.backend.url"
 VITE_TURNSTILE_SITE_ID="0xREPLACE_WITH_YOUR_SITE_ID"
+```
+
+## Production Build
+
+To produce a production build, run:
+
+```bash
+pnpm run build
+```
+
+Alternatively, if you want to avoid the hassle of setting up Node and other dependencies, you may build the application in Docker:
+
+```bash
+bash build_docker.sh
 ```
