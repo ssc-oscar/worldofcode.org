@@ -75,7 +75,7 @@ export const CITATION = `@article{ma2021world,
 export const navItems: NavItem[] = [
   {
     title: 'Docs',
-    href: '/docs/index.html',
+    href: '/docs/',
     icon: 'i-material-symbols:book-5-rounded',
     description: 'Comprehensive World of Code Documentation Collection',
     external: true
@@ -129,16 +129,16 @@ export const homePageItems: HomePageItem[] = [
     icon: 'i-fluent-emoji-flat:cat-with-wry-smile'
   },
   {
-    description: 'Next World of Code Hackathon: \n Late May - Early Jun (TBD)',
+    description: 'Next World of Code Hackathon: \n May 12 - May 14',
     icon: 'i-fluent-emoji-flat:calendar',
-    linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2023',
+    linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2025',
     linkText: 'Register Now',
     linkClassName: 'important:bg-red-500 animate-pulse'
   },
   {
     description: 'General World of Code Infrastructure Overview',
     icon: 'i-fluent-emoji-flat:gear',
-    linkHref: '/explore',
+    linkHref: '/docs/#/overview',
     linkText: 'Explore'
   },
   {
@@ -151,6 +151,12 @@ export const homePageItems: HomePageItem[] = [
     description: `Fun facts about some crazy competitions among git repositories`,
     icon: '😂',
     linkHref: '/docs/#/crazy',
+    linkText: 'Learn More'
+  },
+  {
+    description: `Guides on the latest WoC Python driver`,
+    icon: 'i-simple-icons:python',
+    linkHref: '/docs/#/guide',
     linkText: 'Learn More'
   },
   {
