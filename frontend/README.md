@@ -1,16 +1,6 @@
-<div align="center">
-  <img src="/public/woc.webp" alt="World of Code" style="max-height: 100px; @media (prefers-color-scheme: dark) { filter: invert(1); }">
-</div>
+# World of Code Frontend
 
-<div align="center"><strong>Next Generation WoC Website</strong></div>
-<div align="center">Built with the Vite + React + Shadcn-ui</div>
-<br />
-<div align="center">
-  <a href="https://woc-preview.netlify.app/">
-    <img src="https://img.shields.io/badge/View%20on-Netlify-00C7B7?logo=netlify" alt="View Demo">
-  </a>
-<span>
-</div>
+Next generation frontend of worldofcode.org.
 
 ## Stack
 
@@ -22,7 +12,7 @@
 - Linting - [ESLint](https://eslint.org)
 - Formatting - [Prettier](https://prettier.io)
 
-## Setup
+## Build for production
 
 Follow these steps to clone the repository and start the development server:
 

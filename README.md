@@ -1,6 +1,13 @@
-# World of Code Backend
+<div align="center">
+  <img src="frontend/public/woc.webp" alt="World of Code" style="max-height: 100px; @media (prefers-color-scheme: dark) { filter: invert(1); }">
+</div>
 
-Next generation backend of worldofcode.org.
+<div align="center"><strong>Next Generation WoC Website</strong></div>
+<div align="center">
+<a href="https://worldofcode.org/"><img src="https://img.shields.io/badge/Production-UTK-FF6600" alt="View Demo"></a>
+<a href="https://woc-preview.osslab-pku.org/"><img src="https://img.shields.io/badge/Preview-PKU-BD1129?y" alt="View Demo"></a>
+<span>
+</div>
 
 ## Features
 
@@ -11,27 +18,9 @@ Next generation backend of worldofcode.org.
 - Real random sampling with arbitary queries.
 - And more to discover!
 
-## Deployment
+## Contents
 
-This project is deployed on a single server, using Docker Compose.
-
-Before all, clone the repositories with submodules:
-
-```bash
-git clone --recurse-submodules https://github.com/ssc-oscar/woc-backend.git
-```
-
-First, edit the following files:
-
-- `docker-compose.yml`: Edit bind volumes paths.
-- `settings.toml`: The configuration file.
-- `.secrets.toml`: Secrets. This file is not checked into the repository, so please copy from `settings.toml` and fill in your credentials.
-
-Then, run the following command to start the services:
-
-```bash
-docker compose build
-docker compose up -d
-```
-
-Tip: if you are on Ubuntu or Debian, install `docker-compose-v2` instead of `docker-compose`.
+- `docs`: The documentation of WoC, including guides and legal documents.
+- `frontend`: The frontend of the website, built with React and TypeScript.
+- `backend`: The Python backend of the website.
+- `deploy`: The deployment guide, scripts and configurations.

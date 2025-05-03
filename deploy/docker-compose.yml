@@ -16,8 +16,8 @@ services:
       context: ../backend
     environment:
       - PYTHONUNBUFFERED=1
-      - WOC_MONGO__URL="mongodb://da5:27017/woc"
-      - WOC_CLICKHOUSE__URL="clickhouse://da1:9000/woc"
+      - WOC_MONGO__URL="mongodb://da5:27017/WoC"
+      - WOC_CLICKHOUSE__URL="clickhouse://da1:9000/default"
       - WOC_WORKERS=8
     volumes:
       - ./settings.toml:/app/settings.toml:ro
