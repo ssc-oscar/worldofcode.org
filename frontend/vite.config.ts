@@ -75,7 +75,7 @@ export default defineConfig({
     port: 4000,
     proxy: {
       '/api': {
-        target: env.VITE_BASE_URL || 'http://localhost:8234',
+        target: env.VITE_BASE_URL || 'http://wocapi-preview.osslab-pku.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }

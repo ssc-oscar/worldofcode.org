@@ -58,7 +58,7 @@ export const BASE_URL = '/api';
 /** Turnstile site id */
 export const TURNSTILE_SITE_ID =
   (import.meta.env.VITE_TURNSTILE_SITE_ID as string) ||
-  '1x00000000000000000000AA';
+  '0x4AAAAAABAAjR426fIx0uMm';
 
 /** Bibtex citation for the project */
 export const CITATION = `@article{ma2021world,

@@ -1,5 +1,5 @@
 # Use the official Node.js image as a parent image
-FROM node:22-alpine as builder
+FROM node:22-alpine AS builder
 
 # Set the working directory
 WORKDIR /app

@@ -13,12 +13,12 @@ x-common-options: &common-options
 services:
   app:
     build:
-      context: .
-      dockerfile: backend.dockerfile
+      context: ../backend
     environment:
       - PYTHONUNBUFFERED=1
       - WOC_MONGO__URL="mongodb://da5:27017/woc"
       - WOC_CLICKHOUSE__URL="clickhouse://da1:9000/woc"
+      - WOC_WORKERS=8
     volumes:
       - ./settings.toml:/app/settings.toml:ro
       - ./.secrets.toml:/app/.secrets.toml:ro
@@ -37,23 +37,18 @@ services:
       - /da7_data:/da7_data:ro
       - /da5_data:/da5_data:ro
       - /da5_fast:/da5_fast:ro
-    command: --host 0.0.0.0 --port 38580 --workers ${WOC_WORKERS:-1}
+    command: --host 127.0.0.1 --port 38580 --workers ${WOC_WORKERS:-1}
     network_mode: host
     <<: *common-options
 
-  # nginx:
-  #   build:
-  #     context: frontend
-  #     args:
-  #       - VITE_TURNSTILE_SITE_ID
-  #       - VITE_BASE_URL
-  #   ports:
-  #     - "35080:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
-  #   depends_on:
-  #     - app
-  #   environment:
-  #     - API_HOST=app
-  #     - API_PORT=8234
-  #   <<: *common-options
+  nginx:
+    image: woosungchoi/docker-nginx-brotli
+    volumes:
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
+      - ../frontend/dist:/usr/share/nginx/html:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./log:/var/log/nginx/
+    network_mode: host
+    profiles:
+      - nginx
+    <<: *common-options
