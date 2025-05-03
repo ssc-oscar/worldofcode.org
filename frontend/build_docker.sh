@@ -11,15 +11,14 @@ fi
 
 # Save the original symlink state
 if [ -L public/docs ]; then
-    mv public/docs public/docs_symlink
-    mkdir -p public/docs
-    cp -rL public/docs_symlink/* public/docs
+    mv public/docs ../docs_symlink
+    cp -r ../docs public/docs
 fi
 
 cleanup() {
     # restore symlink
     rm -rf public/docs
-    mv public/docs_symlink public/docs
+    mv ../docs_symlink public/docs
     echo "Cleanup complete."
 }
 
@@ -27,4 +26,4 @@ cleanup() {
 trap cleanup EXIT
 
 docker build -t woc-frontend:latest .
-docker run --rm -v "$(pwd)/dist:/app/dist" woc-frontend:latest
+docker run --rm -v "$(pwd)/dist:/dist" woc-frontend:latest
