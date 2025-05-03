@@ -1,44 +1,26 @@
 <div align="center">
-  <img src="/public/woc.webp" alt="World of Code" style="max-height: 100px; @media (prefers-color-scheme: dark) { filter: invert(1); }">
+  <img src="frontend/public/woc.webp" alt="World of Code" style="max-height: 100px; @media (prefers-color-scheme: dark) { filter: invert(1); }">
 </div>
 
 <div align="center"><strong>Next Generation WoC Website</strong></div>
-<div align="center">Built with the Vite + React + Shadcn-ui</div>
-<br />
 <div align="center">
-  <a href="https://woc-preview.netlify.app/">
-    <img src="https://img.shields.io/badge/View%20on-Netlify-00C7B7?logo=netlify" alt="View Demo">
-  </a>
+<a href="https://worldofcode.org/"><img src="https://img.shields.io/badge/Production-UTK-FF6600" alt="View Demo"></a>
+<a href="https://woc-preview.osslab-pku.org/"><img src="https://img.shields.io/badge/Preview-PKU-BD1129?y" alt="View Demo"></a>
 <span>
 </div>
 
-## Stack
+## Features
 
-- Framework - [React 19](https://react.dev/)
-- Language - [TypeScript](https://www.typescriptlang.org)
-- Styling - [Unocss](https://unocss.dev)
-- Components - [Shadcn-ui](https://ui.shadcn.com)
-- Charts and Graphs - [Ant Design Charts](https://charts.ant.design)
-- Linting - [ESLint](https://eslint.org)
-- Formatting - [Prettier](https://prettier.io)
+- HTTP API (finally) + Python client (WocMapsRemote in python-woc).
+- Password-less user system with GitHub, Microsoft SSO integration. Email users login by navigating through a magic link in automaticlly sent email.
+- IP/User based rate limit. Visitors are rate limited by IP address, and users can log in to enjoy a higher limit.
+- OpenAI-style API key management. Users can create an API key on the website and pass that as a parameter to the python client.
+- Real random sampling with arbitary queries.
+- And more to discover!
 
-## Setup
+## Contents
 
-Follow these steps to clone the repository and start the development server:
-
-```bash
-git clone https://github.com/ssc-oscar/woc-frontend.git
-cd woc-frontend
-npm install -g pnpm  # if you haven't installed pnpm yet
-pnpm install
-pnpm run dev
-```
-
-You should now be able to access the application at http://localhost:4000.
-
-If you want to connect the live backend, add a `.env.local` file in the root directory with the following:
-
-```ini
-VITE_BASE_URL="https://replace.with.your.backend.url"
-VITE_TURNSTILE_SITE_ID="0xREPLACE_WITH_YOUR_SITE_ID"
-```
+- `docs`: The documentation of WoC, including guides and legal documents.
+- `frontend`: The frontend of the website, built with React and TypeScript.
+- `backend`: The Python backend of the website.
+- `deploy`: The deployment guide, scripts and configurations.

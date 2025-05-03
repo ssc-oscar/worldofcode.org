@@ -16,22 +16,22 @@ export default defineConfig({
   presets: [
     presetUno(),
     // @ts-ignore
-    presetAnimations(), 
+    presetAnimations(),
     presetShadcn({
       color: 'slate',
       darkSelector: ':root[class~="dark"]'
     }),
     presetIcons({
       warn: true
-    }),
-    presetWebFonts({
-      fonts: {
-        sans: 'DM Sans',
-        serif: 'DM Serif Display',
-        mono: 'DM Mono'
-      },
-      processors: createLocalFontProcessor()
     })
+    // presetWebFonts({
+    //   fonts: {
+    //     sans: 'DM Sans',
+    //     serif: 'DM Serif Display',
+    //     mono: 'DM Mono'
+    //   },
+    //   processors: createLocalFontProcessor()
+    // })
   ],
   transformers: [
     // allows class='hover:(text-xl text-underline)'
