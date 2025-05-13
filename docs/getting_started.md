@@ -1,0 +1,192 @@
+# World of Code (WoC) Getting Started
+
+## Important Links
+
+1. [WoC Registration Form](https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link): To request access to our servers
+
+2. [WoC Structure and Its Elements Video](https://youtu.be/c0uFPwT5SZI)
+
+3. [Tutorial Recording from 2022-10-27](https://drive.google.com/file/d/1ytzOiOSgMpqOUm2XQJhhOUAxu0AAF_OH/view?usp=sharing) and [Older Tutorial Recoding (possibly obsolete) from 2019-10-15](https://drive.google.com/file/d/14tAx2GQamR4GIxOc3EzUXl7eyPKRx2oU/view?usp=sharing)
+
+4. [WoC Website](https://worldofcode.org)
+
+5. [WoC Discord](https://discord.gg/fKPFxzWqZX): Get updates or ask questions related to WoC
+
+## Additional Resources
+
+1. [WoC Shell Guide](https://github.com/woc-hack/tutorial/blob/master/ShellGuide.md): A brief guide on how to use bash and other related tools
+
+2. [Unix Tools: Data, Software and Production Engineering](https://courses.edx.org/courses/course-v1:DelftX+UnixTx+1T2020/course/): Consider auditing this Massive Open Online Course (MOOC) if you are not comfortable working in the terminal or working with shell scripting
+
+## Before You Start..
+
+### Step 1. Requirements to Access the da Server(s)
+
+To register for the hackathon/tutorial, please
+generate a ssh public key. See instructions below.
+
+For macOS and Unix users, the instructions below would work. Still, for Windows users, the best option is to enable [Ubuntu Shell](https://winaero.com/blog/how-to-enable-ubuntu-bash-in-windows-10) or [install Linux on Windows with WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first, then follow instructions for Unix/macOS.
+Alternatively, you may use the [OpenSSH Module for PowerShell](https://www.techrepublic.com/blog/10-things/how-to-generate-ssh-keys-in-openssh-for-windows-10/) or [Git-Bash](https://docs.joyent.com/public-cloud/getting-started/ssh-keys/generating-an-ssh-key-manually/manually-generating-your-ssh-key-in-windows#Git-Bash) as an alternative option.
+
+To generate a ssh key, open a terminal window and run the `ssh-keygen` command. Once completed, it produces the `id_rsa.pub` and `id_rsa` files inside your $HOME/.ssh/ folder.
+To view the newly generated _public key_, type:
+
+```
+cat ~/.ssh/id_rsa.pub
+```
+
+You will need to provide this ssh _public key_ when you complete the **WoC Registration Form** (step 3), as the form will ask you for the contents of `id_rsa.pub` and your **GitHub** and **Bitbucket** handles (step 2). You will receive a response to the email you provide in the form once your account is set up (more details below).
+
+Set up your `~/.ssh/config` file so that you can log in to one of the da servers without having to fully specify the server name each time:
+
+```
+Host *
+  ForwardAgent yes
+
+Host da0
+	Hostname da0.eecs.utk.edu
+	Port 22
+	User YourUsername
+```
+
+Please note that access to the remaining servers is similarly available. da2 and da3 have ssh port 22 (both are running the worldofcode.org web server on the https port 443)
+
+_Your_UserName_ is the login name you provided on the signup form. With the config setup, logging in becomes as simple as typing `ssh da0` in your terminal.
+
+### Step 2. GitHub and Bitbucket Accounts Setup
+
+If you dont have these already, please set up an account on both
+GitHub and Bitbucket (these will be needed to invite you to the
+relevant repositories on GitHub & Bitbucket).
+
+- [GitHub Sign-up](https://github.com/pricing)
+- [Bitbucket Sign-up](https://bitbucket.org/account/signup/)
+
+### Step 3. Request for Access
+
+Users may access our systems/servers by obtaining a WoC account. You may do so by registering for an account through the [WoC Registration Form](https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link). We strive to provide access to new users the same day you fill out the form, but in the worst-case scenario, please allow up to 1 day for the account creation.
+
+## Tutorial Objectives
+
+Prepare for the hackathon or perform research, make sure connections work, get familiar with the basic functionality and potential of WoC, and start thinking about how to investigate global relationships in open source.
+
+### WoC Objectives
+
+Do the hard work to enable research on global properties of (Free, Libre, and Open Source Software) FLOSS:
+
+- Census of all FLOSS
+  - What is out there, of what kind, how much
+  - Ability to select projects/developers/APIs for natural experiments/other empirical studies
+- Provide FLOSS-wide relationships
+  - Technical dependencies (to run applications)
+  - Tool dependencies (to build/test applications)
+  - Code copying
+  - Knowledge (and people) migration
+  - API use and spread over time
+- Data Cleaned/Augmented/Contextualized
+  - Correction: Authors/Forks/Outliers
+  - Augmentation: Dependencies/Linking to other data sources
+  - Context: project types/expertise
+- Big Data Analytics: Map entities to all related entities efficiently
+- Timely: Targeting < 1 Quarter old analyzable snapshot of the entire FLOSS
+- Community run
+  - Hackathons help determine the community needs
+  - [Hackathon Schedule](https://github.com/woc-hack/schedule)
+- How to participate?
+  - [Hackathon Registration Form](http://bit.ly/WoCSignup)
+  - If you can not attend the hackathon but just want to try out WoC, please fill the hackathon form but indicate in the topic section is that you do not plan to attend the hackathon.
+
+### What WoC Contains
+
+![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png?raw=true)
+![Content: Commits., trees, blobs, projects, authors](https://github.com/woc-hack/tutorial/blob/master/Assets/Database.png?raw=true)
+
+### Related background reading
+
+- [About WoC](https://bitbucket.org/swsc/overview/raw/master/pubs/WoC.pdf)
+- [Overview of the Software Supply Chains](https://bitbucket.org/swsc/overview/src/master/README.md)
+- [Details on WoC storage/APIs](https://bitbucket.org/swsc/lookup/src/master/README.md)
+- [Fun Facts](https://bitbucket.org/swsc/overview/src/master/fun/README.md)
+
+## Activity 1: Access to da Server(s)
+
+Log in: `ssh da0`.
+
+Once you are in a da server, you will have an empty directory under `/home/username` where you can store your programs and files:
+
+```bash
+-bash-4.2$ pwd
+/home/username
+-bash-4.2$
+```
+
+Set up your shell:
+
+```bash
+-bash-4.2$ echo 'exec bash' >> .profile
+-bash-4.2$ echo 'export PS1="\u@\h:\w>"' >> ~/.bashrc
+-bash-4.2$ . .bashrc
+[username@da0]~%
+```
+
+You can also login to other da servers, but first need to set up an ssh key on these systems:
+
+```bash
+[username@da0]~% ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/niravajmeri/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/niravajmeri/.ssh/id_rsa.
+Your public key has been saved in /home/niravajmeri/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:/UoJkpnx5mn8jx4BhcnQRUFfPq4qmC1MVLRJSjpYnpo niravajmeri@da0.eecs.utk.edu
+The key's randomart image is:
++---[RSA 2048]----+
+|    . o=o**.  .  |
+|   + + o*+ . o   |
+|  . = o.+   . o  |
+|   o ..* o   . . |
+|  E  .= S o   .  |
+|      .= o + .   |
+|     o += + o    |
+|      =.oo =     |
+|       . o*..    |
++----[SHA256]-----+
+```
+
+Once the key is generated add it to your .ssh/auhorized_keys
+
+```bash
+[username@da0]~% cat .ssh/id_rsa.pub >> .ssh/authorized_keys
+```
+
+Now you can login to da4:
+
+```bash
+[username@da0]~% ssh da4
+[username@da4]~%
+```
+
+### Exercise 1
+
+Log in to da0 and clone two repositories that contain APIs to access WoC data
+
+```bash
+[username@da0]~% git clone https://bitbucket.org/swsc/lookup
+[username@da0]~% git clone https://github.com/ssc-oscar/python-woc
+```
+
+Log in to da4 from da0:
+
+```bash
+[username@da0]~% ssh da4
+[username@da4]~% ls
+...
+[username@da4]~% exit
+[username@da0]~%
+```
+
+### Important Note
+
+Make sure to access these directories and execute a `git pull` frequently to ensure you are working with latest updates.

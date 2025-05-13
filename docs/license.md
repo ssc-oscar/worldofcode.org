@@ -1,6 +1,6 @@
 **World of Code Infrastructure includes:**
 
-a) Copyright (c) (2018, 2019, 2020, 2021, 2022, 2023, 2024) Audris Mockus
+a) Copyright (c) (2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025) Audris Mockus
 World of Code software used to discover retrieve, clean, cross-reference,
 query, and analyse open source version control data is licensed under Mulan PSL v2.
 You can use this software according to the terms and conditions of the Mulan PSL v2.
