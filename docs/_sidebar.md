@@ -11,9 +11,11 @@ Example:
 -->
 
 - [Overview](overview.md)
-- [Tutorial](tutorial.md)
+- [Getting Started](getting_started.md)
+- [Tutorial (Mongo)](guide_mongo.md)
 - [Tutorial (Python)](guide.md)
 - [Tutorial (Remote)](guide_remote.md)
+- [Tutorial (Shell)](tutorial.md) 
 - [Terms of Service](terms.md)
 - [License](license.md)
 - [Fun Facts](crazy.md)
