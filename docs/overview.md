@@ -2,29 +2,57 @@
 
 ![Woc](./assets/woc_logo.webp)
 
-# Objective
+# Main Objective
 
 The primary aim is to develop theoretical, computational, and statistical frameworks that
 discover, collect, curate, and make research-ready a close approximation of the entirety of FLOSS operational
 data and provide easy-to-use APIs integrated with computing and storage infrastructure that facilitate empirical
 studies of the entire FLOSS.
 
-## Overall description of the data collection and analysis methods
+### Objective Breakdown:
+
+- Census of all FLOSS
+  - What is out there, of what kind, how much
+  - Ability to select projects/developers/APIs for natural experiments/other empirical studies
+- Provide FLOSS-wide relationships
+  - Technical dependencies (to run applications)
+  - Tool dependencies (to build/test applications)
+  - Code copying
+  - Knowledge (and people) migration
+  - API use and spread over time
+- Data Cleaned/Augmented/Contextualized
+  - Correction: Authors/Forks/Outliers
+  - Augmentation: Dependencies/Linking to other data sources
+  - Context: project types/expertise
+- Big Data Analytics: Map entities to all related entities efficiently
+- Timely: Targeting < 1 Quarter old analyzable snapshot of the entire FLOSS
+- Community run
+  - Hackathons help determine the community needs
+  - [Hackathon Schedule](https://github.com/woc-hack/schedule)
+- How to participate?
+  - [Hackathon Registration Form](http://bit.ly/WoCSignup)
+  - If you can not attend the hackathon but just want to try out WoC, please fill the hackathon form but indicate in the topic section is that you do not plan to attend the hackathon.
+
+### Overall description of the data collection and analysis methods
 
 This describes the data collection/update https://bitbucket.org/swsc/overview/raw/master/pubs/WoC.pdf
 
-[A tutorial on how to use WoC](https://bitbucket.org/swsc/lookup/src/master/tutorial.md)
+* [A Tutorial on How to Use WoC](https://bitbucket.org/swsc/lookup/src/master/tutorial.md)
 
-[WoC APIs](https://bitbucket.org/swsc/lookup/src/master/README.md)
+* [WoC APIs](https://bitbucket.org/swsc/lookup/src/master/README.md)
 
-The breakdown into microservices that coontain three major pieces:
+The breakdown into microservices that contain three major pieces:
 
-     - https://github.com/ssc-oscar/gather is for discovery of new/updated repos
-     - https://github.com/ssc-oscar/libgit2 is for efficiently getting only necessary git objects from remotes
-     - https://bitbucket.org/swsc/lookup/src/master/ thats where updates, mapping to analytic layers, and scripts to query stuff are. Still needs refactoring into update/query parts
-     - https://github.com/ssc-oscar/oscar.py is for analytics APIs to query the data
+  - https://github.com/ssc-oscar/gather is for discovery of new/updated repos
+  - https://github.com/ssc-oscar/libgit2 is for efficiently getting only necessary git objects from remotes
+  - https://bitbucket.org/swsc/lookup/src/master/ thats where updates, mapping to analytic layers, and scripts to query stuff are. Still needs refactoring into update/query parts
+  - https://github.com/ssc-oscar/oscar.py is for analytics APIs to query the data
 
-- Sections
+    ![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png?raw=true)
+
+## WoC Impact
+
+* Sections
 
   - [Major language usage and productivity trends](https://bitbucket.org/swsc/overview/src/master/usage/README.md)
   - [Fun facts about WoC Collection](https://bitbucket.org/swsc/overview/src/master/fun/README.md)
@@ -70,7 +98,7 @@ The breakdown into microservices that coontain three major pieces:
 
 The WoC data version V4 was collected based on updates/new repositories identified during May, 2024, and the git objects retrieved by Aug 3, 2024.
 
-| TYpe               | Count       |
+| Type               | Count       |
 | ------------------ | ----------- |
 | commit             | 4942319288  |
 | tree               | 19119150636 |
@@ -82,7 +110,7 @@ The WoC data version V4 was collected based on updates/new repositories identifi
 
 The WoC data version V3 was collected based on updates/new repositories identified during March 1-30, 2024, and the git objects retrieved by Mid May, 2024.
 
-| TYpe               | Count       |
+| Type               | Count       |
 | ------------------ | ----------- |
 | commit             | 4735641321  |
 | tree               | 18449243835 |
@@ -94,7 +122,7 @@ The WoC data version V3 was collected based on updates/new repositories identifi
 
 The WoC data version V was collected based on updates/new repositories identified during March 1-30, 2023, and the git objects retrieved by Mid May, 2023.
 
-| TYpe               | Count       |
+| Type               | Count       |
 | ------------------ | ----------- |
 | commit             | 3928321624  |
 | tree               | 15426363444 |
@@ -123,7 +151,7 @@ There were over 52M distinct author IDs. Of them, 1,029,324 were for organizatio
 From the remaining 51,326,297 author IDs 35,288,533 distinct authors were identified.
 Of the 146M distinct repos 89,840,664 were not clones or forks of others.
 
-| Number      | type                             |
+| Number      | Type                             |
 | ----------- | -------------------------------- |
 | 2595586645  | commit                           |
 | 10461125872 | blob                             |
@@ -140,7 +168,7 @@ There were over 47M distinct author IDs: an 11% increase in
 comparison to the 15% increase in the number of commits and
 trees. The number of repositories increased by 9%.
 
-| Number            | type                                                                                                                                         |
+| Number            | Type                                                                                                                                         |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | 9192389809        | blob                                                                                                                                         |
 | 2326069143        | commit                                                                                                                                       |
@@ -159,7 +187,7 @@ distinct author IDs are shown in the table below.
 165M commits were created over this three month period adding 714M nonbinary blobs and 718M trees.
 Furthermore, 7.5M new repositories were added and almost 4M new author IDs were involved.
 
-| Number     | type                                                                                                                     |
+| Number     | Type                                                                                                                     |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 7918470940 | blob                                                                                                                     |
 | 2034176272 | commit                                                                                                                   |
@@ -182,7 +210,7 @@ Furthermore, only 65569914 disctinct clusters of unrelated (through parent/child
 commits exist and of these only 51918448 groups contain more than one commit. The largest group has
 53709923 commits related via parent-child relationship.
 
-| Number     | type                             |
+| Number     | Type                             |
 | ---------- | -------------------------------- |
 | 7204111388 | blob                             |
 | 1868632121 | commit                           |
@@ -194,7 +222,7 @@ commits exist and of these only 51918448 groups contain more than one commit. Th
 This data (version P) collection on May 15-June 5 based on updates/new repositories identified on May 15, 2019
 has 73314320 unique non-forked git repositories, 34424362 unique author IDs, and
 
-| Number     | type   |
+| Number     | Type   |
 | ---------- | ------ |
 | 6466663836 | blob   |
 | 1685985529 | commit |
@@ -204,7 +232,7 @@ has 73314320 unique non-forked git repositories, 34424362 unique author IDs, and
 This data (version O) collection on Apr 1-10 based on updates/new repositories identified on Apr 10, 2019
 has 68386801 unique non-forked git repositories, 32757289 unique author IDs, and
 
-| Number     | type   |
+| Number     | Type   |
 | ---------- | ------ |
 | 6028240353 | blob   |
 | 1592136050 | commit |
@@ -214,7 +242,7 @@ has 68386801 unique non-forked git repositories, 32757289 unique author IDs, and
 This data (version N) collection on Feb 15-25 based on updates/new repositories identified on Feb 10, 2019, had
 31356272 unique author IDs, 65679542 unique non-forked git repositories and
 
-| Number     | type   |
+| Number     | Type   |
 | ---------- | ------ |
 | 5761659437 | blob   |
 | 1524390485 | commit |
@@ -223,7 +251,7 @@ This data (version N) collection on Feb 15-25 based on updates/new repositories 
 
 Version M collection on Jan 10-20 based on updates/new repositories identified on Jan 3, 2019, had
 
-| Number     | type                                      |
+| Number     | Type                                      |
 | ---------- | ----------------------------------------- |
 | 5561137754 | blob (considered by git to be text files) |
 | 1468800973 | commit                                    |
@@ -235,7 +263,7 @@ forking, i.e., sharing a commit) and the number of unique author IDs at 30439015
 
 Collection on Dec 10-22 based on updates/new repositories identified on Dec 3, 2018, had
 
-| Number     | type                                      |
+| Number     | Type                                      |
 | ---------- | ----------------------------------------- |
 | 5313256585 | blob (considered by git to be text files) |
 | 1419161099 | commit                                    |
@@ -277,7 +305,7 @@ The number of unique projects (repos) is 59627553.
 | YuLin Xu            | xyl_xuyulin@126.com   | Undegraduate Student (research assistant)                  |
 | Yuxia Zhang         | yuxiaz@pku.edu.cn     | Graduate Student (research assistant)                      |
 
-# High level description
+## High level description
 
 Open source software is an engine for innovation and a critical
 infrastructure for the nation and yet it is implemented by

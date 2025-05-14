@@ -8,9 +8,7 @@
 
 3. [Tutorial Recording from 2022-10-27](https://drive.google.com/file/d/1ytzOiOSgMpqOUm2XQJhhOUAxu0AAF_OH/view?usp=sharing) and [Older Tutorial Recoding (possibly obsolete) from 2019-10-15](https://drive.google.com/file/d/14tAx2GQamR4GIxOc3EzUXl7eyPKRx2oU/view?usp=sharing)
 
-4. [WoC Website](https://worldofcode.org)
-
-5. [WoC Discord](https://discord.gg/fKPFxzWqZX): Get updates or ask questions related to WoC
+4. [WoC Discord](https://discord.gg/fKPFxzWqZX): Get updates or ask questions related to WoC
 
 ## Additional Resources
 
@@ -69,44 +67,6 @@ Users may access our systems/servers by obtaining a WoC account. You may do so b
 ## Tutorial Objectives
 
 Prepare for the hackathon or perform research, make sure connections work, get familiar with the basic functionality and potential of WoC, and start thinking about how to investigate global relationships in open source.
-
-### WoC Objectives
-
-Do the hard work to enable research on global properties of (Free, Libre, and Open Source Software) FLOSS:
-
-- Census of all FLOSS
-  - What is out there, of what kind, how much
-  - Ability to select projects/developers/APIs for natural experiments/other empirical studies
-- Provide FLOSS-wide relationships
-  - Technical dependencies (to run applications)
-  - Tool dependencies (to build/test applications)
-  - Code copying
-  - Knowledge (and people) migration
-  - API use and spread over time
-- Data Cleaned/Augmented/Contextualized
-  - Correction: Authors/Forks/Outliers
-  - Augmentation: Dependencies/Linking to other data sources
-  - Context: project types/expertise
-- Big Data Analytics: Map entities to all related entities efficiently
-- Timely: Targeting < 1 Quarter old analyzable snapshot of the entire FLOSS
-- Community run
-  - Hackathons help determine the community needs
-  - [Hackathon Schedule](https://github.com/woc-hack/schedule)
-- How to participate?
-  - [Hackathon Registration Form](http://bit.ly/WoCSignup)
-  - If you can not attend the hackathon but just want to try out WoC, please fill the hackathon form but indicate in the topic section is that you do not plan to attend the hackathon.
-
-### What WoC Contains
-
-![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png?raw=true)
-![Content: Commits., trees, blobs, projects, authors](https://github.com/woc-hack/tutorial/blob/master/Assets/Database.png?raw=true)
-
-### Related background reading
-
-- [About WoC](https://bitbucket.org/swsc/overview/raw/master/pubs/WoC.pdf)
-- [Overview of the Software Supply Chains](https://bitbucket.org/swsc/overview/src/master/README.md)
-- [Details on WoC storage/APIs](https://bitbucket.org/swsc/lookup/src/master/README.md)
-- [Fun Facts](https://bitbucket.org/swsc/overview/src/master/fun/README.md)
 
 ## Activity 1: Access to da Server(s)
 
@@ -177,6 +137,8 @@ Log in to da0 and clone two repositories that contain APIs to access WoC data
 [username@da0]~% git clone https://github.com/ssc-oscar/python-woc
 ```
 
+* **Note:** Make sure to access these directories and execute a `git pull` **frequently** to ensure you are working with latest updates.
+
 Log in to da4 from da0:
 
 ```bash
@@ -186,7 +148,17 @@ Log in to da4 from da0:
 [username@da4]~% exit
 [username@da0]~%
 ```
+## Tutorials
 
-### Important Note
+World of Code provides four main tools for exploring its dataset: a MongoDB interface for aggregated metadata, a Python API for flexible scripted access, a web-based guide for interactive documentation and remote usage, and a shell-based API for low-level queries.
 
-Make sure to access these directories and execute a `git pull` frequently to ensure you are working with latest updates.
+* **Tutorial(Mongo):** Provides instructions for querying WoC metadata through MongoDB, useful for high-level analysis of authors, projects, and APIs based on precomputed statistical summaries.
+* **Tutorial(Python):** A set of Python APIs to WoC data including get_values for direct key-value queries, show_content for raw object content, and objects for a higher-level, cached, and more intuitive access pattern.
+* **Tutorial(Remote):** Explains how to access WoC data and services from outside the WoC servers, including remote API interaction and data download options.
+* **Tutorial(Shell):** A walkthrough for using shell-based lookup commands to explore low-level Git object relationships (commits, trees, blobs, authors, projects) stored in WoC.
+
+## Disclaimers
+
+_World of Code stores commits of a project that might never have ended up to appear in the source code of a project. For example, commits that are part of a pull request on GitHub that has never been merged are still part of the repository although they never have ended up in the project's codebase. This also holds for individual commits of squash-merged pull requests or interactively rebased commits: git stores all versions of these commits even if they don't end up in the codebase only in their final version. As World of Code uses `git clone --mirror`, it extracts all of such commits that don't end up in the project's codebase, which could for instance lead to counting the same blob multiple times or tracking unmerged blobs belonging to low-quality garbage pull requests of unrelated developers. Users of World of Code should be aware of that when accessing and analyzing the commits of a project._
+
+_As many forks of GitHub projects appear to be just vehicles for pull requests instead of actual forks, World of Code has stopped discovering forks and updating their data around 2021 for convenience reasons, as a huge number of commits would have been stored multiple times in numerous of these forks. Therefore, the WoC database might be inconsistent with respect to such forks: Forks that have been existing before 2021 are part of World of Code, but no updates to these repositories (i.e., new commits) have been tracked for them after this point in time. In contrast, forks that have been created after WoC has stopped discovering forks won't show up in the WoC data at all._
