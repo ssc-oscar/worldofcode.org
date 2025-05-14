@@ -46,7 +46,7 @@ The breakdown into microservices that contain three major pieces:
   - https://github.com/ssc-oscar/gather is for discovery of new/updated repos
   - https://github.com/ssc-oscar/libgit2 is for efficiently getting only necessary git objects from remotes
   - https://bitbucket.org/swsc/lookup/src/master/ thats where updates, mapping to analytic layers, and scripts to query stuff are. Still needs refactoring into update/query parts
-  - https://github.com/ssc-oscar/oscar.py is for analytics APIs to query the data
+  - https://github.com/ssc-oscar/python-woc is for analytics APIs to query the data
 
     ![Workflow](https://github.com/woc-hack/tutorial/blob/master/Assets/Database-workflow.png?raw=true)
 
