@@ -12,7 +12,7 @@ and P for deforked repository name.
 
 ### MongoDB Access
 
-When on the da3 server, you can gain access to the MongoDB server simply by running the command `mongosh`.
+When on the da3 server, you can gain access to the MongoDB server simply by running the command `mongosh`, or, when on any other da server, you can gain access by running `mongosh --host da3` (alternative you may use the full hostname of *da3.eecs.utk.edu*).
 
 Once on the server, you can see all the available databases using the `show dbs` command. However, the database that pertains primarily to the WoC is the WoC database.
 
@@ -58,7 +58,7 @@ collection, the output is as follows:
 ---
 
 ```
-[username@da3]~% mongosh
+[username@da0]~% mongosh --host da3
 mongosh> use WoC
 switched to db WoC
 WoC> db.A_metadata.V3.findOne({NumCommits:{$gt:200}})
