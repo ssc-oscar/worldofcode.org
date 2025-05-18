@@ -114,6 +114,13 @@ export const navItems: NavItem[] = [
 
 export const homePageItems: HomePageItem[] = [
   {
+   description: 'Updates to World of Code: mv to rhel9, lowercase project names, remove duplicate projects',
+   icon: 'i-fluent-emoji-flat:warning ',
+   linkHref: '/docs/#/updates.md,
+   linkText: 'Check Now',
+   linkClassName: 'important:bg-red-500 animate-pulse'
+  }
+  {
     description:
       'Complete, Curated, Cross-referenced, and Current Collection of Open Source Version Control Data.',
     icon: 'i-fluent-emoji-flat:world-map'
