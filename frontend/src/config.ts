@@ -116,7 +116,7 @@ export const homePageItems: HomePageItem[] = [
   {
    description: 'Updates to World of Code: mv to rhel9, lowercase project names, remove duplicate projects',
    icon: 'i-fluent-emoji-flat:warning ',
-   linkHref: '/docs/#/updates.md,
+   linkHref: '/docs/#/updates.md',
    linkText: 'Check Now',
    linkClassName: 'important:bg-red-500 animate-pulse'
   }
