@@ -119,7 +119,7 @@ export const homePageItems: HomePageItem[] = [
    linkHref: '/docs/#/updates.md',
    linkText: 'Check Now',
    linkClassName: 'important:bg-red-500 animate-pulse'
-  }
+  },
   {
     description:
       'Complete, Curated, Cross-referenced, and Current Collection of Open Source Version Control Data.',
