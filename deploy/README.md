@@ -27,7 +27,7 @@ bash build_docker.sh  # build in docker
 
 ```bash
 cp -r ../frontend/dist /usr/share/nginx/html
-cp -r ../frontend/nginx.conf /etc/nginx/conf.d/worldofcode.conf
+cp -r deploy/nginx.conf /etc/nginx/conf.d/worldofcode.conf
 ```
 
 4. Copy certificates to `/etc/nginx/ssl/`:
@@ -44,4 +44,12 @@ ssl
 ```bash
 sudo docker compose up -d
 sudo systemctl start nginx
+
+# If just changing nginx config
+sudo systemctl reload nginx
+```
+
+**Note**: If using drs api, make sure SELinux allows outbound TCP connections:
+```bash
+sudo setsebool -P httpd_can_network_connect 1
 ```
