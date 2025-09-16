@@ -42,7 +42,9 @@ ssl
 5. Start docker container and nginx:
 
 ```bash
-sudo docker compose up -d
+cd deploy
+docker compose build
+docker compose up -d
 sudo systemctl start nginx
 
 # If just changing nginx config
