@@ -4,6 +4,7 @@ x-common-options: &common-options
   restart: always
   extra_hosts:
     - "host.docker.internal:host-gateway"
+    - "da3:192.168.32.203"
   logging:
     driver: "json-file"
     options:
@@ -16,12 +17,10 @@ services:
       context: ../backend
     environment:
       - PYTHONUNBUFFERED=1
-      - WOC_MONGO__URL="mongodb://da5:27017/WoC"
-      - WOC_CLICKHOUSE__URL="clickhouse://da1:9000/default"
       - WOC_WORKERS=8
     volumes:
-      - ./settings.toml:/app/settings.toml:ro
-      - ./.secrets.toml:/app/.secrets.toml:ro
+      - ../backend/settings.toml:/app/settings.toml:ro
+      - ../backend/.secrets.toml:/app/.secrets.toml:ro
       # - ./wocprofile.json:/etc/wocprofile.json
       # - /woc:/woc:ro
       - /home/wocprofile.json:/etc/wocprofile.json:ro
