@@ -1,6 +1,6 @@
 # Major updates in Sep, 2025
 
-- Major new functionality: risk assessment <a href="https:/worldofcode.org/drs">DRS</a>
+- Major new functionality: risk assessment <a href="/drs">DRS</a>
 
 - all servers are now on rhel9: please report problems
 
