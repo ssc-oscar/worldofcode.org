@@ -1,5 +1,7 @@
 # Major updates in Sep, 2025
 
+- Major new functionality: risk assessment <a href="https:/worldofcode.org/drs">DRS</a>
+
 - all servers are now on rhel9: please report problems
 
 - p2c and all (except fot p2P and P2p) maps are bad for version V2412: estimated fix in two to three weeks
