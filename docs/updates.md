@@ -1,11 +1,12 @@
-# Major updates in May, 2025
+# Major updates in Sep, 2025
 
-- da1,da5 moved to rhel9: please report problems
+- all servers are now on rhel9: please report problems
 
-- V2412 will have project names in lower case to avoid duplicating
+- p2c and all (except fot p2P and P2p) maps are bad for version V2412: estimated fix in two to three weeks
+
+- V2412 has project names in lower case to avoid duplicating
 them
 
 - project names have format host_folder_folder/... for non-github
 and user_repo for github
 
-- random lookup (getValues) ignores -v option (soon to be fixed) 
