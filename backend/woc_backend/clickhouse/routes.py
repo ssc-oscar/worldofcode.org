@@ -1,13 +1,14 @@
 import sys
+from typing import TYPE_CHECKING, Any, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from loguru import logger
-from typing import TYPE_CHECKING, List, Union, Dict, Any, Tuple, Optional
-from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends
 from woc.local import decomp
 
-from ..utils.validate import validate_limit
-from ..models import WocResponse
-from .models import ClickhouseCommit, ClickhouseBlobDeps, ClickhouseLanguage
 from ..config import settings
+from ..models import WocResponse
+from ..utils.validate import validate_limit
+from .models import ClickhouseBlobDeps, ClickhouseCommit, ClickhouseLanguage
 
 if TYPE_CHECKING:
     from clickhouse_driver import Client as Ch
@@ -22,7 +23,7 @@ def _build_commits_query(**kwargs: Any) -> str:
     if kwargs["count"]:
         select = "COUNT(*)"
     else:
-        select = "lower(hex(sha1)) AS sha1, time, lower(hex(tree)) AS tree, author, lower(hex(parent)) AS parent, comment, content"
+        select = "lower(hex(sha1)) AS sha1, time, lower(hex(tree)) AS tree, author, lower(hex(parent)) AS parent, comment"
 
     where_clauses = []
     params = {}
@@ -55,7 +56,7 @@ def _build_commits_query(**kwargs: Any) -> str:
         f"SELECT {select} FROM {settings.clickhouse.table_commits} {where} {limit}",
         params,
     )
-    logger.debug("Generated CLickhouse query: {}", q)
+    logger.debug("Generated Clickhouse query: {}", q)
     return q
 
 
