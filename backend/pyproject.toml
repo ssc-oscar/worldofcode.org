@@ -3,15 +3,15 @@ name = "woc-backend"
 version = "0.1.0"
 description = "Next gen backend of worldofcode.org"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-    "beanie>=1.29.0",
+    "beanie>=2.0.0",
     "clickhouse-driver>=0.2.9",
     "dynaconf>=3.2.7",
     "fastapi>=0.115.8",
     "httpx>=0.28.1",
     "loguru>=0.7.3",
-    "python-woc>=0.2.5",
+    "python-woc>=0.3.2",
     "shortuuid>=1.0.13",
     "uvicorn[standard]>=0.33.0",
     "aiosmtplib>=3.0.2,<4",
@@ -19,7 +19,6 @@ dependencies = [
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "dacite>=1.9.2",
-    "motor>=3.3",
 ]
 
 [dependency-groups]

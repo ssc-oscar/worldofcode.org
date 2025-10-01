@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from beanie import Document, Indexed
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 
 class MongoLanguage(str, Enum):
@@ -40,7 +40,7 @@ class MongoLanguage(str, Enum):
         return self.value
 
 
-class MongoAuthor(Document, BaseModel):
+class MongoAuthor(Document):
     Alias: List[str] = Field(default_factory=list)
     AuthorID: str = Indexed(sparse=True)
     EarliestCommitDate: int = -1
@@ -60,7 +60,7 @@ class MongoAuthor(Document, BaseModel):
         name = "A_metadata.V3"
 
 
-class MongoAPI(Document, BaseModel):
+class MongoAPI(Document):
     API: str = Indexed(sparse=True)
     EarliestCommitDate: int = -1
     FileInfo: Dict[MongoLanguage, int] = Field(default_factory=dict)
@@ -73,7 +73,7 @@ class MongoAPI(Document, BaseModel):
         name = "API_metadata.V"
 
 
-class MongoProject(Document, BaseModel):
+class MongoProject(Document):
     CommunitySize: int = -1
     Core: Dict[str, Any] = Field(default_factory=dict)
     EarliestCommitDate: int = -1

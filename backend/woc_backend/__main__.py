@@ -9,7 +9,7 @@ from beanie import init_beanie
 from clickhouse_driver import Client as Ch
 from fastapi import Depends, FastAPI
 from loguru import logger
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from woc.local import WocMapsLocal
 
 from .auth.models import OneTimeCode, Token, User
@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
     # init woc
     app.state.woc = WocMapsLocal(on_large="ignore")
     # init mongo
-    app.state.mongo_client = AsyncIOMotorClient(settings.mongo.url)
+    app.state.mongo_client = AsyncMongoClient(settings.mongo.url)
     await init_beanie(
         database=app.state.mongo_client.get_database(),
         document_models=[MongoAPI, MongoAuthor, MongoProject, Token, OneTimeCode, User],
