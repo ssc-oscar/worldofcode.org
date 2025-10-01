@@ -40,6 +40,27 @@ services:
     network_mode: host
     <<: *common-options
 
+  redis:
+    image: redis:7-alpine
+    command:
+      [
+        "redis-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--port",
+        "36381",
+        "--maxmemory",
+        "20gb",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
+    volumes:
+      - redis-data:/data
+    network_mode: host
+    <<: *common-options
+
   nginx:
     image: woosungchoi/docker-nginx-brotli
     volumes:
