@@ -56,8 +56,6 @@ services:
         "--maxmemory-policy",
         "allkeys-lru",
       ]
-    volumes:
-      - redis-data:/data
     network_mode: host
     <<: *common-options
 
