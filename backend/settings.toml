@@ -15,7 +15,7 @@ url = "set in .secrets.toml"
 
 [clickhouse]
 url = "set in .secrets.toml"
-table_commits = "commits_all"
+table_commits = "commits_v2412"
 table_deps = " b2cPtaPkgR_all"
 
 [github]
