@@ -1,24 +1,25 @@
 import time
+from typing import List, Literal, Optional
 from urllib.parse import urlencode
-from typing import TYPE_CHECKING, List, Union, Dict, Any, Tuple, Optional, Literal
-from fastapi import Request, HTTPException, APIRouter, Query, Response, Depends, Form
-from fastapi.responses import RedirectResponse, JSONResponse
-from pydantic import EmailStr
-import shortuuid
-from loguru import logger
-import jinja2
 
-from ..models import WocResponse
-from .models import User, Token, OneTimeCode
+import jinja2
+import shortuuid
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from loguru import logger
+from pydantic import EmailStr
+
 from ..config import settings
+from ..models import WocResponse
+from ..utils.email import send_email
+from ..utils.source import get_base_url, get_client_info
 from ..utils.validate import (
-    validate_token,
-    validate_turnstile,
     get_httpx_client,
     validate_one_time_code,
+    validate_token,
+    validate_turnstile,
 )
-from ..utils.source import get_client_info, get_base_url
-from ..utils.email import send_email
+from .models import OneTimeCode, Token, User
 
 api = APIRouter()
 
@@ -389,3 +390,42 @@ async def microsoft_callback(
     return await _generate_login_response(
         f"microsoft|{_user_id}", client_info, _name, redirect_url
     )
+
+
+@api.post(
+    "/su/users", response_model=WocResponse[dict[str, str]], include_in_schema=False
+)
+async def su_create_users(
+    user_emails: List[EmailStr],
+    token_obj: Token = Depends(validate_token),
+    client_info=Depends(get_client_info),
+):
+    _su_id = settings.auth.get("super_user_id", None)
+    if not _su_id:
+        raise HTTPException(401, "Superuser not configured")
+    if token_obj.user_id != _su_id:
+        raise HTTPException(401, "You are not the super user :(")
+    created_users: dict[str, str] = {}
+    for email in user_emails:
+        provider_id = f"email|{email}"
+        user = await User.find_one({"provider_id": provider_id})
+        if not user:
+            # sign up
+            name = provider_id.split("|")[1]
+            # it should be a email
+            if "@" in name:
+                name = name.split("@")[0]
+            user = await _create_user(provider_id, name, client_info)
+        # let us get or create token
+        q = {
+            "user_id": user.id,
+            "revoked": False,
+            "expires": {"$gt": int(time.time())},
+            "token_type": "api",
+        }
+        api_token = await Token.find_one(q)
+        if not api_token:
+            # create a session token and redirect with the cookie set
+            api_token = await _create_token(user.id, client_info, "api")
+        created_users[email] = api_token.id
+    return WocResponse[dict[str, str]](data=created_users)
