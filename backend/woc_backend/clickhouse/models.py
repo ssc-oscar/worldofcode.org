@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import List
 from enum import Enum
+from typing import List
+
+from pydantic import BaseModel
 
 
 class ClickhouseCommit(BaseModel):
@@ -10,7 +11,6 @@ class ClickhouseCommit(BaseModel):
     author: str
     parent: str
     comment: str
-    content: str
 
 
 class ClickhouseBlobDeps(BaseModel):
