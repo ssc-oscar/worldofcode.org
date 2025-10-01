@@ -1,24 +1,75 @@
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from woc.local import decode_str, decode_value, decomp_or_raw
 
 from ..models import WocResponse
+from ..utils.cache import AbstractCache
 from ..utils.validate import validate_q_length
 from .models import ObjectName, WocMap, WocObject
 
 if TYPE_CHECKING:
     from woc.local import WocMapsLocal
 
+
 api = APIRouter()
+
+T = TypeVar("T")
+
+
+def _get_lookup_cache(request: Request) -> Optional[AbstractCache[str, T]]:
+    return cast(
+        Optional[AbstractCache[str, T]],
+        getattr(request.app.state, "lookup_cache", None),
+    )
+
+
+def _use_lookup_cache(
+    request: Request,
+    cache_key: str,
+    producer: Callable[[], T],
+    ttl: Optional[int] = None,
+) -> T:
+    cache = _get_lookup_cache(request)
+    if cache is None:
+        return producer()
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cast(T, cached)
+    value = producer()
+    cache.put(cache_key, value, ttl=ttl)
+    return value
+
+
+def _object_cache_key(type_: ObjectName, key: str, raw: bool, traverse: bool) -> str:
+    return f"object:{type_}:{key}:raw:{int(raw)}:trav:{int(traverse)}"
+
+
+def _map_cache_key(map_name: str, key: str, cursor: int) -> str:
+    return f"map:{map_name}:{key}:cursor:{cursor}"
+
+
+def _large_object_warning(map_: str, key: str, next_cursor: int) -> str:
+    return (
+        f"Warning: {key} is a large object, "
+        f"use /lookup/map/{map_}/{key}?cursor={next_cursor} to get the rest of the content."
+    )
 
 
 def _traverse_tree(woc: "WocMapsLocal", key: str):
     _ret = []
     for mode, fname, sha in woc.show_content("tree", key):
         if mode != "40000":
-            _ret.append(mode, fname, sha)
+            _ret.append((mode, fname, sha))
         else:
             _ret.append((mode, fname, _traverse_tree(woc, sha)))
     return _ret
@@ -48,7 +99,12 @@ def get_objects(request: Request):
     Get the list of available objects.
     """
     woc: WocMapsLocal = request.app.state.woc
-    return WocResponse[List[WocObject]](data=[asdict(o) for o in woc.objects])
+    data = _use_lookup_cache(
+        request,
+        "objects",
+        lambda: [asdict(o) for o in woc.objects],
+    )
+    return WocResponse[List[WocObject]](data=data)
 
 
 @api.get(
@@ -71,10 +127,14 @@ def show_contents(
     errors = {}
     for key in q:
         try:
-            ret[key] = _show_content(woc, type_, key, raw)
+            ret[key] = _use_lookup_cache(
+                request,
+                _object_cache_key(type_, key, raw, False),
+                lambda key=key: _show_content(woc, type_, key, raw=raw),
+            )
         except (KeyError, ValueError) as e:
             errors[key] = e.args[0]
-    return WocResponse[dict](data=ret, errors=errors if errors else None)
+    return WocResponse(data=ret, errors=errors if errors else None)
 
 
 @api.get(
@@ -88,7 +148,12 @@ def count_objects(request: Request, type_: ObjectName):
     """
     woc: WocMapsLocal = request.app.state.woc
     try:
-        return WocResponse[int](data=woc.count(str(type_)))
+        count = _use_lookup_cache(
+            request,
+            f"count:object:{type_}",
+            lambda: woc.count(str(type_)),
+        )
+        return WocResponse[int](data=count)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
 
@@ -123,12 +188,18 @@ def show_content(
     woc: WocMapsLocal = request.app.state.woc
     try:
         if raw is True:
-            return Response(
-                content=_show_content(woc, type_, key, raw=True),
-                media_type="text/plain",
+            content = _use_lookup_cache(
+                request,
+                _object_cache_key(type_, key, True, False),
+                lambda: _show_content(woc, type_, key, raw=True),
             )
-        return WocResponse[Union[str, list]](
-            data=_show_content(woc, type_, key, raw=False, traverse=traverse)
+            return Response(content=content, media_type="text/plain")
+        return WocResponse(
+            data=_use_lookup_cache(
+                request,
+                _object_cache_key(type_, key, False, traverse),
+                lambda: _show_content(woc, type_, key, raw=False, traverse=traverse),
+            )
         )
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
@@ -146,13 +217,18 @@ def get_maps(request: Request):
     Get the list of available maps.
     """
     woc: WocMapsLocal = request.app.state.woc
-    return WocResponse[List[WocMap]](data=[asdict(m) for m in woc.maps])
+    data = _use_lookup_cache(
+        request,
+        "maps",
+        lambda: [asdict(m) for m in woc.maps],
+    )
+    return WocResponse[List[WocMap]](data=data)
 
 
 @api.get(
     "/map/{map_}",
     dependencies=[Depends(validate_q_length)],
-    response_model=WocResponse[Dict[str, list]],
+    response_model=WocResponse,
     response_model_exclude_none=True,
 )
 def get_values(request: Request, map_: str, q: List[str] = Query(...)):
@@ -169,15 +245,19 @@ def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     woc: WocMapsLocal = request.app.state.woc
     ret = {}
     errors = {}
+    map_name = str(map_)
     for key in q:
         try:
-            ret[key], next_cursor = _get_values_with_cursor(woc, str(map_), key)
+            ret[key], next_cursor = _use_lookup_cache(
+                request,
+                _map_cache_key(map_name, key, 0),
+                lambda key=key: _get_values_with_cursor(woc, map_name, key),
+            )
             if next_cursor is not None:
-                errors[key] = f"Warning: {key} is a large object,"
-                f"use /map/{map_}/{key}?cursor={next_cursor} to get the rest of the content."
+                errors[key] = _large_object_warning(map_, key, next_cursor)
         except (KeyError, ValueError) as e:
             errors[key] = e.args[0]
-    return WocResponse[Dict[str, list]](data=ret, errors=errors if errors else None)
+    return WocResponse(data=ret, errors=errors if errors else None)
 
 
 @api.get(
@@ -196,14 +276,19 @@ def count_values(request: Request, map_: str):
     """
     woc: WocMapsLocal = request.app.state.woc
     try:
-        return WocResponse[int](data=woc.count(map_))
+        count = _use_lookup_cache(
+            request,
+            f"count:map:{map_}",
+            lambda: woc.count(map_),
+        )
+        return WocResponse[int](data=count)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=e.args[0])
 
 
 @api.get(
     "/map/{map_}/{key}",
-    response_model=WocResponse[list],
+    response_model=WocResponse,
     response_model_exclude_none=True,
 )
 def get_value(request: Request, map_: str, key: str, cursor: int = 0):
@@ -218,8 +303,15 @@ def get_value(request: Request, map_: str, key: str, cursor: int = 0):
     :param cursor: Cursor of the large object.
     """
     woc: WocMapsLocal = request.app.state.woc
+    map_name = str(map_)
     try:
-        ret, next_cursor = _get_values_with_cursor(woc, str(map_), key, cursor)
-        return WocResponse[list](data=ret, nextCursor=next_cursor)
+        ret, next_cursor = _use_lookup_cache(
+            request,
+            _map_cache_key(map_name, key, cursor),
+            lambda key=key, cursor=cursor: _get_values_with_cursor(
+                woc, map_name, key, cursor
+            ),
+        )
+        return WocResponse(data=ret, nextCursor=next_cursor)
     except (KeyError, ValueError) as e:
         raise HTTPException(status_code=404, detail=e.args[0])

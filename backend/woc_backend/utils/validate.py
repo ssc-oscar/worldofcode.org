@@ -1,27 +1,25 @@
 import time
-from typing import List, Optional, TYPE_CHECKING
-from fastapi.exceptions import RequestValidationError
+from typing import TYPE_CHECKING, List, Optional
+
 from fastapi import (
-    FastAPI,
+    Cookie,
+    Depends,
     HTTPException,
     Query,
-    Depends,
-    Header,
     Request,
-    Form,
-    Cookie,
 )
-from pydantic import ValidationError, BaseModel, Field
-from pydantic_core import InitErrorDetails, PydanticCustomError
+from fastapi.exceptions import RequestValidationError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from httpx import AsyncClient
 from loguru import logger
+from pydantic import ValidationError
+from pydantic_core import InitErrorDetails, PydanticCustomError
 
 from ..config import settings
 from .source import get_client_info
 
 if TYPE_CHECKING:
-    from .cache import TTLCache
+    from .cache import AbstractCache
 
 
 def _raise_422(loc: str, message: str):
@@ -71,14 +69,14 @@ async def validate_token_nullable(
     if not token:
         return None
     # cache token, this is a frequent operation
-    cache: "TTLCache[str,Token]" = request.app.state.token_cache
+    cache: "AbstractCache[str,Token]" = request.app.state.token_cache
     token_obj = cache.get(token)
     if token_obj is None:
         from ..auth.models import Token
 
         token_obj = await Token.find_one({"_id": token})
         # insert to cache
-        cache.set(token, token_obj)
+        cache.put(token, token_obj)
     if not token_obj:
         raise HTTPException(status_code=401, detail="Invalid token.")
     # Check if token is revoked

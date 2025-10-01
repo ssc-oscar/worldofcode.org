@@ -19,6 +19,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "dacite>=1.9.2",
+    "redis[hiredis]>=4.6.0",
 ]
 
 [dependency-groups]

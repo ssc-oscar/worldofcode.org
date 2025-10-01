@@ -5,7 +5,7 @@ import os
 from contextlib import asynccontextmanager
 
 import uvicorn
-from beanie import init_beanie
+from beanie import Document, init_beanie
 from clickhouse_driver import Client as Ch
 from fastapi import Depends, FastAPI
 from loguru import logger
@@ -19,7 +19,7 @@ from .config import settings
 from .lookup.routes import api as lookup_api
 from .mongo.models import MongoAPI, MongoAuthor, MongoProject
 from .mongo.routes import api as mongo_api
-from .utils.cache import TTLCache
+from .utils.cache import MemoryCache, RedisCache
 from .utils.cleanup import cleanup_tokens
 from .utils.validate import validate_token_nullable
 
@@ -61,12 +61,33 @@ async def lifespan(app: FastAPI):
     # init clickhouse
     app.state.ch_client = Ch.from_url(settings.clickhouse.url)
     # init cache
-    app.state.token_cache = TTLCache(settings.auth.get("cache_ttl", 100))
+    if settings.auth.get("cache_redis_url"):
+        logger.info("Using Redis for token cache")
+        app.state.token_cache = RedisCache[str, Token](
+            url=settings.auth.get("cache_redis_url"),
+            ttl_seconds=settings.auth.get("cache_ttl", 100),
+        )
+    else:
+        logger.info("Redis URL not set, using in-memory token cache")
+        app.state.token_cache = MemoryCache[str, Token](
+            settings.auth.get("cache_ttl", 100)
+        )
+    if settings.lookup.get("cache_redis_url"):
+        logger.info("Using Redis for lookup cache")
+        app.state.lookup_cache = RedisCache[str, Document](
+            url=settings.lookup.get("cache_redis_url"),
+            ttl_seconds=settings.lookup.get("cache_ttl", 86400),
+        )
+    else:
+        logger.info("Redis URL not set, using in-memory lookup cache")
+        app.state.lookup_cache = MemoryCache[str, Document](
+            settings.lookup.get("cache_ttl", 100)
+        )
     # mount background cleanup job
     app.state.background_cleanup_job = asyncio.create_task(_background_cleanup_job())
     yield
     # close mongo
-    app.state.mongo_client.close()
+    await app.state.mongo_client.close()
     # close clickhouse
     app.state.ch_client.disconnect()
     # cancel background cleanup job
