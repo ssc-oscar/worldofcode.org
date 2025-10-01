@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from loguru import logger
-from woc.local import decomp
 
 from ..config import settings
 from ..models import WocResponse
@@ -118,7 +117,6 @@ def get_commits(
                     author=row[3],
                     parent=row[4],
                     comment=row[5],
-                    content=decomp(row[6]),
                 )
                 for row in r
             ]
