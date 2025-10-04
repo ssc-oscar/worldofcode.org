@@ -10,7 +10,13 @@ from typing import (
 )
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from woc.local import decode_str, decode_value, decomp_or_raw
+from woc.local import (
+    decode_commit,
+    decode_str,
+    decode_tree,
+    decode_value,
+    decomp_or_raw,
+)
 
 from ..models import WocResponse
 from ..utils.cache import AbstractCache
@@ -162,7 +168,12 @@ def _get_values_with_cursor(
     woc: "WocMapsLocal", map_name: str, key: str, cursor: int = 0
 ):
     _bytes, decode_dtype, next_cursor = woc._get_tch_bytes(map_name, key, cursor)
-    _decoded = decode_value(_bytes, decode_dtype)
+    if map_name == "commit.tch":
+        _decoded = [decode_commit(decomp_or_raw(_bytes))]
+    elif map_name == "tree.tch":
+        _decoded = [decode_tree(decomp_or_raw(_bytes))]
+    else:
+        _decoded = decode_value(_bytes, decode_dtype)
     return _decoded, next_cursor
 
 
