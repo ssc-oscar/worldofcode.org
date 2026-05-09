@@ -1,9 +1,7 @@
 dynaconf_merge = true
 cache_path = "./cache/"
 log_level = "info"
-web_url = "https://woc-preview.osslab-pku.org/"
-# cookie_domain = ".osslab-pku.org"
-# base_url = "http://localhost:4000/api"
+web_url = "https://worldofcode.org/"
 base_url = "/api"
 
 [limit]
@@ -19,7 +17,7 @@ url = "set in .secrets.toml"
 
 [clickhouse]
 url = "set in .secrets.toml"
-table_commits = "commits_v2412"
+table_commits = "commits_v2510"
 table_deps = " b2cPtaPkgR_all"
 
 [github]

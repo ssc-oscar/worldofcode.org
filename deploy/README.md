@@ -10,7 +10,7 @@ dynaconf_merge = true
 url = "mongodb://da5:27017/WoC"
 
 [clickhouse]
-url = "clickhouse://da1:9000/default"
+url = "clickhouse://da3:9000/default"
 ...
 ```
 
@@ -55,3 +55,4 @@ sudo systemctl reload nginx
 ```bash
 sudo setsebool -P httpd_can_network_connect 1
 ```
+
