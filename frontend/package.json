@@ -10,6 +10,11 @@
     "format": "prettier --write --ignore-unknown",
     "preview": "vite preview"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "dependencies": {
     "@ant-design/charts": "^2.2.7",
     "@generouted/react-router": "^1.19.9",

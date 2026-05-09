@@ -26,4 +26,4 @@ VOLUME [ "/dist" ]
 
 COPY --from=builder /app/dist /app/dist
 
-CMD cp -r /app/dist/* /dist
+CMD ["sh", "-c", "cp -r /app/dist/. /dist"]
