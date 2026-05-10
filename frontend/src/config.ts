@@ -136,10 +136,11 @@ export const homePageItems: HomePageItem[] = [
     icon: 'i-fluent-emoji-flat:cat-with-wry-smile'
   },
   {
-    description: 'Next World of Code Hackathon: \n May 12 - May 14',
+    description: 'Register for World of Code server access here.',
     icon: 'i-fluent-emoji-flat:calendar',
-    linkHref: 'https://github.com/woc-hack/hackathon-knoxville-2025',
-    linkText: 'Register Now',
+    linkHref:
+      'https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/edit',
+    linkText: 'Register Here',
     linkClassName: 'important:bg-red-500 animate-pulse'
   },
   {
@@ -164,12 +165,6 @@ export const homePageItems: HomePageItem[] = [
     description: `Guides on the latest WoC Python driver`,
     icon: 'i-simple-icons:python',
     linkHref: '/docs/#/guide',
-    linkText: 'Learn More'
-  },
-  {
-    description: `Peking University OSS Lab`,
-    icon: 'pku_logo.webp',
-    linkHref: 'https://osslab-pku.org',
     linkText: 'Learn More'
   }
 ]; /** Items shown in the NavBar */
