@@ -1,16 +1,222 @@
-# Shell APIs
+# Tutorial basics for the Hackathon
 
-## Activity 2: Shell APIs - Basic Operations
+-------
 
-Shell APIs might be useful to access content of the commit, trees, blobs,
-to calculate the diff produced by a commit, etc.
+## Part A -- Setup
 
-For more examples [see full API](https://bitbucket.org/swsc/lookup/src/master/README.md).
+### Set up accounts for GitHub and Bitbucket
 
-Lets look at the commit 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a:
+Work through this part in order:
 
-```bash
-[username@da0]~% echo 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a | ~/lookup/showCnt commit 3
+1. create a GitHub account if you do not already have one
+2. create a Bitbucket account if you do not already have one
+3. generate an SSH key pair
+4. submit the registration form with your account information and public key
+5. wait until you are granted access to the servers and repositories
+6. log in to a `da` server
+7. clone the repositories you will use during the Hackathon
+
+You will need to provide the following in the registration form:
+
+* your GitHub handle
+* your Bitbucket handle
+* your preferred World of Code handle
+* your public SSH key
+
+GitHub: https://github.com/
+
+BitBucket: https://bitbucket.org/account/signup/
+
+Registration Form: https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/edit
+
+--------
+
+### Gaining access and permissions to the da server(s)
+
+Access to the `da` servers is based on your public SSH key. Generate a key pair with `ssh-keygen` on your terminal. This will usually create `id_rsa` and `id_rsa.pub` inside your `~/.ssh/` directory. The `id_rsa.pub` file is the public key that you should submit in the registration form.
+
+If you are on Windows, the easiest options are WSL, OpenSSH for PowerShell, or Git Bash; the rest of the steps are then the same.
+
+To inspect the public key you need to submit, run:
+
+```sh
+cat ~/.ssh/id_rsa.pub
+```
+
+If you want a shorter login command, add a host entry to `~/.ssh/config`:
+
+```
+Host *
+	ForwardAgent yes
+
+Host da0
+	Hostname da0.eecs.utk.edu
+	Port 443
+	User {username}
+	IdentityFile ~/.ssh/id_rsa
+```
+
+After you submit the form, there may be a delay before your server access and repository invitations are ready.
+
+Once access has been granted, log in in one of these two ways:
+
+* if you added the `~/.ssh/config` entry above, run `ssh da0`
+* otherwise, run `ssh -p443 username@da0.eecs.utk.edu`
+
+Once you are connected to a da server, you will have an empty directory under `/home/username` where you can store your programs and files:
+
+```
+[username@da0]~% pwd
+/home/username
+[username@da0]~%
+```
+
+If you want to hop from `da0` to another `da` server such as `da4`, generate a key on `da0` as well and add it to `~/.ssh/authorized_keys` there:
+
+```sh
+ssh-keygen
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+ssh da4
+```
+
+---------
+
+### Cloning useful repositories
+
+The `python-woc` and `swsc/lookup` repositories are useful starting points for working with WoC, so it is a good idea to clone them into your home directory on a `da` server.
+
+python-woc link: https://github.com/ssc-oscar/python-woc
+
+swsc/lookup link: https://bitbucket.org/swsc/lookup/src/master/
+
+Clone them with `git clone <link>` (without brackets). For example:
+
+```sh
+git clone https://github.com/ssc-oscar/python-woc.git
+git clone https://bitbucket.org/swsc/lookup/src/master/
+```
+
+Once they are cloned, it is a good idea to run `git pull` in these repos periodically so your local copies stay in sync with current API changes.
+
+For more background on SSH keys, see https://confluence.atlassian.com/bitbucketserver/creating-ssh-keys-776639788.html.
+
+-------
+
+## Part B -- Architecture overview
+
+### List of relevant directories
+
+The folder structure on any server follows the following convention:
+
+- Raw blobs (that is, the actual file contents of the git repositories) are located in files `/da5_data/All.blobs/{commit,tree,tag,blob}_Num.{idx,bin}` where `Num` is in `{0..127}`. These are appended to periodically as new objects are discovered and extracted.
+- Folder `/da5_fast` is mounted on an array of striped SSDs so that the data can be read in parallel. The `da3` and `da4` servers have similar fast-storage setups. It contains maps such as `c2fFull$Ver.Num.tch` that index the blobs by features such as commit or file name. They are also backed up under `/da0_data/basemaps`.
+- `/da5_fast` has subfolders `All.sha1`, `All.sha1c`, and `All.sha1o`.
+  - `All.sha1` holds SHA1-to-record mappings such as `sha1.commit_0.tch`, `sha1.tree_0.tch`, `sha1.tag_0.tch`, and `sha1.blob_0.tch`. These map an object SHA1 to its logical record position in the raw object store, which tells you which object record to retrieve.
+  - `All.sha1c` on `da5` contains direct content maps for non-blob objects, such as `commit_0.tch` and `tree_0.tch`; on this machine it also contains `tag_*` and `tkns_*` files.
+  - `All.sha1o` contains files such as `sha1.blob_0.tch` that map a blob SHA1 to the numeric byte offset and object size needed to read that blob directly from `/da5_data/All.blobs/blob_Num.bin`.
+
+Not all files are stored on all servers due to limited disk sizes and the different speed classes of storage; in this naming scheme, `fast` means SSD-backed random-access storage. The pathname usually tells you both what the data is and where it lives.
+
+In order for SSDs to be fast they need to be mounted in parallel. For example, if `7ssds` is a volume group that has seven SSDs as physical volumes, logical volume `7ssds` can be created via:
+
+```
+lvcreate --extents 100%FREE --name 7ssds --stripes 7 --stripesize 256 7ssds
+```
+
+### Random-lookup maps
+
+The relationship `.tch` files are stored in fast random-access locations such as `/da3_fast/`, `/da4_fast/`, and `/da5_fast/`, and also in basemap directories under `/da[0-8]_data/basemaps/`. On this machine, `/da0_data/basemaps`, `/da1_data/basemaps`, `/da2_data/basemaps`, `/da3_data/basemaps`, `/da4_data/basemaps`, `/da5_data/basemaps`, `/da7_data/basemaps`, and `/da8_data/basemaps` exist; `/da6_data/basemaps` is absent.
+
+These maps are intended for random lookup rather than full scans: given a key, you retrieve the corresponding value directly. Conceptually they support a `getValue`-style lookup, and in this repo the command-line wrapper for that access pattern is `~/lookup/getValues`.
+
+The same logical relationship often exists in multiple WoC versions, which is important for reproducibility. You will see version suffixes such as `S`, `T`, `U`, `V3`, `V2409`, `V2412`, and `V2510` in map names, and `getValues` can be told which version to use with its `-v` option.
+
+The following relationship files are indexes that allow you to map different metadata values to each other; for example files `c2pc0.s` through `c2pc31.s` together constitute an index mapping commits to their parents. They contain all commits across all repositories in World of Code, so this is a very comprehensive index. The relationship `.tch` files are in TokyoCabinet format and are typically either a single file or a 32-shard family; this is also the layout expected by `~/lookup/getValues`.
+
+A machine-generated inventory of relationship map types and their latest `.tch` and `.s` versions on this machine is available in [map-types.md](./map-types.md). In summary, many core relationship maps have recent `.tch` and `.s` versions side by side, while some map types exist only as flat `.s` files.
+
+The sharded `.tch` names are in the form `<mapType>Full<version>[.<shard>].tch`, with `<shard>` in `0..31` when the map is sharded.
+
+### Ordered-by-key flat files in `basemaps/gz/`
+
+These flat files are the ordered-by-key source form for many relationship maps, and they include map types that may not yet have been converted to `.tch`. The flat `.s` files live in `/da[0-8]_data/basemaps/gz/` on servers that have basemap copies.
+
+Their map type is the prefix before `Full`, for example `a2c`, `A2b`, `P2b`, `cnpOrUndef`, or `c2p`. After `Full` comes the WoC version, and then, for sharded maps, a shard number.
+
+Newer dotted flat-file names use the form `<mapType>Full.<version>[.<shard>].s`.
+
+Older single-letter versions use the form `<mapType>Full<version>[.<shard>].s`.
+
+Examples:
+
+* `A2aFullHT.s` - single flat file of type `A2a`
+* `A2bFullU0.s` through `A2bFullU31.s` - 32 shards of type `A2b`
+* `P2bFullU0.s` through `P2bFullU31.s` - 32 shards of type `P2b`
+* `cnpOrUndefFullS.0.s` through `cnpOrUndefFullS.31.s` - 32 shards of type `cnpOrUndef`
+
+On this machine, the flat `.s` files I found are a mix of single-file, `0..31`, and `0..127` layouts, depending on the map type. By contrast, the relationship `.tch` maps used by `getValues` are single-file or `0..31` families. The separate `All.sha1*` object-index families discussed above also use larger layouts, but those are not relationship maps.
+
+In the following table, `(.s)` signifies that there are either `.s` or `.gz` versions of these flat files in a `gz/` subfolder; in practice you will usually read them with Python's `gzip` module or Unix `zcat`.
+
+Key notation:
+
+**Case convention:** lowercase letters usually denote raw entities, while uppercase letters denote aliased, normalized, or deduplicated entities.
+
+| Symbol | Meaning |
+|---|---|
+| `a` / `A` | raw author / aliased author |
+| `p` / `P` | raw project / aliased or normalized project |
+| `b` | blob |
+| `c` | commit |
+| `f` | file |
+| `h` | head commit |
+| `pc` | parent commit |
+| `cc` | child commit |
+| `ta` | time and author |
+| `trp` | Torvald path |
+
+Longer prefixes such as `Pkg`, `tk`, `def`, `call`, `dat`, and similar derived forms extend this basic notation; see [map-types.md](./map-types.md) for the broader inventory.
+
+A fuller inventory of relationship families is maintained in [map-types.md](./map-types.md), which is a better reference than a partial inline list.
+
+When using `oscar.py` or related lookup scripts, the `PATHS` dictionary or shell wrapper can point at either a fast-storage copy under `/da[345]_fast/` or a basemap copy under `/da[0-8]_data/basemaps/`, depending on which server has the version you need.
+
+### Scratch space on a da server
+
+Instead of creating new files from reading data in your home directory, you're allowed to have a scratch directory under `/data/play/<username>`. A distinct advantage of doing so is that you won't hit NFS limitations from high-throughput reading and writing in `/home/<username>`. Additionally, it is advised that you create your files on the same machine you're reading data from in order to avoid network latency and read errors.
+
+#### `/data/play/$LANGthruMaps/`
+
+These `thruMaps` directories contain mappings that list repositories and the modules they depended on, at a given Unix timestamp under a specific commit. The mappings are in `c2bPtaPkgO{$LANG}.{0-31}.gz` files.
+
+Format: `commit;repo_name;timestamp;author;blob;module1;module2;...`
+
+Each `thruMaps` directory has a different language (`$LANG`) that contains modules relevant to that language. Modules are typically libraries written in the same language and installed automatically through a repository manager. For example the Rust `thruMaps` list Rust-language projects and the crates they depend on and install through their build process from `http://crates.io`.
+
+-------
+
+## Part C -- Shell lookup commands and shell-first large-scale analysis
+
+### Guided shell walkthrough with `showCnt` and `getValues`
+
+For interactive shell work, the two main entry points are:
+
+* `~/lookup/showCnt` for inspecting the stored content of commits, trees, and blobs
+* `~/lookup/getValues` for traversing relationship maps by key
+
+The examples below form a simple progression: inspect one commit, follow it to its tree and blob content, then pivot into relationship-map lookups built around the same objects and author.
+
+#### 1. Start from a commit
+
+Let's look at commit `009d7b6da9c4419fe96ffd1fffb2ee61fa61532a`:
+
+```sh
+echo 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a | ~/lookup/showCnt commit 3
+```
+
+Output:
+
+```text
 tree 464ac950171f673d1e45e2134ac9a52eca422132
 parent dddff9a89ddd7098a1625cafd3c9d1aa87474cc7
 author Warner Losh <imp@FreeBSD.org> 1092638038 +0000
@@ -20,149 +226,153 @@ Don't need to declare cbb module.  don't know why I never saw
 duplicate messages..
 ```
 
-This commit has a tree and a parent commit and is created by 'Warner Losh <imp@FreeBSD.org>'.
-(parameter 3 defines that raw output needs to be produced)
+This tells us the commit's root tree, parent commit, and author.
 
-Lets inspect the tree (the root folder of the project) for the first and last file:
+`showCnt commit` has several output modes. The ones most useful in shell pipelines are:
 
-```bash
-[username@da0]~% echo 464ac950171f673d1e45e2134ac9a52eca422132 | ~/lookup/showCnt tree | awk 'NR==1; END{print}'
+* `~/lookup/showCnt commit` or `commit 0` -> `commit;tree;parents;author;committer;author_time;committer_time`
+* `~/lookup/showCnt commit 1` -> `commit;author_time;author`
+* `~/lookup/showCnt commit 2` -> `commit;author;author_time;timezone;flattened_message`
+* `~/lookup/showCnt commit 3` -> raw commit object, which is useful when you want to inspect the original headers and message
+* `~/lookup/showCnt commit 5` -> `commit;parents`
+* `~/lookup/showCnt commit 6` -> `commit;author_time;author_tz;author;tree;parents`
+* `~/lookup/showCnt commit 7` -> `commit;base64_raw_commit`
+* `~/lookup/showCnt commit 8` -> `commit;author_time;committer_time;author;committer;parents`
+* `~/lookup/showCnt commit 9` -> `commit;tree;parents;author;committer;author_time;committer_time;author_tz;committer_tz;flattened_message`
+
+For example:
+
+```sh
+echo 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a | ~/lookup/showCnt commit 1
+echo 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a | ~/lookup/showCnt commit 5
+```
+
+Output:
+
+```text
+009d7b6da9c4419fe96ffd1fffb2ee61fa61532a;1092638038;Warner Losh <imp@FreeBSD.org>
+009d7b6da9c4419fe96ffd1fffb2ee61fa61532a;dddff9a89ddd7098a1625cafd3c9d1aa87474cc7
+```
+
+#### 2. Inspect the root tree
+
+Now inspect the tree and look at its first and last entries:
+
+```sh
+echo 464ac950171f673d1e45e2134ac9a52eca422132 | ~/lookup/showCnt tree | awk 'NR==1; END{print}'
+```
+
+Output:
+
+```text
 100644;a8fe822f075fa3d159a203adfa40c3f59d6dd999;COPYRIGHT
 040000;6618176f9f37fa3e62f2efd953c07096f8ecf6db;usr.sbin
 ```
 
-We may also want inspect the first element in the tree (blob representing file COPYRIGHT). We limit the output to the first two lines only:
+The first entry is a blob for the file `COPYRIGHT`.
 
-```bash
-[username@da0]~% echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/showCnt blob | head -n 2
+For trees, the default output is one `mode;sha;name` entry per line. `~/lookup/showCnt tree 1` emits the whole tree on one semicolon-separated line, which can be useful for batch processing, and `~/lookup/showCnt tree 3` recursively expands subtrees.
+
+#### 3. Inspect the blob content
+
+We can inspect that blob directly and limit the output to two lines:
+
+```sh
+echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/showCnt blob | head -n 2
+```
+
+Output:
+
+```text
 # $FreeBSD$
-#  @(#)COPYRIGHT  8.2 (Berkeley) 3/21/94
+#	@(#)COPYRIGHT	8.2 (Berkeley) 3/21/94
 ```
 
-### Important Note
+If you want content on one line, `showCnt` also supports a compact mode:
 
-When wanting to get the content of many objects (or look up
-values for many keys), please use a single function invocation and
-provide multiple keys/sha1s as standard input since each call to showCnt
-and getValues may involve ssh to another da server (where the data
-resides).
-To separate content of separate blobs, you can ask showCnt to put
-output on a single line, for example:
-
-```bash
-[username@da0]~% echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/showCnt blob 1
+```sh
+echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/showCnt blob 1
 ```
 
-This command will produce a single line output, starting from sha1:
+That produces a single-line, base64-encoded representation of the blob content.
 
-```bash
-a8fe822f075fa3d159a203adfa40c3f59d6dd999;IyAkRnJlZUJTRCQKIwlAKCMpQ09Q....
+For blobs, the main formats are:
+
+* `~/lookup/showCnt blob` -> raw blob content
+* `~/lookup/showCnt blob 1` -> `blob_sha;base64_content;rest`, which is the most useful format for batch extraction
+* `~/lookup/showCnt blob 2` -> one output line per blob line as `content_line;blob_sha;rest`; semicolons in content are rewritten as `_SEMICOLON_`
+
+If you are extracting many blobs, `blob 1` is usually the safest mode because each blob stays on a single output line and can be decoded later.
+
+#### 4. Follow relationships with `getValues`
+
+The same blob can now be used as a key in relationship maps. A good next step is to ask where that blob first appeared and then which projects contain it.
+
+Start with `b2tac`, which maps a blob to time, author, and commit:
+
+```sh
+echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/getValues b2tac | cut -d ';' -f1-4
 ```
 
-The content of the blob is base64 encoded (use python's base64.b64decode).
+Output:
 
-### Exercise 2
-
-Determine the author of the parent commit for commit 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a
-
-Hint 1: parent commit is listed in the content of commit 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a above
-
-```bash
-[username@da0]~% echo dddff9a89ddd7098a1625cafd3c9d1aa87474cc7 | ~/lookup/showCnt commit
-```
-
-### Summary for Activity 2
-
-Synopsis:
-
-```bash
-~/lookup/showCnt commit|tree|blob
-```
-
-reads from the standard input sha1 of the corresponding objects and
-prints the content of these objects.
-
-## Activity 3: Investigate the Maps
-
-We see the content of the copyright file above. Such files are often copied verbatim. Lets determine the first author who has created it (irrespective of a repository).
-WoC has created this relationship and stored in b2fa (Blob to First Author) map:
-
-```bash
-[username@da0]~% echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 |  ~/lookup/getValues b2fa
+```text
 a8fe822f075fa3d159a203adfa40c3f59d6dd999;1072910122;Warner Losh <imp@FreeBSD.org>;121f970412fec7f9af0352a9b4ce8dca43bdb59e
 ```
 
-It turns out that it was created by commit 121f970412fec7f9af0352a9b4ce8dca43bdb59e done by what appears to be the same author on unix second 1072910122.
+Now take the commit column from `b2tac` and feed it to `c2p` to list projects containing that blob:
 
-What is b2fa? The letters signify what keys (b - Blob) and values
-(fa - first author) mean. As in natural sentence some decontextualization is needed in rare cases as this because f generally stands for file. Literally, that would mean b2fa is blob to file and author. As the number of objects and maps will multiply, single letters will not do and full word parsing will be used.
+```sh
+echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | \
+  ~/lookup/getValues b2tac | \
+  awk -F';' '{for(i=4;i<=NF;i+=3){print $i}}' | \
+  ~/lookup/getValues -f c2p | \
+  cut -d';' -f2 | \
+  ~/lookup/lsort 100M -u | \
+  head -n 5
+```
 
-**Primary Objects:**
+Output:
 
-- a = Author (A - aliased author)
-- b = Blob (b2c map will become obsolete as of version U as one can get more info from b2tac)
-- c = Commit, cc - child commit and pc - parent commit
-- f = File (occasionally its an adjective modifying the following object as in fa or First Author)
-- p = Project (P - deforked project)
-- t = Time (unix unsigned long in UTC)
-- g = gender
+```text
+0cjs_unix-history-repo
+0mp_freebsd
+0xbda2d2f8_freebsd
+0xffffffrabbit_freebsd-base-graphics
+0xkag_freebsd
+```
 
-**Capital Version** - simply means that the data has been corrected:
+If you want to continue from the author, you can also follow author-alias relationships:
 
-- A = aliased version (see https://arxiv.org/abs/2003.08349); any organizational and group IDs, bot IDs, as well as author IDs, that do not
-  contain sufficient info to alias are excluded.
-- P = deforked project (via Leuwen community
-  detection on commit / repo bi-graph: https://arxiv.org/abs/2002.02707)
+```sh
+echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2A
+echo 'imp <imp@bsdimp.com>' | ~/lookup/getValues A2a | tr ';' '\n' | head -n 3
+```
 
-We can inspect the relationships between a and A and also between p
-and P:
+Output:
 
-```bash
-[username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2A
+```text
 Warner Losh <imp@FreeBSD.org>;imp <imp@bsdimp.com>
-[username@da0]~%
-[username@da0]~% echo 'imp <imp@bsdimp.com>' | ~/lookup/getValues A2a | tr ";" "\n" | head -n 3
 imp <imp@bsdimp.com>
 M. Warner Losh <imp@bsdimp.com>
 M. Warner Losh <imp@freebsd.org>
 ```
 
-Going back to blob we may ask if this blob has been widely copied as would be expected for copyright files. We can use b2tac to obtain a sha1's blob to time, author, and commit. The following example pipes the output to only see the first entry:
+And we can list commits by that author:
 
-```bash
-[username@da0]~% echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 |  ~/lookup/getValues b2tac | cut -d ";" -f1-4
-a8fe822f075fa3d159a203adfa40c3f59d6dd999;1072910122;Warner Losh <imp@FreeBSD.org>;121f970412fec7f9af0352a9b4ce8dca43bdb59e
+```sh
+echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2c | tr ';' '\n' | head -n 4
+echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues -f a2c | head -n 5
 ```
 
-b2tac (blob to time, author, commit) shows the numerous commits that introduced that blob in all repositories. We can further use commit to project map (c2p)
-to identify all associated projects:
+Output:
 
-```bash
-[username@da0]~% echo a8fe822f075fa3d159a203adfa40c3f59d6dd999 | ~/lookup/getValues b2tac | awk -F \; '{for(i=4;i<NF;i+=3){print $i}}' | ~/lookup/getValues -f c2p | cut -d ";" -f2 | sort -u |  head -3
-0cjs_unix-history-repo
-0mp_freebsd
-0xbda2d2f8_freebsd
-```
-
-In fact, there are 1719 distinct repositories where this blob appears. If you would like to see them all, remove the last `head` portion in the previous command.
-
-Finally, we have the author 'Warner Losh <imp@FreeBSD.org>' for the commit we have investigated.
-Can we find what other commits Warner has made? (The following output is limited to three commits only):
-
-```bash
-[username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2c | tr ";" "\n" |  head -n 4
+```text
 Warner Losh <imp@FreeBSD.org>
 0000ce4417bd8d9a2d66a7a61393558d503f2805
 000109ae96e7132d90440c8fa12cb7df95a806c6
 0001246ed9e02765dfc9044a1804c3c614d25dde
-```
 
-In addition to variable-length records (key;val1;val2;...;valn),
-the output can be produced as a flat table (key;val1\nkey;val2\n...\nkey;valn)
-using `-f` option:
-
-```bash
-[username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues -f a2c | head -n 5
 Warner Losh <imp@FreeBSD.org>;0000ce4417bd8d9a2d66a7a61393558d503f2805
 Warner Losh <imp@FreeBSD.org>;000109ae96e7132d90440c8fa12cb7df95a806c6
 Warner Losh <imp@FreeBSD.org>;0001246ed9e02765dfc9044a1804c3c614d25dde
@@ -170,1226 +380,486 @@ Warner Losh <imp@FreeBSD.org>;00014b72bf10ad43ca437daf388d33c4fea73df9
 Warner Losh <imp@FreeBSD.org>;000153916157b29a14b65fa3efeff4e3788e1b0e
 ```
 
-In addition to the random lookup, the maps are also stored in flat
-sorted files and this format is preffered (faster) when
-investigating over two hundred thousand items or an entire WoC.
-For example, find commits by any author named Warner (a similar
-task would be to find all blobs or commits involving a c-language
-file ".c" or a README file "README"):
+Use the regular output form when you want all values on one line per key, and `-f` when you want a flat table with one key-value pair per line. `-f` is most useful for multi-value maps such as `a2c`, `c2p`, or `b2tac`; for single-value maps such as `b2fa` or `c2dat`, it mostly just breaks one logical record into separate output fields.
 
-```bash
-[username@da0]~% zcat /da7_data/basemaps/gz/a2cFull.V3.0.s | grep 'Warner Losh'
+Also note that `getValues` uses only the first input column as the key and passes the remaining columns through unchanged. That is useful when you want to preserve context in a pipeline:
+
+```sh
+echo 'Warner Losh <imp@FreeBSD.org>;zz' | ~/lookup/getValues -f a2c | head -n 3
 ```
 
-As described below, the maps are split into 32 (or 128) parts to enable parallel search.
-Full.V3.0 means that we are looking at a complete extract at version V3.0.
+Output:
 
-As versions keep being updated, and data no longer fits on a single server,
-a more flexible way to run the same command would be
-
-```bash
-[username@da0]~% zcat /da?_data/basemaps/gz/a2cFull.V3.?.s | grep 'Warner Losh'
-```
-
-In other words, we look for the file on any of the servers and selecting an arbitrary
-version of the datbase.
-
-### Exercise 3
-
-a) Find all files modified by author id 'Warner Losh <imp@FreeBSD.org>'
-
-Hint 1: What is the map name?
-
-Author ID to File or a2f
-
-```bash
-[username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2f
-```
-
-Get the number of all commits from developers who have your last and your first name:
-
-Hint 1: use wc (word count), e.g. (example takes a long time to compute),
-
-```bash
-[username@da0]~% zcat /da0_data/basemaps/gz/a2cFull*.s | grep -i 'audris' | grep -i 'mockus' | wc -l
-```
-
-b) Find all files modified by all author IDs used by a developer 'Warner Losh <imp@FreeBSD.org>'
-
-Hint 1: What is the map name?
-
-A represents all author IDs so we first get the group name:
-
-```bash
-echo 'Warner Losh <imp@FreeBSD.org>' | ~/lookup/getValues a2A
-Warner Losh <imp@FreeBSD.org>;imp <imp@bsdimp.com>
-```
-
-and then use it to get all files via A2f
-
-```bash
-[username@da0]~% echo 'imp <imp@bsdimp.com>' | ~/lookup/getValues A2f
-```
-
-### Summary for Activity 3
-
-For any key provided on standard input, a list of values is provided
-
-```bash
-~/lookup/getValues [-f] a2c|c2dat|b2ta|b2fa|c2b|b2f|c2f|p2c|c2p|c2P|P2c
-```
-
-Option `-f` replaces one output line per input line into a number of individual lines corresponding to the number of output values.
-For single-value maps, such as c2dat, b2fa, `-f` makes no sense as it prints distinct fields on separate lines.
-
-Also, only the first column of the input is considered as the key, other fields are passed through, e.g.,
-
-```bash
-[username@da0]~% echo 'Warner Losh <imp@FreeBSD.org>;zz' | ~/lookup/getValues -f a2c| head -n 3
+```text
 Warner Losh <imp@FreeBSD.org>;zz;0000ce4417bd8d9a2d66a7a61393558d503f2805
 Warner Losh <imp@FreeBSD.org>;zz;000109ae96e7132d90440c8fa12cb7df95a806c6
 Warner Losh <imp@FreeBSD.org>;zz;0001246ed9e02765dfc9044a1804c3c614d25dde
 ```
 
-## Activity 4: Exploring the State of a Repo at the Last Commit
+#### 5. Batch keys when possible
 
-Lets suppose we only care for the last version of the files in a project, e.g., last version of readme.
-lb2f (last blob to file) provides this relationship
+When retrieving many objects or many map values, prefer one invocation with multiple keys on standard input rather than many separate calls. That keeps the lookup overhead lower and avoids repeated remote access work.
 
-```bash
-[username@da0]~% zcat /da?_data/basemaps/gz/lb2fFullV0.s | grep -i readme | head -n 5
-00000057bfb6f79bdfd129f113533f9ada77cbba;/README.md
-000000ad43fb50661d0f8ba20035f8f8a62b28b1;/README.md
-000000c4ca807de513cd601810522141ed8347bf;/Day-92 Collection/readMe
-000001222e62cd97679e0ed087c74037bab8f848;/README.md
-0000013e32eb5f7497750cf652cfd540f23abb3e;/README.md
+In particular, do **not** run `showCnt` or `getValues` once per key in a shell loop when you have many keys. Feed many keys to one process instead. Repeated one-key invocations generate unnecessary SSH traffic and can effectively DDoS the lookup service.
+
+For very large exact-key workloads or full-map scans, especially once you get into hundreds of thousands of keys (roughly `500K+`), the flat sorted `.s` files plus shard-local `join` are often faster than repeated random lookups through `getValues`.
+
+### Useful helpers for flat `.s` workflows
+
+When you move from interactive lookups to bulk work on flat `.s` files, three helper tools are especially useful: `splitSec.perl`, `splitSecCh.perl`, and `lsort`.
+
+#### `splitSec.perl` and `splitSecCh.perl`
+
+These helpers split an input stream into shard-aligned gzip files so that later joins can be done shard by shard.
+
+* `splitSec.perl` is for hash-like keys such as SHA1s; it computes the target shard from the first field using WoC's hash-based segmentation logic
+* `splitSecCh.perl` is for non-hash keys such as project, author, or path strings; in the current implementation it also hashes the full first field with the same `sHash()` logic rather than routing by first byte
+
+In `woc.pm`, `sHash()` uses `Digest::FNV::XS::fnv1a_32($v) & ($nseg - 1)`. In other words, WoC takes a 32-bit FNV-1a hash of the first field and, for power-of-two shard counts such as 32 or 128, maps it to a shard with a bit mask.
+
+Their basic usage pattern is:
+
+```sh
+some_command_producing_key_value_lines | ~/lookup/splitSec.perl prefix. 128
+some_command_producing_key_value_lines | ~/lookup/splitSecCh.perl prefix. 32
 ```
 
-To get projects we just need to join it with b2P
+This creates files such as `prefix.0.gz`, `prefix.1.gz`, and so on. If you pass a third argument, the scripts print the shard number instead of writing files, which is useful for debugging.
 
-```bash
-[username@da0]~% zcat /da?_data/basemaps/gz/lb2fFullV0.s | grep -i readme | join -t\; -1 1 -2 1 - <( zcat /da?_data/basemaps/gz/b2PFullV0.s) | head -n 5
-00000057bfb6f79bdfd129f113533f9ada77cbba;/README.md;yoooov_certinel
-000000ad43fb50661d0f8ba20035f8f8a62b28b1;/README.md;LeeYoonSam_SampleNodeEjsBoard
-000000c4ca807de513cd601810522141ed8347bf;/Day-92 Collection/readMe;22MCA10027_-100daysofcodeChallenge
-000001222e62cd97679e0ed087c74037bab8f848;/README.md;magnusrygh_cluster
-0000013e32eb5f7497750cf652cfd540f23abb3e;/README.md;sneakyGrit_hello-world
+As a rule of thumb:
+
+* use `splitSec.perl` when the first field is a SHA1-like key
+* use `splitSecCh.perl` when the first field is a regular string key but you still want the same stable hash-based partitioning used by WoC tooling
+
+#### `lsort`
+
+`~/lookup/lsort` is a thin wrapper around `sort` that sets `LC_ALL=C`, uses gzip for compressed temporary runs, and lets you control memory with a size argument such as `10G` or `500M`.
+
+For large inputs, use `~/lookup/lsort`, not plain `sort`. The wrapper runs `sort -T.` so temporary files stay in the current working directory rather than the default temp area; plain `sort` can fill `/tmp` on large jobs and crash the server.
+
+Typical usage:
+
+```sh
+... | ~/lookup/lsort 10G -t';' -k1,1
+... | ~/lookup/lsort 10G -t';' -k1,4 -u
+~/lookup/lsort 10G -t';' -k1,1 --merge <(zcat part1.s) <(zcat part2.s)
 ```
 
-Each project also has the last commit in lc2Pdat
+In practice, `lsort` is useful for:
 
-```bash
-[username@da0]~% zcat /da?_data/basemaps/gz/lc2PdatFullV1.s | head -n 1 | tr ";" "\n"
-01000009d4c8d8f088e30519131e4e60cf61e969
-Dushyant099_Tetris
-1500262480
--0400
-Dushyant Patel <dushyant@Dushyants-MacBook-Air.local>
-214c30ce8162a624f1f2442ff7bed46d0fb7b4b1
-9e46a5cd45ce0adf3afe24ce616f5be0315c72b2
+* sorting shard files before `join`
+* deduplicating records with `-u`
+* merging already-sorted shard outputs with `--merge`
+
+#### Split -> join -> merge in pure shell
+
+For large jobs, keep the work in the shell as long as possible and follow the structure of the data:
+
+1. split the work by shard (`0..31` or `0..127`)
+2. filter or project each shard independently with streaming tools such as `zcat`, `grep`, `awk`, `cut`, and `~/lookup/lsort`
+3. normalize each shard on the future join key
+4. join shard-local intermediates
+5. merge the derived outputs and reduce at the end
+
+For example:
+
+```sh
+for i in $(seq 0 31); do
+  zcat /data/play/PYthruMaps/c2bPtaPkgOPY.$i.gz | grep -w tensorflow \
+    > /data/play/$USER/tensorflow.$i &
+done
+wait
+
+for i in $(seq 0 31); do
+  awk -F';' '{print $2 ";" $3}' /data/play/$USER/tensorflow.$i \
+    | ~/lookup/lsort 1G -t';' -k1,1 -k2,2n \
+    > /data/play/$USER/tensorflow.repo_time.$i &
+done
+wait
+
+cat /data/play/$USER/tensorflow.repo_time.* \
+  | ~/lookup/lsort 1G -t';' -k1,1 -k2,2n \
+  | awk -F';' '!seen[$1]++' \
+  > /data/play/$USER/tensorflow.first.shell
 ```
 
-In fact, lb2f is computed from lc2dat by taking the tree (column 6 of lc2Pdat) and obtaining all blobds in that tree in, recusively, subtrees.
+This split -> normalize -> merge pattern scales well because each shard is processed independently, only smaller derived files are carried forward, and the final reduction happens once at the end. If you have another shard-aligned input on the same key, prepare both sides with `~/lookup/lsort` and `join` them shard by shard before the final merge.
 
-## Activity 5: Using Python APIs from oscar.py
+#### How this looks when building `.s` files
 
-**python-woc Tutorial:** [python-woc](https://github.com/ssc-oscar/python-woc) has its own tutorial for hackathon purposes. We suggest that you go [here](https://github.com/ssc-oscar/python-woc/blob/master/docs/tutorial.md) and read through it. The tutorial contains information about the current available functions, how to implement applications (simple and complex), and useful imports for applications.
+The `b2ob.slurm` workflow shows the general pattern used when creating or refreshing `.s` relationship files:
 
-**Important Note:** If you experience any difficulties in retrieving data from python-woc's function calls (i.e., you receive an empty tuple on function return), please run `git pull` in your cloned repo to stay up-to-date with the latest version of python-woc.
+1. read existing `.s` or intermediate gzip inputs with `zcat`
+2. transform records with `perl`/`awk`
+3. sort and deduplicate with `~/lookup/lsort`
+4. split by shard when building an inverted map
+5. sort each shard again
+6. merge shard families into final `Full.<version>.<shard>.s` outputs
 
-These are corresponding functions in python-woc that open the .tch files listed below for a given entity. `/function_name` after a function name denotes the version of that function that returns a Generator object.
+Some representative examples from that workflow:
 
-1. `Author('...')` - initialized with a combination of name and email
-   - `.blobs`
-   - `.commit_shas/commits`
-   - `.project_names`
-   - `.files`
-   - `.torvald` - returns the torvald path of an Author, i.e, who did this Author work
-     with that also worked with Linus Torvald
-2. `Blob('...')` - initialized with SHA of blob
-   - `.author` - returns timestamp, author name, and binary SHA of commit
-   - `.commit_shas/commits` - commits removing this blob are not included
-   - `.data` - content of the blob
-   - `.file_sha(filename)` - compute blob sha from a file content
-   - `.position` - get offset and length of blob data in storage
-   - `.parent`
-   - `.string_sha(string)`
-   - `.tkns` - result of ctags run on this blob, if there were any
-3. `Commit('...')` - initialized with SHA of commit
-   - `.blob_shas/blobs`
-   - `.child_shas/children`
-   - `.changed_file_names/files_changed`
-   - `.parent_shas/parents`
-   - `.project_names/projects`
-   - `.attributes` - time, tz, author, tree, parent(s)
-   - `.tdiff`
-4. Deprecated, see [#50](https://github.com/ssc-oscar/oscar.py/issues/50): `File('...')` - initialized with a path, starting from a commit root tree
+```sh
+zcat $pVer${ver}.$i.gz | \
+  perl ... | \
+  $HOME/bin/lsort ${maxM}M -t\; -k1,4 -u | \
+  gzip > ../../All.blobs/$pVer$ver.$i.s
+```
+
+```sh
+done | perl -I $HOME/lib/perl5 -I $HOME/lookup $HOME/lookup/splitSec.perl bb2cf.$ver.$l. 128
+```
+
+```sh
+zcat obb2cf.$ver.$i.$j.gz | $HOME/bin/lsort ${maxM}M -t\; -k1,4 -u | gzip > obb2cf.$ver.$i.$j.s
+```
+
+```sh
+lsort ${maxM}M -t\; -k1,1 --merge <(zcat bb2cf.$ver.$i.$j.s) <(zcat bb2cf.$ver.$k.$j.s) | gzip > bb2cf.$ver.$j.s
+```
+
+This is the common split -> sort -> sort-per-shard -> merge pattern behind large `.s` map construction.
+
+-------
+
+## Part D -- Python use from a streaming perspective
+
+### Current Python package: `python-woc`
+
+The current Python package is `python-woc`, and the import namespace is `woc`, not `oscar`. Use it for random access to `.tch` maps and stacked `.bin` object stores.
+
+Install it from PyPI with:
+
+```sh
+pip3 install python-woc
+```
+
+Or install it from source:
+
+```sh
+git clone https://github.com/ssc-oscar/python-woc.git
+cd python-woc
+python3 -m pip install poetry
+python3 -m poetry install
+```
+
+On some UTK servers, installing Poetry may fail with `urllib3 v2 only supports OpenSSL 1.1.1+`. The current workaround in `python-woc` is:
+
+```sh
+python3 -m pip install 'urllib3<2.0'
+```
+
+On UTK / PKU WoC servers, profiles are already available at `/home/wocprofile.json` or `/etc/wocprofile.json`, so you usually do not need to generate one yourself. Otherwise, generate a profile with:
+
+```sh
+python3 woc.detect /path/to/woc/1 /path/to/woc/2 ... > wocprofile.json
+```
+
+By default, `python-woc` looks for `wocprofile.json`, `~/.wocprofile.json`, `/home/wocprofile.json`, and `/etc/wocprofile.json`.
+
+### CLI compatibility
+
+`python-woc` also provides drop-in CLI replacements for the Perl scripts:
+
+```sh
+alias getValues='python3 -m woc.get_values'
+alias showCnt='python3 -m woc.show_content'
+```
+
+The usage is the same as the original scripts, so existing shell examples continue to apply.
+
+### Low-level Python API: `WocMapsLocal`
+
+The low-level Python API is centered on `WocMapsLocal`:
+
+```python
+from woc.local import WocMapsLocal
+
+woc = WocMapsLocal()  # or WocMapsLocal(version="R")
+```
+
+The three most important methods are:
+
+* `woc.get_values(map_name, key)` - Python equivalent of `getValues`
+* `woc.show_content(obj_name, key)` - Python equivalent of `showCnt`
+* `woc.count(map_or_object)` - count keys in a map or object family
+
+Examples:
+
+```python
+>>> woc.get_values("b2fa", "05fe634ca4c8386349ac519f899145c75fff4169")
+('1410029988', 'Audris Mockus <audris@utk.edu>', 'e4af89166a17785c1d741b8b1d5775f3223f510f')
+>>> woc.get_values("c2b", "e4af89166a17785c1d741b8b1d5775f3223f510f")
+['05fe634ca4c8386349ac519f899145c75fff4169']
+>>> woc.show_content("tree", "f1b66dcca490b5c4455af319bc961a34f69c72c2")
+[('100644', 'README.md', '05fe634ca4c8386349ac519f899145c75fff4169'), ('100644', 'course.pdf', 'dfcd0359bfb5140b096f69d5fad3c7066f101389')]
+>>> woc.count("blob")
+17334020520
+```
+
+### Object API from `woc.objects`
+
+The object API provides cached wrappers around common WoC entities. It is closer in spirit to `oscar.py`, but it is **not** a drop-in replacement: many names and signatures have been cleaned up to be more consistent and more explicit.
+
+Initialize it like this:
+
+```python
+from woc.local import WocMapsLocal
+from woc.objects import init_woc_objects
+
+woc = WocMapsLocal()
+init_woc_objects(woc)
+```
+
+The main classes are:
+
+1. `Author('Name <email>')`
+   - `.name`, `.email`
+   - `.commits`, `.projects`, `.files`, `.blobs`
+   - `.unique_authors`, `.first_blobs`
+2. `UniqueAuthor('...')`
    - `.authors`
-   - `.blobs`
-   - `.commit_shas/commits`
-5. `Project('...')` - initialized with project name/URI
-   - `.author_names`
-   - `.commit_shas/commits`
-6. `Tdiff('...')` - initialized with SHA, result of diff run on 2 blobs (if there was a diff)
-   - `.commit`
-   - `.file`
-7. `Tree('...')` - representation of a git tree object (dir), initialized with SHA of tree
-   - `.files`
-   - `.blob_shas/blobs`
-   - `.commit_shas/commits`
-   - `.traverse`
+3. `Blob('sha1')`
+   - `.data`, `.commits`, `.files`
+   - `.first_author`, `.time_author_commits`
+   - `.projects_unique`
+   - `.changed_from`, `.changed_to`
+4. `Commit('sha1')`
+   - `.author`, `.authored_at`, `.committer`, `.committed_at`
+   - `.message`, `.full_message`
+   - `.tree`, `.parents`, `.children`
+   - `.projects`, `.root_projects`
+   - `.files`, `.blobs`
+   - `.time_author`, `.root`, `.changeset`
+   - `.compare(parent)`
+5. `File('path/name')`
+   - `.path`, `.name`
+   - `.authors`, `.blobs`, `.commits`
+6. `Tree('sha1')`
+   - `.files`, `.blobs`
+   - `.traverse()`
+7. `Project('owner_repo')`
+   - `.url`
+   - `.authors`, `.commits`, `.root_projects`
+   - `.head`, `.tail`, `.earliest_commit`, `.latest_commit`
+   - `.commits_fp()`
+8. `RootProject('...')`
+   - `.projects`, `.commits`, `.unique_authors`
 
-The non-Generator version of these functions will return a tuple of items which can then be iterated:
+In the current API, project URLs are exposed as `Project.url`, and commit metadata that used to live in a separate `Commit_info` object is now part of `Commit`.
+
+### Simple Python examples
+
+Get the commits of an author:
 
 ```python
-for commit in Author(author_name).commit_shas:
-	print(Commit(commit))
-```
-
-### Exercise 5a: Get a list of commits made by a specific author
-
-Install the latest version of python-woc:
-
-```bash
-[username@da0]~% cd python-woc
-[username@da0:python-woc]~% pip3 install python-woc
-```
-
-If you need to install python-woc from source, see the installation guide [here](https://github.com/ssc-oscar/python-woc/tree/master?tab=readme-ov-file#install-python-woc).
-```
-
-As we learned before, we can do that in shell
-
-```bash
-[username@da0]~% zcat /da?_data/basemaps/gz/a2cFull.V3.0.s | grep '"Albert Krawczyk" <pro-logic@optusnet.com.au>' | head -n 3
-"Albert Krawczyk" <pro-logic@optusnet.com.au>;17abdbdc90195016442a6a8dd8e38dea825292ae
-"Albert Krawczyk" <pro-logic@optusnet.com.au>;2a98c68d153f1fd78cc356727263a2046abf887d
-"Albert Krawczyk" <pro-logic@optusnet.com.au>;3cdd0e1cefbec43a9c3d3138dd6734191529763a
-```
-
-Now the same thing can be done using python-woc:
-
-```bash
-[username@da0]~% cd python-woc
-[username@da0:python-woc]~% python3
->>> from woc.objects import Author, Commit
->>> for i, commit in enumerate(Author('"Albert Krawczyk" <pro-logic@optusnet.com.au>').commit_shas):
-...     if i >= 3:
-...         break
-...     print(Commit(commit))
-...
-17abdbdc90195016442a6a8dd8e38dea825292ae
-2a98c68d153f1fd78cc356727263a2046abf887d
-3cdd0e1cefbec43a9c3d3138dd6734191529763a
->>>
-```
-
-### Exercise 5b: Get the URL of a project's repository using the python-woc `Project(...).url` attribute:
-
-```bash
-[username@da0:python-woc]~%  python3
->>> from woc.objects import Project
->>> Project('notcake_gcad').url
-'https://github.com/notcake/gcad'
-```
-
-### Exercise 5c: Get list of files modified by commit 17abdbdc90195016442a6a8dd8e38dea825292ae
-
-Hint 1: What class to use?
-
-Commit
-
-```bash
-[username@da0:python-woc]~%  python3
->>> from woc.objects import Commit
->>> Commit('17abdbdc90195016442a6a8dd8e38dea825292ae').changed_file_names
-```
-
-## Activity 6: Understanding Servers and folders
-
-All home folders are on da2, so it is preferred not to do very large
-file operations to/from these folders when running tasks on servers
-other than da2,
-since these operations will load NFS and may slow access to home
-folders of other users.
-
-Each server has /data/play folder where you can create your
-subfolders to store/process large files.
-
-### List of relevant directories
-
-Not all files are stored on all servers due to limited disk sizes
-and different speed of disks (fast refers to SSDs).
-The location of the file can be identified via a pathname as described below.
-
-### da0/../da5 Servers
-
-#### `{relationship}.{0-31}.tch` files can be found in `/da[0-5]_fast/` or `/da[0-5]_data/basemaps`
-
-(.s) signifies that there are either .s or .gz versions of these files in `/da[0-5]\_data/basemaps/gz/` folder, which can be opened with Python gzip module or Unix zcat.
-all five da[0-5] servers may have these .s/.gz files.
-
-Keys for identifying letters:
-
-- a = Author
-- b = Blob
-- c = Commit
-- cc = Child Commit
-- f = File
-- h = Head Commit
-- ob = Parent Blob
-- p = Project
-- pc = Parent Commit
-- P = Forked/Root Project (see Note below)
-- ta = Time;Author
-- fa = FirstTime;Author;Commit
-- r = root commit obtained by traversing commit history
-- h = head commit obtained by traversing commit history
-- td = Tdiff
-- tk = Tokens (ctags)
-- trp = Torvalds Path
-
-Version T keys for identifying letters:
-
-- L = LICENSE\* files
-- Lb - blobs that are shared among fewer than 100 Projects
-- fb = firstblob
-- tac = time, author, commit
-- t = root tree
-
-Recall that the captal version of author A means aliased version (see
-https://arxiv.org/abs/2003.08349) and it also means that
-organizational and group IDs, bot IDs as well as author IDs that do not
-contain sufficient info to alias are excluded.
-Similarly, the capital version of project P represents a deforked project (via Leuwen community
-detection on commit / repo bi-graph: https://arxiv.org/abs/2002.02707)
-
-List of relationships can be obtained via
-
-```
-echo $(ls /da?_data/basemaps/gz/*FullV0.s| sed 's|.*/||;s|FullV0.s||')
-a2c A2c A2mnc a2p a2P A2P c2acp c2cc c2dat c2pc c2p c2P p2a P2a P2A p2c
-P2c P2core P2g P2mnc P2tac c2PtAbflPkg A2b a2fb A2fb a2f A2f A2tPc
-A2tPlPkg A2tspan b2def b2fa b2fA b2f b2ob b2P b2ta b2tA b2tk b2tP bb2cf
-b c2b c2f c2PtabflDef c2PtAbflDef c2PtabflPkg c2PtAbflPkg lb2f lc2Pdat
-ob2b obb2cf P2b P2binf P2fb P2f P2nfb P2tAlPkg P2tspan Pkg2tPA Pt2Ptb
-Ptb2Pt t2all tk2b
-```
-
-```
-* a2b 		* a2c (.s)	* a2f		* a2ft
-* a2p (.s)	* a2trp0 (.s)
-* b2a		* b2tac (.s) 	* b2f (.s)	* b2ob		* ob2b
-* b2tk
-* c2b (.s)	* c2cc		* c2f (.s)	* c2h		* c2pc
-* c2p (.s)	* c2P		* c2ta (.s)	* c2td
-* p2a (.s)	* p2c (.s)	* P2c
-* td2c		* td2f
-```
-
-Special relationships (names do not correspond to keys):
-
-```
-Versions T or U:
-b2f[aA]  - blob to time, author, commit for the first commit creating that blob
-b2tac  - blob to time, author, commit for all commits creating that blob
-bb2cf  - result of diff on a commit: blob old blob, commit, file
-obb2cf - see bb2cf but blobs reversed
-c2fbb  - result of diff on a commit: commit file, blob, old blob
-
-P2core - Project to devs who make 80+% of the commits
-
-b2fLICENSE - grep for LICESNSE in b2f
-bL2P - license blob to project
-
-c2dat - full commit data in semicolon-separated fields
-
-dl2Pf - API defined; language; project; file
-====
-```
-
-Note: c2P returns the most central repository for this commit, and does not include repos that forked off of this commit.
-P2c returns ALL commits associated with this repo, including commits made to forks of this particular repo.
-The list of relationships is not exhaustive and more information can be found at https://github.com/woc-hack/tutorial/issues/17#issuecomment-850823408
-
-### Exercise 6
-
-Find all blobs associated with Julia language files (extension .jl)
-
-Hint 1: What is the name of the map?
-
-```
-[username@da0] zcat /da?_data/basemaps/gz/b2fFullU*.s | grep '\.jl;'
-```
-
-## Activity 7: Investigating Technical dependencies
-
-The technical dependencies have been extracted by parsing the content of all blobs related to
-several different languages. For version V, they are located in
-`/da78data/basemaps/gz/c2PtAbflPkgFullVX.s` with X ranging from 0
-to 127 based on the 7 bits in the first byte of the commit sha1.
-
-The format of each file is encoded in its name:
-
-```bash
-commit;deforked repo;timestamp;Aliased author;blob;filename;language (as used in WoC);module1;module2;...`
-```
-
-for example
-
-```bash
-000000000fcd56c8536abd09cac5f2a54ba600c2;not-an-aardvark_lucky-commit;1510643197;Teddy Katz <teddykatz@fb.com>;d9730ab3fca05f4d61e7225de5731868cfb99fb6;lucky-commit.c;C;errno.h;string.h;math.h;zlib.h;stdio.h;sha.h;stdbool.h;stdlib.h;stat.h
-```
-
-Unlike in version R where each language had a separate thruMaps
-directory, info on all languages is kept in a single place.
-
-To identify the implementation of various packages one can use
-`/da?_data/basemaps/gz/c2PtAbflDefFullUX.s` with X ranging from 0
-to 127 based on the 7 bits in the first byte of the commit sha1.
-for example
-
-```bash
-zcat /da?_data/basemaps/gz/c2PtAbflDefFullU0.s|head
-0000000000abc668c5388237320e97d0dadae7b1;not-an-aardvark_lucky-commit;1613716402;Teddy Katz <teddykatz@fb.com>;050e87971a0a069043821c8d5f0c55d1f4761edc;Cargo.toml;Rust;lucky_commit
-0000000000abc668c5388237320e97d0dadae7b1;not-an-aardvark_lucky-commit;1613716402;Teddy Katz <teddykatz@fb.com>;61aebdecc47b2b7521a353b1cc180b2af1080977;Cargo.lock;Rust;addr2line
-```
-
-Instead of the list of dependencies the last field identifies the
-package implemented within the blob, specifically, lucky_commit and
-addr2line in the above two blobs.
-
-The Def relationship in WoC tracks blobs that define a package based
-on the content of the source code. There is no guarantee that only one project will have it due to copying and other reasons. Identifying the which repository is the true upstream one may not be that difficult, however.
-
-Def relationship points only to blobs that define the package (e.g., blobs for file setup.py in Python, packages.json in JavaScript, etc.). This can be used to identify
-repositories (or parts of the repositories) where these package metafiles reside.
-
-_TODO_:put it into clickhouse to speed up access.
-
-Lets get a list of commits and repositories that imported Tensorflow for .py files:
-
-```bash
-[username@da0]~%zcat c2PtAbflPkgFullU76.s |grep tensorflow|head -2
-000005efe300482514d70d44c5fa922b34ff79a5;Rayhane-mamah_Tacotron-2;1557284915;qq443452099 <47710489+qq443452099@users.noreply.github.com>;05604b3f0632e98cc0eee3afef589dc5031f3a43;tacotron/synthesizer.py;PY;tacotron.utils.text.text_to_sequence;tacotron.utils.plot;tacotron.models.create_model;wave;datasets.audio;os;librosa.effects;tensorflow;infolog.log;datetime.datetime;io;numpy
-000005efe300482514d70d44c5fa922b34ff79a5;Rayhane-mamah_Tacotron-2;1557284915;qq443452099 <47710489+qq443452099@users.noreply.github.com>;49bc3b8b6533b93941223ccbeb401e47e5a573d7;hparams.py;PY;tensorflow;numpy
-```
-
-### Exercise 7
-
-Find all repositories using Julia language that import package 'StaticArrays'
-
-Hint 1: What file to look for?
-
-```
-[username@da0]~% zcat /da?_data/basemaps/gz/c2PtabllfPkgFullS*.s | grep ';jl;' | grep StaticArrays
-```
-
-Hint 2: What field contains the repository name?
-
-```
-[username@da0]~% zcat /da?_data/basemaps/gz/c2PtabllfPkgFullS*.s | grep ';jl;'| grep StaticArrays | cut -d\; -f2 | sort -u
-```
-
-## Activity 8: Investigating Copy-Based Reuse
-
-WoC's operationalization of copy-based supply chains is based on mapping blobs
-(versions of the source code) to all commits and projects where they have been created.
-For each blob, all commits are sorted based on their timestamp and the project in which
-the first commit exists is identified as the originator and all other projects as the reuser
-of that blob. These files are located in `/da?_data/basemaps/gz/Ptb2PtFullVX.s` with X ranging from 0
-to 127 based on the 7 bits in the first byte of the blob sha1.
-
-The format of each file is encoded in its name:
-
-```
-originating repo;timestamp;blob;destination repo;timestamp
-
-```
-
-for example
-
-```
-zhunengfei_ExtJS6.2-samples;1466402956;00000056a59bde3926f65c334caef688ccad0a08;bitbucket.org_mastercad_sencha_demo;1551632725
-```
-
-This means that blob 00000056a59bde3926f65c334caef688ccad0a08 was first seen in zhunengfei_ExtJS6.2-samples at 1466402956
-and was reused by bitbucket.org_mastercad_sencha_demo at 1551632725.
-
-## Activity 9: OSS License Identification
-
-The proliferation of OSS has created a complex landscape of licensing practices, making accurate license identification essential for legal and compliance purposes.
-WoC uses a comprehensive approach, scanning all blobs with "license" in their filepath and applying the winnowing algorithm for reliable text matching against known licenses.
-
-This method successfully identifies and matches over 5.5 million unique license blobs across projects, generating a detailed project to license map.
-
-This map is stored at `/da?_data/basemaps/gz/P2LtFullV.s`.
-
-The file format is encoded as follows:
-
-```
-deforkedProject;License;time
-```
-
-The "time" field is in the "YYYY-MM" format and represents the commit timestamp when the license blob was committed to the project. This field may also have an "invalid" value, indicating that the commit timestamp was not valid (e.g., a future time due to discrepancies in the user's system time).
-
-Additionally, since these timestamps only represent when the license was committed to the project and do not indicate whether the license is still present, the latest commit tree (before the WoC version V data collection date, 2023-05) of each project was examined. If the license blob was found in the latest commit, a record was added with the time set as "latest."
-
-When interpreting the data, it's important to note that the scope of license detection does not include code files or references to licenses within project documentation.
-
-## Activity 10: Suggested by the audience
-
-Find all projects that have commits mentioning "sql injection"
-
-List of commits is on /da4_data/All.blobs/
-Lets login to da4, create a data folder to store temporary data on the same server
-"/data/play/username", and uce pcommit to project map to get the list of projects.
-
-```
-[username@da0]~% ssh da4
-[username@da4]~% mkdir /data/play/audris
-[username@da4]~% cd /data/play/audris
-[username@da4:/data/play/audris]~% cut -d\; -f4 commit_*.idx | ~/lookup/showCmt.perl 2 | grep -i 'sql injection' >
-[username@da4:/data/play/audris]~% cut -d\; -f1 sql_inject | ~/lookup/getValues.perl /da0_data/basemaps/c2pFullP > sql_inject.c2p
-```
-
-## Activity 11: Summary of the activities undertaken
-
-- Shell API (faster) and Python API (also Perl API not illustrated) for random access
-
-- Sorted compressed tables for sweeps (grep)
-
-- Key-Value maps to link authors, commits, files, projects, and blobs
-
-- Overview of naming conventions server/data/databases
-
-- Mongodb tables with the summary information about authors and projects to enable selection of subsets for later analysis: (e.g, I want authors with at least 100 commits who worked no less than three years and participated in at least five java projects.)
-
-### Summary Activity 11
-
-- What type of usability improvements are needed?
-
-- What types of tasks would you like to work during the hackathon?
-
-- What would make you a long-time user of WoC?
-
-## Self paced part of the tutorial
-
-The remainig activities are provided to illustrate various realistic
-tasks.
-
-## Activity S0: Finding 1st-time imports for AI modules (Simple)
-
-Given the data available, this is a fairly simple task. Making an application to detect the first time that a repo adopted an AI module would give you a better idea as to when it was first used, and also when it started to gain popularity.
-
-A good example of this is in
-[popmods.py](https://github.com/ssc-oscar/aiframeworks/blob/master/popmods.py). In
-this application, we can read all 128 c2PtabllfPkgFullS\*.s
-files and look for a given module with the earliest import times. The program then creates a <module_name>.first file, with each line formatted as `repo_name;UNIX_timestamp`.
-
-TODO: update popmods.py to work with c2PtabllfPkgFullS\*.s
-Usage: `[username@da0]~%  python popmods.py language_file_extension module_name`
-
-Before anything else (and this can be applied to many other
-programs), you want to know what your input looks like ahead of time
-and know how you are going to parse it.
-Since each line of the file has this format:
-
-```
-commit;deforked repo;timestamp;author;blob;language (as used in WoC);language (as determined by ctags);filename;module1;module2;...
-```
-
-We can use the `string.split()` method to turn this string into a list of words, split by a semicolon (;).
-By turning this line into a list, and giving it a variable name, `entry = ['commit', 'repo_name', 'timestamp', ...]`, we can then grab the pieces of information we need with `repo, time = entry[1], entry[2]`.
-
-An important idea to keep in mind is that we only want to count unique timestamps once. This is because we want to account for repositories that forked off of another repository with the exact timestamp of imports. An easy way to do this would be to keep a running list of the times we have come across, and if we have already seen that timestamp before, we will simply skip that line in the file:
-
-```
-...
-if time in times:
-	continue
-else:
-	times.append(time)
-...
-```
-
-We also want to find the earliest timestamp for a repository importing a given module. Again, this is fairly simple:
-
-```
-...
-if repo not in dict.keys() or time < dict[repo]:
-	for word in entry[5:]:
-		if module in word:
-			dict[repo] = time
-			break
-...
-```
-
-#### Implementing the application
-
-Now that we have the .first files put together, we can take this one step further and graph a modules first-time usage over time on a line graph, or even compare multiple modules to see how they stack up against each other. [modtrends.py](https://github.com/ssc-oscar/aiframeworks/blob/master/modtrends.py) accomplishes this by:
-
-- reading 1 or more .first files
-- converting each timestamp for each repository into a datetime date
-- "rounding" those dates by year and month
-- putting those dates in a dictionary with `dict["year-month"] += 1`
-- graphing the dates and frequencies using matplotlib.
-
-If you want to compare first-time usage over time for Tensorflow and
-Keras for the .ipynb language .first files you created, run:
-
-```
-UNIX> python3.6 modtrends.py tensorflow.first keras.first
-```
-
-The final graph looks something like this:
-![Tensorflow vs Keras](https://github.com/ssc-oscar/aiframeworks/blob/master/charts/ipynb_charts/Tensorflow-vs-Keras.png?raw=true)
-
-## Activity S1: Detecting percentage language use and changes over time (Complex)
-
-An application to calculate this would be useful for seeing how different authors changed languages over a range of years, based on the commits they have made to different files.
-In order to accomplish this task, we will modify an existing program from the swsc/lookup repo ([a2fBinSorted.perl](https://bitbucket.org/swsc/lookup/src/master/a2fBinSorted.perl)) and create a new program ([a2L.py](https://bitbucket.org/swsc/lookup/src/master/a2L.py)) that will get language counts per year per author.
-
-#### Part 1 -- Modifying a2fBinSorted.perl
-
-For the first part, we look at what a2fBinSorted.perl currently does: it takes one of the 32 a2cFullP{0-31}.s files thru STDIN, opens the 32 c2fFullO.{0-31}.tch files for reading, and writes a corresponding a2fFullP.{0-31}.tch file based on the a2c file number. The lines of the file being `author_id;file1;file2;file3...`
-
-Example usage: `UNIX> zcat /da0_data/basemaps/gz/a2cFullP0.s | ./a2fBinSorted.perl 0`
-
-We can modify this program so that it will write the earliest commit dates made by that author for those files, which will become useful for a2L.py later on. To accomplish this, we will have the program additionally read from the c2taFullP.{0-31}.tch files so we can get the time of each commit made by a given author:
-
-```
-my %c2ta;
-for my $s (0..($sections-1)){
-	tie %{$c2ta{$s}}, "TokyoCabinet::HDB", "/fast/c2taFullP.$s.tch", TokyoCabinet::HDB::OREADER |
-	TokyoCabinet::HDB::ONOLCK,
-	   16777213, -1, -1, TokyoCabinet::TDB::TLARGE, 100000
-	or die "cant open fast/c2taFullP.$s.tch\n";
-}
-```
-
-We will also ensure the files to be written will have the relationship a2ft as oppposed to a2f:
-
-```
-my %a2ft;
-tie %a2ft, "TokyoCabinet::HDB", "/data/play/dkennard/a2ftFullP.$part.tch", TokyoCabinet::HDB::OWRITER |
-     TokyoCabinet::HDB::OCREAT,
-	16777213, -1, -1, TokyoCabinet::TDB::TLARGE, 100000
-	or die "cant open /data/play/dkennard/a2ftFullP.$part.tch\n";
-```
-
-Another important part of the file we want to change is inside the `output` function:
-
-```
-sub output {
-	my $a = $_[0];
-	my %fs;
-	for my $c (@cs){
-		my $sec =  segB ($c, $sections);
-		if (defined $c2f{$sec}{$c} and defined $c2ta{$sec}{$c}){
-			my @fs = split(/\;/, safeDecomp ($c2f{$sec}{$c}, $a), -1);
-			my ($time, $au) = split(/\;/, $c2ta{$sec}{$c}, -1);  #add this for grabbing the time
-			for my $f (@fs){
-				if (defined $time and (!defined $fs{$f} or $time < $fs{$f})){ #modify condition to grab earliest time
-					$fs{$f} = $time;
-				}
-			}
-		}
-	}
-	$a2ft{$a} = safeComp (join ';', %fs); #changed
-}
-```
-
-Now when we run the new program, it should write individual a2ftFullP.{0-31}.tch files with the format:
-`author_id;file1;file1_timestamp;file2;file2_timestamp;...`
-
-We can then create a new PATHS dictionary entry in oscar.py, as well as making another function under the Author class to read our newly-created .tch files:
-
-```
-In PATHS dictionary:
-...
-'author_file_times': ('/data/play/dkennard/a2ftFullP.{key}.tch', 5)
-...
-
-In class Author(_Base):
-...
-@cached_property
-def file_times(self):
-	data = decomp(self.read_tch('author_file_times'))
-	return tuple(file for file in (data and data.split(";")))
-...
-```
-
-#### Part 2 -- Creating a2L.py
-
-Our next task involves creating a2LFullP{0-31}.s files utilizing the new .tch files we have just created. We want these files to have each line filled with the author name, each year, and the language counts for each year. A possible format could look something like this:
-`"tim.bentley@gmail.com" <>;year2015;2;py;31;js;30;year2016;1;py;29;year2017;8;c;2;doc;1;py;386;html;6;sh;1;js;3;other;3;build;1`
-where the number after each year represents the number of languages used for that year, followed by pairs of languages and the number of files written in that language for that year. As an example, in the year 2015, Tim Bentley made initial commits to files in 2 languages, 31 of which were in Python, and 30 of which were in JavaScript.
-
-There is a number of things that have to happen to get to this point, so lets break it down:
-
-- Iterating Author().file_times and grouping timestamps into year
-
-We will start by reading in a a2cFullP{0-31}.s file to get a list of authors, which we then hold as a tuple in memory and start building our dictionary:
-
-```
-a2L[author] = {}
-file_times = Author(author).file_times
-for j in range(0,len(file_times),2):
-	try:
-		year = str(datetime.fromtimestamp(float(file_times[j+1]))).split(" ")[0].split("-")[0]
-	#have to skip years either in the 20th century or somewhere far in the future
-	except ValueError:
-		continue
-	#in case the last file listed doesnt have a time
-	except IndexError:
-		break
-	year = specifier + year #specifier is the string 'year'
-	if year not in a2L[author]:
-		a2L[author][year] = []
-	a2L[author][year].append(file_times[j])
-```
-
-The datetime.fromtimestamp() function will turn this into a datetime format: `year-month-day hour-min-sec` which we split by a space to get the first half `year-month-day` of the string, and then split again to get `year`.
-
-- Detecting the language of a file based on file extension
-
-```
-for year, files in a2L[author].items():
-	build_list = []
-	for file in files:
-		la = "other"
-		if re.search("\.(js|iced|liticed|iced.md|coffee|litcoffee|coffee.md|ts|cs|ls|es6|es|jsx|sjs|co|eg|json|json.ls|json5)$",file):
-			la = "js"
-		elif re.search("\.(py|py3|pyx|pyo|pyw|pyc|whl|ipynb)$",file):
-			la = "py"
-		elif re.search("(\.[Cch]|\.cpp|\.hh|\.cc|\.hpp|\.cxx)$",file):
-			la = "c"
-	.......
-```
-
-The simplest way to check for a language based on a file extension is to use the re module for regular expressions. If a given file matches a certain expression, like `.py`, then that file was written in Python. `la = other` if no matches were found in any of those searches. We then keep track of these languages and put each language in a list `build_list.append(la)`, and count how many of those languages occurred when we looped through the files `build_list.count(lang)`. The final format for an author in the a2L dictionary will be `a2L[author][year][lang] = lang_count`.
-
-- Writing each authors information into the file
-
-See [a2L.py](https://bitbucket.org/swsc/lookup/src/master/a2L.py) for how information is written into each file.
-
-Usage: `UNIX> python a2L.py 2` for writing `a2LFullP2.s`
-
-#### Implementing the application
-
-Now that we have our a2L files, we can run some interesting statistics as to how significant language usage changes over time for different authors. The program [langtrend.py](https://bitbucket.org/swsc/lookup/src/master/langtrend.py) runs the chi-squared contingency test (via the stats.chi2_contingency() function from scipy module) for authors from an a2LFullP{0-31}.s file and calculates a p-value for each pair of years for each language for each author.
-This p-value means the percentage chance that you would find another person (say out of 1000 people) that has this same extreme of change in language use, whether that be an increase or a decrease. For example, if a given author editied 300 different Python files in 2006, but then editied 500 different Java files in 2007, the percentage chance that you would see this extreme of a change in another author is very low. In fact, if this p-value is less than 0.001, then the change in language use between a pair of years is considered "significant".
-
-In order for this p-value to be a more accurate approximation, we need a larger sample size of language counts. When reading the a2LFullP{0-31}.s files, you may want to rule out people who dont meet certain criteria:
-
-- the author has at least 5 consecutive years of commits for files
-- the author has edited at least 100 different files for all of their years of commits
-
-If an author does not meet this criteria, we would not want to consider them for the chi-squared test simply because their results would be "uninteresting" and not worth investigating any further.
-
-Here is one of the authors from the programs output:
-
-```
-----------------------------------
-Ben Niemann <pink@odahoda.de>
-{ '2015': {'doc': 3, 'markup': 2, 'obj': 1, 'other': 67, 'py': 127, 'sh': 1},
-	'2016': {'doc': 1, 'other': 23, 'py': 163},
-	'2017': {'build': 36, 'c': 116, 'lsp': 1, 'other': 81, 'py': 160},
-	'2018': { 'build': 12,
-		'c': 134,
-		'lsp': 2,
-		'markup': 2,
-		'other': 133,
-		'py': 182},
-	'2019': { 'build': 13,
-		'c': 30,
-		'doc': 8,
-		'html': 10,
-		'js': 1,
-		'lsp': 2,
-		'markup': 16,
-		'other': 67,
-		'py': 134}}
-	pfactors for obj language
-		2015--2016 pfactor == 0.9711606775110577  no change
-	pfactors for doc language
-		2015--2016 pfactor == 0.6669499228133753  no change
-		2016--2017 pfactor == 0.7027338745275937  no change
-		2018--2019 pfactor == 0.0009971248193242038  rise/drop
-	pfactors for markup language
-		2015--2016 pfactor == 0.5104066960256399  no change
-		2017--2018 pfactor == 0.5532258789014389  no change
-		2018--2019 pfactor == 1.756929555308731e-05  rise/drop
-	pfactors for py language
-		2015--2016 pfactor == 1.0629725495084215e-07  rise/drop
-		2016--2017 pfactor == 1.2847558344252341e-25  rise/drop
-		2017--2018 pfactor == 0.7125543569718793  no change
-		2018--2019 pfactor == 0.026914075872778477  no change
-	pfactors for sh language
-		2015--2016 pfactor == 0.9711606775110577  no change
-	pfactors for other language
-		2015--2016 pfactor == 1.7143130378377696e-06  rise/drop
-		2016--2017 pfactor == 0.020874234589765908  no change
-		2017--2018 pfactor == 0.008365948846657284  no change
-		2018--2019 pfactor == 0.1813919210757513  no change
-	pfactors for c language
-		2016--2017 pfactor == 2.770649054044977e-16  rise/drop
-		2017--2018 pfactor == 0.9002187643203734  no change
-		2018--2019 pfactor == 1.1559110387953382e-08  rise/drop
-	pfactors for lsp language
-		2016--2017 pfactor == 0.7027338745275937  no change
-		2017--2018 pfactor == 0.8855759560371912  no change
-		2018--2019 pfactor == 0.9944669523033288  no change
-	pfactors for build language
-		2016--2017 pfactor == 4.431916568235125e-05  rise/drop
-		2017--2018 pfactor == 5.8273175348446296e-05  rise/drop
-		2018--2019 pfactor == 0.1955154860787908  no change
-	pfactors for html language
-		2018--2019 pfactor == 0.0001652525618661536  rise/drop
-	pfactors for js language
-		2018--2019 pfactor == 0.7989681687355706  no change
-----------------------------------
-```
-
-Although it is currently not implemented, one could take this one step further and visually represent an authors language changes on a graph, which would be simpler to interpret as opposed to viewing a long list of p values such as the one shown above.
-
-## Activity S2: Useful Python imports for applications
-
-### subprocess
-
-Simlar to the C version, system(), this module allows you to run UNIX processes, and also allows you to gather any input, output, or error from those processes, all from within a Python script. This module becomes especially useful when you are looking for specific lines out of a .s/.gz file, as opposed to reading the entire file which takes more time.
-A good example usage for subprocess is when we read the c2bPtaPkgO$LANG.{0-31}.gz files for first-time AI module imports in popmods.py. Rather than reading one of these files in its entirety, we look for lines of the file that have a specific module we are looking for.
-
-```
-for i in range(32):
-	print("Reading gz file number " + str(i))
-	command = "zcat /data/play/" + dir_lang + "thruMaps/c2bPtaPkgO" + dir_lang + "." + str(i) + ".gz"
-	p1 = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-	p2 = subprocess.Popen("egrep -w " + module, shell=True, stdin=p1.stdout, stdout=subprocess.PIPE)
-	output = p2.communicate()[0]
-```
-
-We can then iterate the lines of this output accordingly, and gather the pieces of information we need:
-
-```
-for entry in str(output).rstrip('\n').split("\n"):
-	entry = str(entry).split(";")
-	repo, time = entry[1], entry[2]
-```
-
-Additional documentation on subprocess can be found [here](https://docs.python.org/2/library/subprocess.html).
-
----
-
-### re
-
-The re (Regular Expression) module is another useful import for pattern-matching in strings.
-Addtional re documentation can be found [here](https://docs.python.org/2/library/re.html).
-
----
-
-### matplotlib
-
-Useful graphing module for creating visual representations.
-Extensive documentation can be found [here](https://matplotlib.org/).
-
-## Activity S3: a comparison of oscar.py vs. Perl scripts
-
-When it comes to creating new relationship files (.tch/.s files), using Perl over Python for large data-reading is more time-saving overall. This situation occurred in the complex application we covered where we modified an existing Perl file to get the initial commit times of each file for each author, rather than using Python to accomplish this task.
-Before making this decision, one of our team members decided to run a test between 2 programs, [a2ft.py](https://bitbucket.org/swsc/lookup/src/master/a2ft.py) and [a2ft.perl](https://bitbucket.org/swsc/lookup/src/master/a2ft.perl). These programs were run at the same time for a period of 10 minutes. Both programs had the same task of retrieving the earliest commit times for each file under each author from a2cFullP{0-31}.s files. The Python version calls the `Commit_info().time_author` and `Commit().changed_file_names` functions from oscar.py. The Perl version ties each of the 32 c2fFullO.{0-31}.tch (Commit().changed_file_names) and c2taFullP.{0-31}.tch (Commit_info().time_author) files into 2 different Perl hashes (Python dictionary equivalent), %c2f and %c2ta. The speed difference between Perl and Python was quite surprising:
-
-```
-[username@da3]/data/play/dkennard% ll a2ftFullP0TEST1.s
--rw-rw-r--. 1 dkennard dkennard 980606 Jul 22 11:56 a2ftFullP0TEST1.s
-[username@da3]/data/play/dkennard% ll a2ftFullPTEST2.0.tch
--rw-r--r--. 1 dkennard dkennard 663563424 Jul 22 11:56 a2ftFullPTEST2.0.tch
-```
-
-Within this 10 minute period, the Python version only wrote 980,606 bytes of data into the TEST1 file shown above, whereas the Perl version wrote 663,563,424 bytes into the TEST2 file.
-The main reason oscar.py is slower, in theory, is because oscar.py has more private function calls that it has to perform in order to calculate the key (0-31) and locate where the requested information is stored. Upon further inspection of the [oscar.py](https://github.com/ssc-oscar/oscar.py/blob/master/oscar.py) functions that are called, we can see that there are between 6-7 function calls for each lookup. All of these function calls cause function overhead and thus increase the amount of time to retrieve data for multiple entities.
-In the Perl version of a2ft, the program simply calls `segB()`, which calculates the key of where the information is stored. The function takes a string and the number 32 as arguments (ex. segB(commit_sha, 32)):
+from woc.local import WocMapsLocal
+from woc.objects import init_woc_objects, Author
 
-```
-sub segB {
-	my ($s, $n) = @_;
-	return (unpack "C", substr ($s, 0, 1))%$n;
-}
-```
-
-Because the %c2f and %c2ta Perl hashes are tied to their respective .tch files, we can then check if a specific commit in a specific number section is defined:
-
-```
-for my $c (@cs){	#where cs is a list of commits for an author and c is one of those commits
-	my $sec =  segB ($c, $sections);
-	if (defined $c2f{$sec}{$c} and defined $c2ta{$sec}{$c}){
-		...
-	}
-	...
-}
-```
-
-This is not to say that oscar.py is inefficient and should not be utilized, but it is not the optimal solution for creating new .tch or .s relationship files. oscar.py solely provides a Python interface for gathering requested data out of the respective .tch files and not for mass-reading all 32 files. It also provides simple function calls that were mentioned earlier in the tutorial for retrieving bits of information at a time in a more convenient way.
-
-## Activity S4: Plumbing of WoC
-
-We can obtain a diff for any commit. It requires comparing trees of it and its parent:
-
-Lets find the diff for 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a:
-
-```
-[username@da0]~% echo 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a | ~/lookup/cmputeDiff
-009d7b6da9c4419fe96ffd1fffb2ee61fa61532a;/sys/dev/pccbb/pccbb_isa.c;9d5818e25865797b96e4783b00b45f800423e527;594dc8cb2ce725658377bf09aa0f127183b89f77
-009d7b6da9c4419fe96ffd1fffb2ee61fa61532a;/sys/dev/pccbb/pccbb_pci.c;b3c1363c90de7823ec87004fe084f41d0f224c9b;4155935a98ba3b5d3786fa1b6d3d5aa52c6de90a
-```
-
-We can see it modifying two files.
-
-### Exercise
-
-Calculate the change made to /sys/dev/pccbb/pccbb_isa.c by commit 009d7b6da9c4419fe96ffd1fffb2ee61fa61532a.
-
-Hint1: Get the old and new blob for /sys/dev/pccbb/pccbb_isa.c
-
-Hint2: Use shell redirect output '>' to save the content of each blob
-
-Hint3: Use unix diff to calculate the difference
-
-```
-[username@da0]~% diff old new
-```
-
-## Iterating over a dataset
-
-Sometimes, iterating over the entire dataset using the already created basemaps is the only way to retrieve the desired information. The basemappings from one datatype to another are key-value pairings of data. As such, the retrieval of the entire dataset can usually be done in one pass over one of the already created basemaps.
-
-For example, if the goal was to determine information pertaining to each author in WoC, simply iterating over one of the many basemaps from author to some other dataset e.g. (a2b, a2c, etc) will serve. Since these datasets are a key-value mapping from author to another dataset, this guarantees that each of the keys will be one of the unique authors in WoC. From there, the desired information about that specific author can be determined.
-
-Below is a Perl script template that allows for retrieval of all the authors from a2c.
-
----
-
-```perl
-#!/usr/bin/perl -I /home/audris/lookup -I /home/audris/lib64/perl5 -I /home/audris/lib/x86_64-linux-gnu/perl -I /usr/local/lib64/perl5 -I /usr/local/share/perl5
-use strict;
-use warnings;
-use Error qw(:try);
-
-use TokyoCabinet;
-
-my $split = 32;
-my %a2cF = ();
-for my $sec (0..($split-1)){
-  my $fname = "/da1_data/basemaps/a2cFullS.$sec.tch";
-  tie %{$a2cF{$sec}}, "TokyoCabinet::HDB", "$fname", TokyoCabinet::HDB::OREADER | TokyoCabinet::HDB::ONOLCK,  16777213, -1, -1, TokyoCabinet::TDB::TLARGE, 100000
-  or die "cant open $fname\n";
-}
-while (my ($i, $author) = each %a2cF) {
-  my $v1 = join ";", sort keys %{$author};
-  my @apl = split(';', $v1);
-  for my $a (@apl) {
-    print "$a\n";
-  }
-}
-
-```
-
----
-
-This script simply prints each WoC authors name. This helps illustrate how to go about retrieving the keys in a key-value basemap using Perl, but lacks any practical use on it's own.
-
-Notice in this script the $split is defined to be 32 and the for loop iterates from 0 to 31. The reason for this is because of how the data is stored in the basemaps. Each basemap from one data type to another is split into 32 roughly equal parts based on their hashes. As such, in order to iterate over the entire data set, it is neccesary to look at each of these files separately.
-
-From there, Perl allows for direct tying to each of these files in the format of a hash. Because the basemappings are saved using TokyoCabinet, it requires them to be opened using TokyoCabinet to retrieve the data.
-
-Once the hash is tied to the mapping, iterating over the hash can be done, and retrieval of the information simply becomes accessing the elements.
+woc = WocMapsLocal()
+init_woc_objects(woc)
 
-
-## Accesing by time slices
-
-To access collection indexed by time we use clickhouse databse:
-https://clickhouse.yandex/docs/en/getting_started/tutorial/
-
-It has interfaces to various languages but the key is super fast indexing and the ability to distribute data over a cluster of da servers.
-
-Since only commits have time associated with them, we start from storing all commits in the database. We store only a subset of commits on each server, first we create a table local to each server (commits) and a table that represents all servers (commits_a):
-
-```bash
-for h in da0 da1 da2 da3 da4;
-do echo "CREATE TABLE api_$v (api String, from Int32, to Int32, ncmt Int32, nauth Int32, nproj Int32) ENGINE = MergeTree() ORDER BY from" |clickhouse-client --host=$h
-   echo "CREATE TABLE api_all AS api_$v ENGINE = Distributed(da, default, api_$v, rand())" | clickhouse-client --host=$h
-
-  echo "CREATE TABLE commit_$v (sha1 FixedString(20), time Int32, tc Int32, tree FixedString(20), parent String, taz String, tcz String, author String, commiter String, project String, comment String) ENGINE = MergeTree() ORDER BY time" |clickhouse-client --host=$h
-  echo "CREATE TABLE commit_all AS commit_$v ENGINE = Distributed(da, default, commit_$v, rand())" | clickhouse-client --host=$h
-done
-```
-
-Then we import data into each of these five tables:
-
-```bash
-v=u
-for j in {0..4}
-do da=da$j
-  for i in $(eval echo "{$j..31..5}")
-  do echo "start inserting $da file $i"
-    time /da?_data/basemaps/gz/Pkg2stat$i.gz | ~/lookup/chImportPkg.perl | clickhouse-client --max_partitions_per_insert_block=1000 --host=$da --query 'INSERT INTO api_u FORMAT RowBinary'
-  done
-  for i in $(eval echo "{$j..127..5}")
-  do echo "start inserting $da file $i"
-    time zcat /da?_data/basemaps/gz/c2chFullU$i.s | ~/lookup/chImportCmt.perl | clickhouse-client --max_partitions_per_insert_block=1000 --host=$da --query 'INSERT INTO commit_u FORMAT RowBinary'
-  done
-done
-```
-
-Once the data is in there we can query commits
-
-```bash
-clickhouse-client --host=da3 --query 'select count (*) from commits_all'
-2061780191
-```
-
-or APIs:
-
-```bash
-echo "select api,ncmt, nauth, nproj from api_all where match(api, 'stdio') and nauth > 100 limit 3 FORMAT CSV" |clickhouse-client --host=da3 --format_csv_delimiter=";"
-"C:stdio_ext.h";153898;4797;1671
-"C:ustdio.h";9995;1107;230
-"C:vcl_cstdio.h";5868;163;9
-```
-
-It works fast if we specify specific time or an interval:
-
-```bash
-clickhouse-client --host=da3 --query 'select author,comment from commits_all where time=1568656268'
-Matt Davis <mw.davis@hotmail.co.uk>     Made some SEO improvements and also added comments outlining what is contained in each section.\n
-Jessie 1307 <295101171@qq.com>  First Commit\n
-�
- �� <910063@gmail.com>  0917\n
-nodemcu-custom-build <vladurash@yahoo.com>      Prepare my build.config for custom build
-zzzz1313 <zaki56@rambler.ru>    Initial commit
-Erik Faye-Lund <erik.faye-lund@collabora.com>   .mailmap: add an alias for Sergii Romantsov\n
-Paulus Pärssinen <paulus.parssinen01@edupori.fi>       Initial commit
-AnnaLub <yaskrava@gmail.com>    get all tickets command impl\n
-```
-
-We may want to match on commit comment
-
-```bash
-echo "select lower(hex(sha1)),author, project, comment from commit_all where match(comment, 'CVE-2021') limit 3 FORMAT CSV" |clickhouse-client --host=da3 --format_csv_delimiter=";"
-"Florian Westphal <fw@strlen.de>";"Jackeagle_kernel_msm-3.18";"netfilter: x_tables: make xt_replace_table wait until old rules are not used anymore\nxt_replace_table relies on table replacement counter retrieval (which__NEWLINE__uses xt_recseq to synchronize pcpu counters).\nThis is fine, however with large rule
-set get_counters() can take__NEWLINE__a very long time -- it needs to synchronize all counters because__NEWLINE__it has to assume concurrent modifications can occur.\nMake xt_replace_table synchronize by itself by waiting until all cpus__NEWLINE__had an even seqcount.\nThis allows a followup patch to copy the cou
-nters of the old ruleset__NEWLINE__without any synchonization after xt_replace_table has completed.\nCc: Dan Williams <dcbw@redhat.com>__NEWLINE__Reviewed-by: Eric Dumazet <edumazet@google.com>__NEWLINE__Signed-off-by: Florian Westphal <fw@strlen.de>__NEWLINE__Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org
->\n(cherry picked from commit 80055dab5de0c8677bc148c4717ddfc753a9148e)__NEWLINE__Orabug: 32709122__NEWLINE__CVE: CVE-2021-29650__NEWLINE__Signed-off-by: Sherry Yang <sherry.yang@oracle.com>__NEWLINE__Reviewed-by: John Donnelly <john.p.donnelly@oracle.com>__NEWLINE__Signed-off-by: Somasundaram Krishnasamy <somasu
-ndaram.krishnasamy@oracle.com>"
-"Joe Yu <joe.yu@unisoc.com>";"daedroza_aosp_development_sony8960_n";"Fix storaged memory leak\nCVE-2021-0330 : (AOSP) EoP Vulnerability in Framework / storaged__NEWLINE__A-170732441__NEWLINE__Mot-CRs-fixed: (CR)\nstoraged try to load user's proto even if it has been loaded before\nhttps://partnerissuetracker.corp
-.google.com/u/2/issues/118719575\nChange-Id: Ia7575cdc60e82b028c6db9a29ae80e31e02268b1__NEWLINE__(cherry picked from commit 857a63eb6604baa1ed6b0e31839ccce8da18c716)__NEWLINE__Signed-off-by: Mark Salyzyn <salyzyn@google.com>__NEWLINE__Bug: 170732441__NEWLINE__Test: compile__NEWLINE__(cherry picked from commit 8ec
-2afb91400818b0a8843b8917c05aba75b00db)__NEWLINE__Reviewed-on: https://gerrit.mot.com/1843719__NEWLINE__SLTApproved: Slta Waiver__NEWLINE__SME-Granted: SME Approvals Granted__NEWLINE__Tested-by: Jira Key__NEWLINE__Reviewed-by: Konstantin Makariev <kmakariev@motorola.com>__NEWLINE__Submit-Approved: Jira Key"
-"Joe Yu <joe.yu@unisoc.com>";"daedroza_aosp_development_sony8960_n";"Fix storaged memory leak\nCVE-2021-0330 : (AOSP) EoP Vulnerability in Framework / storaged__NEWLINE__A-170732441__NEWLINE__Mot-CRs-fixed: (CR)\nstoraged try to load user's proto even if it has been loaded before\nhttps://partnerissuetracker.corp
-.google.com/u/2/issues/118719575\nChange-Id: Ia7575cdc60e82b028c6db9a29ae80e31e02268b1__NEWLINE__(cherry picked from commit 857a63eb6604baa1ed6b0e31839ccce8da18c716)__NEWLINE__Signed-off-by: Mark Salyzyn <salyzyn@google.com>__NEWLINE__Bug: 170732441__NEWLINE__Test: compile__NEWLINE__(cherry picked from commit 8ec
-2afb91400818b0a8843b8917c05aba75b00db)__NEWLINE__Reviewed-on: https://gerrit.mot.com/1844255__NEWLINE__SLTApproved: Slta Waiver__NEWLINE__SME-Granted: SME Approvals Granted__NEWLINE__Tested-by: Jira Key__NEWLINE__Reviewed-by: Konstantin Makariev <kmakariev@motorola.com>__NEWLINE__Submit-Approved: Jira Key"
-```
-
-commit sha1's are binary, so to print them we need to process, e.g.,
-
-```bash
-clickhouse-client --host=da1 --query 'select sha1, author,comment from commits_all where time=1568656268 limit 1 format RowBinary' | perl -ane '$sha1=substr($_, 0, 20); $o=unpack "H*", $sha1; $rest=substr($_,21,length($_)-21); print "$o;$rest\n";'
-fbb7add2a58b733a797d97a1e63cb8661702d0a3;zzzz1313 <zaki56@rambler.ru>Initial commit
-```
-
-Alternatively, we can hex them in the select statement:
-
-```bash
-clickhouse-client --host=da1 --query "select lower(hex(sha1)),author,comment from commits_all where match(comment, '^(CVE-(1999|2\d{3})-(0\d{2}[0-9]|[1-9]\d{3,}))$') limit 2 format CSV"
-"024fbd8de50c1269d178c3ee6b8664f5eee7f57b","nickmx1896 <nickmx1896@Hotmail.com>","CVE-2016-2355"
-"209446bab86e996d58c233abee0376cb26dcd4c4","jonathanliem94 <jonathanliem94@gmail.com>","CVE-2017-4963"
-```
-
-We can create additional tables, so that the time filtering could be fast, for example for projects:
-
+[c.hash for c in Author('"Albert Krawczyk" <pro-logic@optusnet.com.au>').commits[:3]]
 ```
-clickhouse-client --max_partitions_per_insert_block=1000 --host=da3 --query "CREATE TABLE c2p_$i (date Date, sha1 FixedString(20), np UInt32, p String) ENGINE = MergeTree(date, sha1, 8192)"
-for j in {3..31..4}; do time ./importc2p.perl $j | clickhouse-client --max_partitions_per_insert_block=1000 --host=da3 --query "INSERT INTO c2p_$j (date, sha1, np, p) FORMAT RowBinary"; done
-```
-
-## Python Clickhouse API
-
-CH API is disabled in the current version of oscar: make a
-separate module - see draft in lookup/oscarch.py)
-
-There are classes in oscar.py that allow for querying the clickhouse database:
-
-1. `Time_commit_info(tb_name='commits_all', db_host='localhost')` - commits
-   - `.commit_counts(start, end=None)` - get the count of the commits given a time interval
-   - `.commits_iter(start, end=None)` - get the commits as 'Commit' objects in a generator
-   - `.commits_shas(start, end=None)` - get the sha1 of the commits in a list
-   - `.commits_shas_iter(start, end=None)` - get the sha1 of the commits in a generator
-2. `Time_projects_info(tb_name='b2cPtaPkgR_all', db_host='localhsot')` - \*projects
-   - `.get_values_iter(cols, start, end)` - query columns given a time interval (generator)
-   - `.project_timeline(cols, repo)` - query columns of a given project name, sorted by time (generator)
-   - `.author_timeline(cols, author)` - query columns of a given author, sorted by time (generator)
-
-\*note that the _b2cPtaPkgR_all_ table currently does not contain projects that uses the following programming languages: php, Lisp, Sql, Fml, Swift, Lua, Cob, Erlang, Clojure, Markdown, CSS
-
-The structures of the databases are listed below:
-**commits_all:**
-|**name\_**|**\_\_**type**\_\_\_**|
-| sha1 | FixedString(20) |
-| time | Int32 |
-| timeCmt | Int32 |
-| tree | FixedString(20) |
-| parent | String |
-| TZAuth | String |
-| TZCmt | String |
-| author | String |
-| commiter| String |
-| project | String |
-| comment | String |
-
-**b2cPtaPkgR_all:**
-| name | type |
-|----------|-----------------|
-| blob | FixedString(20) |
-| commit | FixedString(20) |
-| project | String |
-| time | UInt32 |
-| author | String |
-| language | String |
-| deps | String |
 
-We can use the `commit_counts` to query the count of the commits given a time interval:
+Get a project URL:
 
 ```python
->>> from oscarch import Time_commit_info
->>>
->>> t = Time_commit_info()
->>> t.commit_counts(1568656268)
-9
+from woc.objects import Project
+
+Project('notcake_gcad').url
 ```
 
-The `commits` method can be used to iterate through commit objects given a time interval:
+Move from a commit to its tree and then to the containing project:
 
 ```python
->>> t = Time_commit_info()
->>> commits = t.commits(1568656268)
->>> c = commits.next()
->>> type(c)
-<class 'oscar.Commit'>
->>> c.parent_shas
-('9c4cc4f6f8040ed98388c7dedeb683469f7210f5',)
+from woc.objects import Commit
+
+c = Commit("91f4da4c173e41ffbf0d9ecbe2f07f3a3296933c")
+c.tree
+c.projects[0].url
 ```
 
-The `commits_shas` method can be used to iterate through commit hashes given a time interval:
+### Streaming perspective
+
+`python-woc` focuses on random access to `.tch` and `.bin` data. It does **not** natively support flat `.s` / `.gz` files such as thruMaps. For those workloads, keep the first stage in the shell with `zcat`, `grep`, `join`, and related tools, and then hand filtered records to Python only when you need Python-side aggregation or object logic.
+
+-------
+
+## Part E -- MongoDB, ClickHouse, and the web API
+
+These services are useful when random `.tch` lookups are not the right tool:
+
+* use **MongoDB** for precomputed metadata documents about authors, projects, and APIs
+* use **ClickHouse** for time-sliced analytics over commits and API-use summaries
+* use the **web API** when you want WoC access from a machine that does not have local WoC files mounted
+
+### MongoDB Access
+
+MongoDB provides a convenient place to store relatively small metadata records without forcing everything into Git-object lookup form. The current MongoDB service runs on `da5`.
+
+Two especially useful WoC collections are:
+
+* `A_metadata.<version>` for aliased-author metadata
+* `P_metadata.<version>` for deforked-project metadata
+
+There is also `API_metadata.<version>` for package / API summaries.
+
+When on `da5`, access MongoDB with:
+
+```sh
+mongosh
+```
+
+From another `da` server:
+
+```sh
+mongosh --host=da5.eecs.utk.edu
+```
+
+Then use the `WoC` database and inspect collections:
+
+```javascript
+use WoC
+show collections
+db.A_metadata.U.findOne({NumCommits: {$gt: 200}})
+db.P_metadata.U.findOne({NumCommits: {$gt: 200}})
+db.API_metadata.U.findOne({$and: [{NumCommits: {$gt: 200}}, {NumProjects: {$gt: 200}}, {NumAuthors: {$gt: 200}}]})
+```
+
+The newer tutorial's summary of these collections is still the right mental model:
+
+* `A_metadata.<version>` stores project, commit, file, and originating-blob counts, language distribution, first/last commit times, aliases, and top APIs used by the author
+* `P_metadata.<version>` stores author, commit, file, and blob counts, language distribution, first/last commit times, community size, core authors, stars, and forks
+* `API_metadata.<version>` stores first/last use plus the number of commits, authors, and projects associated with an API
+
+### PyMongo
+
+PyMongo is the simplest way to read these metadata collections from Python:
 
 ```python
->>> t = Time_commit_info()
->>> for sha1 in t.commits_shas(1568656268):
-...     print(sha1)
-0a8b6216a42e84d7d1e56661f63e5205d4680854
-874d92e732d79d0d8bafb1d1bcc76a3b6d81302f
-ccf1a5847661de2df791a5a962e3499a478f48ab
-39927c70a99f0949c1de3d65a2693c8768bc4e0f
-fbb7add2a58b733a797d97a1e63cb8661702d0a3
-...
+import pymongo
+
+client = pymongo.MongoClient("mongodb://da5.eecs.utk.edu/")
+db = client["WoC"]
+coll = db["A_metadata.U"]
 ```
 
-The `b2cPtaPkgR_all` table stores the information associated to each **commit**.
-For `b2cPtaPkgR_all` table, use `get_values_iter` of the `Time_projects_info` class to queries for columns in a given time interval:
+For large scans, use a non-expiring cursor and close it explicitly when done:
 
 ```python
->>> from oscar import Time_project_info as Proj
->>> p = Proj()
->>> rows = p.get_values_iter(['time','project'], 1568571909, 1568571910)
->>> for row in rows:
-...     print(row)
-...
-(1568571909, 'mrtrevanderson_CECS_424')
-(1568571909, 'gitlab.com_surajpatel_tic_toc_toe')
-(1568571909, 'gitlab.com_surajpatel_tic_toc_toe')
-...
+dataset = coll.find(
+    {"NumCommits": {"$gt": 0}},
+    {"AuthorID": 1, "NumCommits": 1, "_id": 0},
+    no_cursor_timeout=True,
+)
+
+for data in dataset:
+    print(data)
+
+dataset.close()
 ```
 
-`project_timeline` can be used to query for a specific repository. The result shows the time of the commit and the name of the commit repo sorted by time:
+You can also print specific fields directly, following the pattern from the newer tutorial:
 
 ```python
->>> rows = p.project_timeline(['time','project'], 'mrtrevanderson_CECS_424')
->>> for row in rows:
-...     print(row)
-...
-(1568571909, 'mrtrevanderson_CECS_424')
-(1568571909, 'mrtrevanderson_CECS_424')
-(1568571909, 'mrtrevanderson_CECS_424')
-...
+dataset = coll.find({}, {"AuthorID": 1, "NumCommits": 1, "_id": 0}, no_cursor_timeout=True)
+for data in dataset:
+    print(data)
+dataset.close()
 ```
 
-It might be useful to examine the dependencies (i.e. includes in C or imports in Python) for each commit.
-The snippet below shows the time, repo name, language, and dependencies for each commit. Note that the commits are sorted by time and the dependencies are separated by semicolon.
+### Accessing by time slices with ClickHouse
+
+To access collections indexed by time, use ClickHouse. The current ClickHouse service runs on `da3`.
+
+The newer tutorial explains the original cluster-oriented layout; the current deployment detail that matters for users is:
+
+* use `da3` as the ClickHouse host
+* use `commit_v2510` as the current commit table
+* `api_all` remains the convenient API summary table
+
+Typical queries:
+
+```sh
+clickhouse-client --host=da3 --query 'select count(*) from commit_v2510'
+```
+
+```sh
+echo "select api,ncmt, nauth, nproj from api_all where match(api, 'stdio') and nauth > 100 limit 3 FORMAT CSV" \
+  | clickhouse-client --host=da3 --format_csv_delimiter=";"
+```
+
+```sh
+clickhouse-client --host=da3 --query 'select author,comment from commit_v2510 where time=1568656268'
+```
+
+```sh
+echo "select lower(hex(sha1)),author,project,comment from commit_v2510 where match(comment, 'CVE-2021') limit 3 FORMAT CSV" \
+  | clickhouse-client --host=da3 --format_csv_delimiter=";"
+```
+
+Commit SHA-1s are stored as binary `FixedString(20)`, so either convert them in the query:
+
+```sh
+clickhouse-client --host=da3 --query "select lower(hex(sha1)),author,comment from commit_v2510 where match(comment, '^(CVE-(1999|2\\d{3})-(0\\d{2}[0-9]|[1-9]\\d{3,}))$') limit 2 format CSV"
+```
+
+or unpack the raw bytes:
+
+```sh
+clickhouse-client --host=da3 --query 'select sha1,author,comment from commit_v2510 where time=1568656268 limit 1 format RowBinary' \
+  | perl -ane '$sha1=substr($_, 0, 20); $o=unpack "H*", $sha1; $rest=substr($_,21,length($_)-21); print "$o;$rest\n";'
+```
+
+ClickHouse is most useful when you query a specific time or a narrow interval. The `lookup/oscarch.py` draft shows the intended Python wrapper style for this service.
+
+### Web API
+
+The newer tutorial does not cover the current HTTP API in this section, so it is worth documenting it here. If you do not have local WoC data mounted, use `python-woc`'s remote client:
 
 ```python
->>> rows = p.get_values_iter(['time', 'project', 'language', 'deps'], 1568571915, 1568571916)
->>> for row in rows:
-...     print(row)
-...
-(1568571916, 'Nakwendaa_neural-network', 'PY', 'numpy\n')
-(1568571916, 'Nakwendaa_neural-network', 'PY', 'os;pickle;numpy;time;matplotlib.pyplot;gzip;Mlp.Mlp\n')
+from woc.remote import WocMapsRemote
+
+woc = WocMapsRemote(
+    base_url="https://worldofcode.org/api",
+    api_key="woc-api-key",
+)
 ```
 
-Similarily, `author_timeline` queries for a specific author:
+The common APIs mirror local use:
 
 ```python
->>> rows = p.author_timeline(['time', 'project'], 'Andrew Gacek <andrew.gacek@gmail.com>')
->>> for row in rows:
-...     print(row)
-...
-(49, 'smaccm_camera_demo')
-(677, 'smaccm_vm_hack')
-(1180017188, 'teyjus_teyjus')
-...
+woc.get_values("c2ta", woc.get_values("c2pc", "009d7b6da9c4419fe96ffd1fffb2ee61fa61532a")[0])
+woc.show_content("commit", "009d7b6da9c4419fe96ffd1fffb2ee61fa61532a")
 ```
 
-# Considerations on performance
+The object layer works the same way:
 
-1. getValues and showCnt are not supposed to be called every second,
-   the keys are passed through from standard input and one line is
-   generated for each key (get values also passes attributes,
+```python
+from woc.objects import init_woc_objects, Commit
 
-```
-echo "k;a" | getValues k2v
-```
-
-produces one line
-
-```
-k;a;v0;v1;..vn
+init_woc_objects(woc)
+Commit("009d7b6da9c4419fe96ffd1fffb2ee61fa61532a").parents[0].author
 ```
 
-For blobs, it is possible to export the entire content as a single
-bas64 encoded line
+Batching matters for remote use:
 
-2. Operations that require iteration over all keys or values (e.g., match a pattern) over all
-   is faster via flat files
-
-```
-for i in {0..127}; do zcat /da?_data/basemaps/gz/k2vFullUi.s; done | grep PATTERN
-```
-
-If the iteration is over commit content, use
-
-```
-cd /da5_data/All.blobs/
-for i in {0..127}; do perl ~/lookup/lstCmt.perl 9 $i; done
+```python
+results, errors = woc.show_content_many(
+    "commit",
+    woc.get_values("a2c", "Audris Mockus <audris@utk.edu>")[:50],
+    progress=True,
+)
 ```
 
-If iteration is over blob content
+Important current limitations:
 
-```
-cd /da5_data/All.blobs/
-for i in {0..127}; do perl ~/lookup/lstBlob.perl $i; done
-```
+* `all_keys()` is not implemented for the HTTP API
+* version pinning is not implemented in the HTTP API client
+* remote access is for random lookups and object retrieval, not for streaming `.s` / `.gz` workloads
 
-3. For a very large number of exact keys (over 500K) it is faster to use unix join
-   (simply split (via splitSec.perl for hashes and splitSecCh.perl for strings), sort each piece
-   and use unix join:
+-------
 
-```
-for i in {0..127}; do zcat /da?_data/basemaps/gz/k2vFullUi.s |join -t\; <(zcat piece$i) -; done
-```
+## Old material
+
+Older material that was previously in Part F has been moved to [`old_stuff.md`](old_stuff.md).

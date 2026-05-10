@@ -37,7 +37,7 @@ studies of the entire FLOSS.
 
 This describes the data collection/update https://bitbucket.org/swsc/overview/raw/master/pubs/WoC.pdf
 
-* [A Tutorial on How to Use WoC](https://bitbucket.org/swsc/lookup/src/master/tutorial.md)
+* [A Tutorial on How to Use WoC](tutorial.md)
 
 * [WoC APIs](https://bitbucket.org/swsc/lookup/src/master/README.md)
 
