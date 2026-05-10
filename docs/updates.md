@@ -1,5 +1,7 @@
 # Major updates in Sep, 2025
 
+- The docs now include a new unified hackathon tutorial that brings together setup, architecture, shell lookup workflows, Python usage, MongoDB, ClickHouse, and web API access. Start with [Current Tutorial](tutorial.md).
+
 - Major new functionality: risk assessment <a href="https://worldofcode.org/drs">DRS</a>
 
 - all servers are now on rhel9: please report problems
