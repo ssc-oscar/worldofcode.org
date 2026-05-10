@@ -39,7 +39,15 @@ ssl
 └── worldofcode.org.pass  # <- certificate password (optional)
 ```
 
-5. Start docker container and nginx:
+
+5. Make sure file paths are up-to-date (install python-woc if it is not installed)
+```bash
+python3 -m woc.detect /da5_fast /da3_fast /da4_fast /da8_data/basemaps /da0_data/basemaps /da5_data/basemaps /da5_data/All.blobs > wocprofile.json
+sudo cp -p wocprofile.json /home/wocprofile.json
+```
+every time WoC version or other data, like .tch files are moved or new ones created please rerun this.
+
+6. Start docker container and nginx:
 
 ```bash
 cd deploy
