@@ -112,59 +112,105 @@ export const navItems: NavItem[] = [
   // }
 ];
 
-export const homePageItems: HomePageItem[] = [
+export const updateBanner = {
+  text: 'All servers now on RHEL9. V2412 uses lowercase project names.',
+  linkHref: '/docs/#/updates.md',
+  linkText: 'Details'
+};
+
+export const useCaseItems: HomePageItem[] = [
   {
-   description: 'Updates to World of Code: mv to rhel9, lowercase project names, remove duplicate projects',
-   icon: 'i-fluent-emoji-flat:warning ',
-   linkHref: '/docs/#/updates.md',
-   linkText: 'Check Now',
-   linkClassName: 'important:bg-red-500 animate-pulse'
-  },
-  {
+    title: 'Researchers',
     description:
-      'Complete, Curated, Cross-referenced, and Current Collection of Open Source Version Control Data.',
-    icon: 'i-fluent-emoji-flat:world-map'
+      'Move beyond convenience sampling. Select from the entire OSS population for natural experiments, supply chain analysis, and technology adoption studies.',
+    icon: 'i-fluent-emoji-flat:test-tube',
+    linkHref: '/docs/#/capabilities',
+    linkText: 'See Use Cases'
   },
   {
+    title: 'Security',
     description:
-      'Get stratified samples from OSS, cross-project code flow, developer/code networks, and more.',
-    icon: 'i-fluent-emoji-flat:test-tube'
+      'Trace vulnerable code across all repositories — even when copied, not installed as a package. Search all commits for CVEs. Audit transitive dependencies at ecosystem scale.',
+    icon: 'i-fluent-emoji-flat:locked-with-key',
+    linkHref: 'https://worldofcode.org/drs',
+    linkText: 'Try DRS-OSS'
   },
   {
+    title: 'Developers',
     description:
-      'Make study of global OSS properties not only possible, but approachable and fun.',
-    icon: 'i-fluent-emoji-flat:cat-with-wry-smile'
+      'See which projects use your code. Find experts for specific APIs or codebases. Discover related projects through shared code and contributors.',
+    icon: 'i-fluent-emoji-flat:hammer-and-wrench',
+    linkHref: '/devdash',
+    linkText: 'Developer Dashboard'
+  }
+];
+
+export const tryItItems: HomePageItem[] = [
+  {
+    title: 'Lookup',
+    description: 'Query any commit, blob, author, or project interactively.',
+    icon: 'i-material-symbols:category-search',
+    linkHref: '/lookup',
+    linkText: 'Try It'
   },
   {
-    description: 'Register for World of Code server access here.',
-    icon: 'i-fluent-emoji-flat:calendar',
-    linkHref:
-      'https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/edit',
-    linkText: 'Register Here',
-    linkClassName: 'important:bg-red-500 animate-pulse'
+    title: 'Sample',
+    description: 'Draw stratified random samples from the full OSS population.',
+    icon: 'i-material-symbols:lab-research',
+    linkHref: '/sample',
+    linkText: 'Try It'
   },
   {
-    description: 'General World of Code Infrastructure Overview',
-    icon: 'i-fluent-emoji-flat:gear',
-    linkHref: '/docs/#/overview',
-    linkText: 'Explore'
+    title: 'Explore',
+    description: 'Visualize relationships between projects, authors, and code.',
+    icon: 'i-material-symbols:graph-3',
+    linkHref: '/explore',
+    linkText: 'Try It'
+  }
+];
+
+export const learnMoreItems: HomePageItem[] = [
+  {
+    title: 'Tutorial',
+    description: 'Hands-on setup: shell lookups, Python API, MongoDB, ClickHouse, and the web API.',
+    icon: 'i-fluent-emoji-flat:world-map',
+    linkHref: '/docs/#/tutorial',
+    linkText: 'Start Tutorial'
   },
   {
-    description: `Essence of World of Code: \n Elements and Structure`,
+    title: 'Python Driver',
+    description: 'Install python-woc and access WoC data locally or via the HTTP API.',
+    icon: 'i-simple-icons:python',
+    linkHref: 'https://ssc-oscar.github.io/python-woc/',
+    linkText: 'Documentation'
+  },
+  {
+    title: 'Video Overview',
+    description: 'Watch a walkthrough of WoC elements and structure.',
     icon: 'i-fluent-color:video-32',
     linkHref: 'https://youtu.be/c0uFPwT5SZI',
     linkText: 'Watch on YouTube'
   },
   {
-    description: `Fun facts about some crazy competitions among git repositories`,
+    title: 'Fun Facts',
+    description: 'The longest commit chain is 9.96M deep. The empty blob appears in 153M commits.',
     icon: '😂',
     linkHref: '/docs/#/crazy',
-    linkText: 'Learn More'
+    linkText: 'See All'
   },
   {
-    description: `Guides on the latest WoC Python driver`,
-    icon: 'i-simple-icons:python',
-    linkHref: '/docs/#/guide',
-    linkText: 'Learn More'
+    title: 'Register',
+    description: 'Request access to WoC servers for direct data access.',
+    icon: 'i-fluent-emoji-flat:calendar',
+    linkHref:
+      'https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link',
+    linkText: 'Sign Up'
+  },
+  {
+    title: 'Discord',
+    description: 'Join the community for updates, questions, and hackathon announcements.',
+    icon: 'i-simple-icons:discord',
+    linkHref: 'https://discord.gg/fKPFxzWqZX',
+    linkText: 'Join'
   }
-]; /** Items shown in the NavBar */
+];
