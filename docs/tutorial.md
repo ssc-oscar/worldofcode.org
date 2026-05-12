@@ -93,7 +93,7 @@ Clone them with `git clone <link>` (without brackets). For example:
 
 ```sh
 git clone https://github.com/ssc-oscar/python-woc.git
-git clone https://bitbucket.org/swsc/lookup/src/master/
+git clone https://bitbucket.org/swsc/lookup.git
 ```
 
 Once they are cloned, it is a good idea to run `git pull` in these repos periodically so your local copies stay in sync with current API changes.
@@ -179,7 +179,7 @@ Longer prefixes such as `Pkg`, `tk`, `def`, `call`, `dat`, and similar derived f
 
 A fuller inventory of relationship families is maintained in [map-types.md](./map-types.md), which is a better reference than a partial inline list.
 
-When using `oscar.py` or related lookup scripts, the `PATHS` dictionary or shell wrapper can point at either a fast-storage copy under `/da[345]_fast/` or a basemap copy under `/da[0-8]_data/basemaps/`, depending on which server has the version you need.
+When using `python-woc` or related lookup scripts, the `PATHS` dictionary or shell wrapper can point at either a fast-storage copy under `/da[345]_fast/` or a basemap copy under `/da[0-8]_data/basemaps/`, depending on which server has the version you need.
 
 ### Scratch space on a da server
 
@@ -726,7 +726,7 @@ db.P_metadata.U.findOne({NumCommits: {$gt: 200}})
 db.API_metadata.U.findOne({$and: [{NumCommits: {$gt: 200}}, {NumProjects: {$gt: 200}}, {NumAuthors: {$gt: 200}}]})
 ```
 
-The newer tutorial's summary of these collections is still the right mental model:
+The summary of these collections is:
 
 * `A_metadata.<version>` stores project, commit, file, and originating-blob counts, language distribution, first/last commit times, aliases, and top APIs used by the author
 * `P_metadata.<version>` stores author, commit, file, and blob counts, language distribution, first/last commit times, community size, core authors, stars, and forks
@@ -759,7 +759,7 @@ for data in dataset:
 dataset.close()
 ```
 
-You can also print specific fields directly, following the pattern from the newer tutorial:
+You can also print specific fields directly:
 
 ```python
 dataset = coll.find({}, {"AuthorID": 1, "NumCommits": 1, "_id": 0}, no_cursor_timeout=True)
@@ -772,7 +772,7 @@ dataset.close()
 
 To access collections indexed by time, use ClickHouse. The current ClickHouse service runs on `da3`.
 
-The newer tutorial explains the original cluster-oriented layout; the current deployment detail that matters for users is:
+The current deployment detail that matters for users is:
 
 * use `da3` as the ClickHouse host
 * use `commit_v2510` as the current commit table
@@ -815,7 +815,7 @@ ClickHouse is most useful when you query a specific time or a narrow interval. T
 
 ### Web API
 
-The newer tutorial does not cover the current HTTP API in this section, so it is worth documenting it here. If you do not have local WoC data mounted, use `python-woc`'s remote client:
+If you do not have local WoC data mounted, use `python-woc`'s remote client:
 
 ```python
 from woc.remote import WocMapsRemote
