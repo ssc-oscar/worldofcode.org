@@ -1,6 +1,6 @@
 # World of Code (WoC) Getting Started
 
-Start with the [current tutorial](tutorial.md) for the maintained setup and walkthrough. This page keeps the extra links, notes, and disclaimers that are useful alongside that tutorial.
+Start with the [current tutorial](tutorial.md) for the maintained setup and walkthrough. For what WoC can do and why it matters, see [What WoC Can Do](capabilities.md).
 
 ## Important Links
 
@@ -14,6 +14,13 @@ Start with the [current tutorial](tutorial.md) for the maintained setup and walk
 
 1. [WoC Shell Guide](https://github.com/woc-hack/tutorial/blob/master/ShellGuide.md): A brief guide on how to use bash and related tools
 2. [Unix Tools: Data, Software and Production Engineering](https://courses.edx.org/courses/course-v1:DelftX+UnixTx+1T2020/course/): Consider auditing this MOOC if you are not comfortable working in the terminal or shell scripting
+
+## External References
+
+- [Lookup command reference](https://bitbucket.org/swsc/lookup/src/master/README.md) — canonical map/command documentation
+- [Overview repository](https://bitbucket.org/swsc/overview/) — version history, publications, and project status
+- [Python driver documentation](https://ssc-oscar.github.io/python-woc/)
+- [API documentation](https://wocapi-preview.osslab-pku.org/docs)
 
 ## Before You Start
 

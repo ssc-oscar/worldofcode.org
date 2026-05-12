@@ -3,13 +3,9 @@ Sidebar Structure:
 - Use markdown list syntax for navigation
 - Each item can link to a markdown file or an external link
 - Nesting creates dropdown sections
-
-Example:
-- [Section Title](path/to/file.md)
-  - [Subsection](path/to/subsection.md)
-- [External Link](https://example.com)
 -->
 
+- [What WoC Can Do](capabilities.md)
 - [Overview](overview.md)
 - [Getting Started](getting_started.md)
 - [Current Tutorial](tutorial.md)
@@ -20,14 +16,19 @@ Example:
 - [Guide (Remote)](guide_remote.md)
 - [Legacy Shell Tutorial](tutorial_legacy.md)
 - [Mappings and Objects](maps.md)
+- [How Maps Generated](scripts.md)
+- [Fun Facts](crazy.md)
+- [WoC Hardware](woc_hardware.md)
+- [2025 Updates](updates.md)
 - [Terms of Service](terms.md)
 - [License](license.md)
-- [Fun Facts](crazy.md)
-- [How Maps Generated](scripts.md)
-- [Woc Hardware](woc_hardware.md)
-- [2025 Updates](updates.md)
+- **External References**
 - [🔗 Python Driver](https://ssc-oscar.github.io/python-woc/)
 - [🔗 API Doc](https://wocapi-preview.osslab-pku.org/docs)
+- [🔗 Lookup Reference](https://bitbucket.org/swsc/lookup/src/master/README.md)
+- [🔗 Overview & Versions](https://bitbucket.org/swsc/overview/)
+- [🔗 Publications](https://bitbucket.org/swsc/overview/src/master/publications.md)
+- [🔗 Outcomes](https://bitbucket.org/swsc/overview/src/master/outcomes.md)
 
 <!--
 Do not change the following block
