@@ -113,7 +113,7 @@ export const navItems: NavItem[] = [
 ];
 
 export const updateBanner = {
-  text: 'All servers now on RHEL9. V2412 uses lowercase project names.',
+  text: 'V2604 now available (March 2026 data, 5.9B commits). All servers on RHEL9.',
   linkHref: '/docs/#/updates.md',
   linkText: 'Details'
 };

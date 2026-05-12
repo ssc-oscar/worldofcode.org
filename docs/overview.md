@@ -48,17 +48,15 @@ Overall description of the data collection and analysis methods: [WoC paper (EMS
 
 ## Current Status
 
-The latest data version is **V4**, collected May 2024, with git objects retrieved by August 2024.
+The latest data version is **V2604**, collected March 2026, with git objects retrieved by May 5, 2026.
 
-| Type               | Count         |
-| ------------------ | ------------- |
-| Commits            | 4,942,319,288 |
-| Trees              | 19,119,150,636 |
-| Blobs              | 20,433,966,103 |
-| Repositories       | ~235 million  |
-| Author IDs         | ~89 million   |
-| Independent projects | ~156 million |
-| Deduplicated authors | ~59 million  |
+| Type               | Count           |
+| ------------------ | --------------- |
+| Commits            | 5,866,595,698   |
+| Trees              | 22,301,060,007  |
+| Blobs              | tbd             |
+| Repositories       | ~269 million    |
+| Independent projects | ~190 million  |
 
 For complete version history going back to version J (2018), see the [overview repository](https://bitbucket.org/swsc/overview/).
 

@@ -6,12 +6,10 @@ World of Code (WoC) is the only infrastructure that connects **all public git re
 
 | What | How Much |
 |------|----------|
-| Commits | ~5 billion |
-| Source file versions (blobs) | ~20 billion |
-| Repositories | ~235 million |
-| Unique author IDs | ~89 million |
-| Deduplicated authors | ~59 million |
-| Independent projects (forks resolved) | ~156 million |
+| Commits | ~5.9 billion |
+| Source file versions (blobs) | ~23.8 billion |
+| Repositories | ~269 million |
+| Independent projects (forks resolved) | ~190 million |
 
 Data is updated quarterly. See [version history and latest counts](https://bitbucket.org/swsc/overview/).
 
