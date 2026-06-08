@@ -81,6 +81,13 @@ export const navItems: NavItem[] = [
     external: true
   },
   {
+    title: 'DRS',
+    href: '/drs',
+    icon: 'i-material-symbols:security',
+    description: 'DRS-OSS — LLM pull-request bug-risk scoring',
+    external: true
+  },
+  {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
