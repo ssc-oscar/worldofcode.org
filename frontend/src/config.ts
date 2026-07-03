@@ -128,7 +128,21 @@ export const navItems: NavItem[] = [
 export const updateBanner = {
   text: 'V2604 now available (March 2026 data, 5.9B commits). All servers on RHEL9.',
   linkHref: '/docs/#/updates.md',
-  linkText: 'Details'
+  linkText: 'Details',
+  highlights: [
+    {
+      icon: 'i-material-symbols:bolt-outline',
+      text: 'Near-real-time data gathering — an hourly streaming pipeline (GH Archive → LMDB) is replacing batch dumps (gather_new).'
+    },
+    {
+      icon: 'i-material-symbols:layers-outline',
+      text: 'A layered object store brings incremental, append-only updates without full rebuilds (lookup).'
+    },
+    {
+      icon: 'i-material-symbols:speed-outline',
+      text: 'libgit2-woc: faster C commit-diff extraction over the layered store (~7–8× vs. the previous tooling).'
+    }
+  ]
 };
 
 export const useCaseItems: HomePageItem[] = [

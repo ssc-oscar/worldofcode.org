@@ -148,12 +148,27 @@ function HomePageCard({ ...props }: HomePageItem) {
 
 function UpdateBanner() {
   return (
-    <div className="z-1 dark:bg-slate-8/80 flex items-center gap-3 rounded-lg bg-slate-100/80 px-4 py-2 text-sm backdrop-blur-sm">
-      <span className="i-fluent-emoji-flat:warning text-lg" />
-      <span className="text-primary/70">{updateBanner.text}</span>
-      <a href={updateBanner.linkHref} className="text-primary/90 font-medium underline underline-offset-2">
-        {updateBanner.linkText}
-      </a>
+    <div className="z-1 flex flex-col items-center gap-2">
+      <div className="dark:bg-slate-8/80 flex items-center gap-3 rounded-lg bg-slate-100/80 px-4 py-2 text-sm backdrop-blur-sm">
+        <span className="i-fluent-emoji-flat:warning text-lg" />
+        <span className="text-primary/70">{updateBanner.text}</span>
+        <a href={updateBanner.linkHref} className="text-primary/90 font-medium underline underline-offset-2">
+          {updateBanner.linkText}
+        </a>
+      </div>
+      {updateBanner.highlights?.length > 0 && (
+        <div className="flex max-w-3xl flex-wrap items-center justify-center gap-2">
+          {updateBanner.highlights.map((h) => (
+            <span
+              key={h.text}
+              className="dark:bg-slate-8/50 text-primary/60 flex items-center gap-1.5 rounded-full bg-slate-100/60 px-3 py-1 text-xs backdrop-blur-sm"
+            >
+              <span className={cn('text-primary/40 shrink-0', h.icon)} />
+              {h.text}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
