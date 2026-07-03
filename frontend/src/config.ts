@@ -88,6 +88,12 @@ export const navItems: NavItem[] = [
     external: true
   },
   {
+    title: 'Impact',
+    href: '/impact',
+    icon: 'i-material-symbols:hub-outline',
+    description: 'Impact Explorer — reciprocal impact of software and science'
+  },
+  {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
