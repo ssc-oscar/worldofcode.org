@@ -163,11 +163,22 @@ function Ticker({ value, label, sub, icon }: { value: number; label: string; sub
 function Hero({ s }: { s: Summary }) {
   return (
     <div className="z-1 flex flex-col items-center gap-5 pt-10">
-      <div className="dark:bg-slate-8/70 flex items-center gap-2 rounded-full bg-slate-100/70 px-4 py-1 text-xs backdrop-blur-sm">
-        <span className="i-material-symbols:hub-outline text-primary/60" />
-        <span className="text-primary/70 font-medium">
-          Cross-corpus graph · {fmt(s.stats.edges)} typed edges · watermark {s.watermark}
-        </span>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="dark:bg-slate-8/70 flex items-center gap-2 rounded-full bg-slate-100/70 px-4 py-1 text-xs backdrop-blur-sm">
+          <span className="i-material-symbols:hub-outline text-primary/60" />
+          <span className="text-primary/70 font-medium">
+            Cross-corpus graph · {fmt(s.stats.edges)} typed edges · watermark {s.watermark}
+          </span>
+        </div>
+        <a
+          href="https://arxiv.org/abs/2606.28120"
+          target="_blank"
+          className="dark:bg-slate-8/70 dark:hover:bg-slate-700/70 flex items-center gap-1.5 rounded-full bg-slate-100/70 px-4 py-1 text-xs backdrop-blur-sm transition-colors hover:bg-slate-200/70"
+        >
+          <span className="i-simple-icons:arxiv text-primary/60" />
+          <span className="text-primary/70 font-medium">arXiv:2606.28120</span>
+          <span className="i-material-symbols:open-in-new text-primary/40" />
+        </a>
       </div>
       <h1 className="gradient-text text-center text-5xl font-bold md:text-6xl">Impact Explorer</h1>
       <p className="text-primary/60 max-w-2xl text-center text-lg">
@@ -726,6 +737,17 @@ export default function ImpactPage() {
           <p className="text-primary/40 mt-2 max-w-2xl px-4 text-center text-xs">
             Built from the World of Code cross-corpus graph ({fmt(summary.stats.edges)} typed edges,
             watermark {summary.watermark}) joining projects, papers, authors, and packages.
+          </p>
+          <p className="text-primary/50 mt-1 max-w-2xl px-4 text-center text-xs">
+            Data &amp; methodology:{' '}
+            <a
+              href="https://arxiv.org/abs/2606.28120"
+              target="_blank"
+              className="text-primary/70 font-medium underline underline-offset-2 hover:text-primary"
+            >
+              arXiv:2606.28120
+            </a>
+            {' '}— please cite this paper when using the data.
           </p>
         </Section>
       </div>
