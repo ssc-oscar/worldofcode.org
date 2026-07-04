@@ -5,7 +5,7 @@ import { useTheme } from '@/providers/theme-provider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { getValues, getCommit } from '@/api/lookup';
-import { getAuthor, getProject, type MongoAuthor, type MongoProject } from '@/api/mongo';
+import { getAuthor, getProject, searchAuthor, searchProject, type MongoAuthor, type MongoProject } from '@/api/mongo';
 import '@/styles/gradient-text.css';
 
 /* ------------------------------------------------------------- model ------ */
@@ -76,6 +76,14 @@ async function fetchRelBatch(map: string, keys: string[]): Promise<Map<string, s
   for (const k of keys) out.set(k, relCache.get(`${map} ${k}`) || []);
   return out;
 }
+// Author maps (A2*) key on the CANONICAL (aliased) author, not a raw name/email.
+// a2A maps a raw identity -> its canonical A; fall back to the raw string if unmapped.
+async function canonAuthor(raw: string): Promise<string> {
+  try {
+    const vals = await fetchRel('a2A', raw);
+    return vals[0] || raw;
+  } catch { return raw; }
+}
 
 /* ------------------------------------------------------------- helpers ---- */
 function label(type: NType, key: string): string {
@@ -122,6 +130,53 @@ export default function ExplorePage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [seedType, setSeedType] = useState<NType>('project');
   const [seedKey, setSeedKey] = useState('');
+  const [sugg, setSugg] = useState<{ key: string; label: string; sub: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const pickedRef = useRef(false);
+
+  /* ---- seed search (resolve a name / email / project to an exact WoC key) ---- */
+  useEffect(() => {
+    if (pickedRef.current) { pickedRef.current = false; setSugg([]); return; } // don't reopen right after a pick
+    const q = seedKey.trim();
+    if (seedType === 'commit' || q.length < 2) { setSugg([]); return; }
+    let live = true; setSearching(true);
+    const h = setTimeout(async () => {
+      try {
+        if (seedType === 'project') {
+          const rows = await searchProject(q, 8);
+          if (live) setSugg(rows.map((p) => ({ key: p.ProjectID, label: p.ProjectID, sub: `${p.NumCommits} commits · ${p.NumAuthors} authors` })));
+        } else {
+          const byEmail = q.includes('@');
+          const rows = await searchAuthor(q, 8, byEmail ? 'email' : 'author');
+          if (live) setSugg(rows.map((a) => ({
+            key: a.AuthorID, label: a.AuthorID,
+            sub: `${a.NumCommits} commits · ${a.NumProjects} projects${a.Alias?.length ? ` · ${a.Alias.length} aliases` : ''}`
+          })));
+        }
+      } catch { if (live) setSugg([]); }
+      finally { if (live) setSearching(false); }
+    }, 300);
+    return () => { live = false; clearTimeout(h); };
+  }, [seedKey, seedType]);
+
+  const pickSuggestion = async (key: string) => {
+    setSugg([]); pickedRef.current = true;
+    if (seedType === 'author') {
+      setResolving(true);
+      const canon = await canonAuthor(key); // A2* maps need the canonical author
+      setResolving(false);
+      setSeedKey(key); seed('author', canon);
+    } else {
+      setSeedKey(key); seed(seedType, key);
+    }
+  };
+  const submitSeed = () => {
+    const q = seedKey.trim(); if (!q) return;
+    if (sugg.length) return pickSuggestion(sugg[0].key);
+    if (seedType === 'author') return pickSuggestion(q); // canonicalize a raw-typed identity
+    seed(seedType, q);
+  };
 
   /* ---- force simulation ---- */
   const kick = (a = 0.9) => {
@@ -290,7 +345,7 @@ export default function ExplorePage() {
   const examples: [NType, string, string][] = [
     ['project', 'tensorflow_tensorflow', 'tensorflow/tensorflow'],
     ['project', 'python_cpython', 'python/cpython'],
-    ['project', 'torvalds_linux', 'torvalds/linux']
+    ['project', 'facebook_react', 'facebook/react']
   ];
 
   return (
@@ -314,12 +369,31 @@ export default function ExplorePage() {
                     seedType === t ? 'bg-primary text-primary-foreground' : 'text-primary/60 hover:text-primary')}>{t}</button>
               ))}
             </div>
-            <Input value={seedKey} onChange={(e) => setSeedKey(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && seed(seedType, seedKey)}
-              placeholder={seedType === 'project' ? 'owner_repo — e.g. tensorflow_tensorflow' : seedType === 'author' ? 'Name <email>' : 'commit sha1'}
-              className="h-9 flex-1 min-w-[14rem] text-sm" />
-            <Button size="sm" onClick={() => seed(seedType, seedKey)} className="gap-1"><span className="i-material-symbols:travel-explore" />Explore</Button>
+            <div className="relative flex-1 min-w-[16rem]">
+              <Input value={seedKey} onChange={(e) => setSeedKey(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') submitSeed(); if (e.key === 'Escape') setSugg([]); }}
+                placeholder={seedType === 'project' ? 'Search a project — e.g. tensorflow or python_cpython' : seedType === 'author' ? 'Search by name or email — e.g. torvalds or linus@…' : 'commit sha1'}
+                className="h-9 w-full pr-8 text-sm" />
+              {(searching || resolving) && <span className="i-material-symbols:progress-activity animate-spin text-primary/40 absolute right-2 top-1/2 -translate-y-1/2" />}
+              {sugg.length > 0 && (
+                <div className="dark:bg-slate-8 absolute left-0 top-10 z-20 max-h-72 w-full min-w-[22rem] overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700">
+                  {sugg.map((s) => (
+                    <button key={s.key} onClick={() => pickSuggestion(s.key)}
+                      className="hover:bg-accent flex w-full flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-left">
+                      <span className="truncate font-mono text-xs font-500">{seedType === 'project' ? s.label.replace(/_/, '/') : s.label}</span>
+                      <span className="text-primary/40 text-[10px]">{s.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Button size="sm" onClick={submitSeed} className="gap-1"><span className="i-material-symbols:travel-explore" />Explore</Button>
           </div>
+          <p className="text-primary/40 text-[11px]">
+            Projects key on <span className="font-mono">owner_repo</span>; authors on the full{' '}
+            <span className="font-mono">Name &lt;email&gt;</span> commit identity — so pick from the search results
+            (a bare email isn&apos;t the key). Author picks are canonicalized through aliases automatically.
+          </p>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-primary/40 text-xs">Try:</span>
             {examples.map(([t, k, disp]) => (
