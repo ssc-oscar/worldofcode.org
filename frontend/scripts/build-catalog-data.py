@@ -39,7 +39,12 @@ def T(name, axis, key, schema, shards, sorted_by, tier_paths,
         "locations": tier_paths,
     }
 
-def da(path):  return {"tier": "da", "host": "da0–da5", "path": path}
+import re
+def mount_host_of(path):
+    # /da?_data mounts are host-specific — the owning host is encoded in the path.
+    m = re.match(r"/da(\d+)_data", path)
+    return f"da{m.group(1)}" if m else "da"
+def da(path):  return {"tier": "da", "mount_host": mount_host_of(path), "path": path}
 def isa(path): return {"tier": "isaac", "host": "isaac", "path": path}
 
 C = "commit(sha1 hex)"
@@ -228,7 +233,8 @@ for name, (axis, key, schema, sortby, shard_by, note) in DISCOVERED.items():
         "row_scale": None, "producer": None, "consumers": [],
         "notes": note + " (auto-discovered; not in the curated seed).",
         "seed_valid": s["valid"], "store": "flat", "access": None,
-        "locations": [{"tier": tier_of(s["dir"]), "host": "da0–da5" if tier_of(s["dir"]) == "da" else "isaac",
+        "locations": [{"tier": tier_of(s["dir"]),
+                       **({"mount_host": mount_host_of(s["dir"])} if tier_of(s["dir"]) == "da" else {"host": "isaac"}),
                        "path": os.path.join(s["dir"], f"{name}.{VER}.$i.s" if s["shards"] > 1 else f"{name}.{VER}.s"),
                        "verified": True, "bytes_per_shard": s["bytes0"]}],
         "scanned": True, "bytes_per_shard": s["bytes0"],
@@ -255,6 +261,7 @@ out = {
     "conventions": {
         "format": "';'-separated, gzip, LC_ALL=C-sorted by first key",
         "present_not_valid": "A <=1KB gzip shard is an empty never-built table — flagged valid:false, never offered as a source.",
+        "mount_topology": "The da cluster (da0–da8) shares one /home, so code and Mongo/ClickHouse clients are uniform — but the /da?_data data mounts are host-specific (da7–da8 differ). Basemaps physically live on da7. Read each /da?_data path from its mount_host, don't assume any da host sees every /da?_data.",
     },
     "cost_model": {
         "read_mb_s_per_core": 250, "cores": {"da3": 8, "isaac": 40},

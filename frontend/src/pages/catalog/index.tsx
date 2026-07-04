@@ -11,7 +11,8 @@ import '@/styles/gradient-text.css';
 /* ------------------------------------------------------------------ types -- */
 interface Location {
   tier: 'da' | 'isaac' | 'mongo' | 'clickhouse' | 'graph';
-  host: string;
+  host?: string;
+  mount_host?: string; // /da?_data mounts are host-specific — read from this host
   path: string;
   verified?: boolean;
   bytes_per_shard?: number;
@@ -39,7 +40,7 @@ interface Table {
 interface Registry {
   watermark: string;
   generated_on: string;
-  conventions: { format: string; present_not_valid: string };
+  conventions: { format: string; present_not_valid: string; mount_topology: string };
   cost_model: { read_mb_s_per_core: number; cores: Record<string, number>; split_multiplier: number; note: string };
   synonyms: Record<string, string[]>;
   tables: Table[];
@@ -222,7 +223,10 @@ function planScript(plan: Plan, selected: string[]): string {
     const l = t.locations.find((x) => x.tier === 'da') ?? t.locations[0];
     return l.path;
   };
-  const lines: string[] = ['#!/bin/bash', '# Estimated plan — verify with the Calibrate command. LC_ALL=C throughout.', 'set -euo pipefail', ''];
+  const mounts = Array.from(new Set(plan.chosen.flatMap((t) => t.locations.filter((l) => l.tier === 'da').map((l) => l.mount_host)).filter(Boolean)));
+  const lines: string[] = ['#!/bin/bash', '# Estimated plan — verify with the Calibrate command. LC_ALL=C throughout.',
+    mounts.length ? `# run on a host mounting the /da?_data paths (basemaps mount on: ${mounts.join(', ')})` : '',
+    'set -euo pipefail', ''].filter(Boolean);
   const join = plan.steps.find((s) => s.kind === 'join');
   const read = plan.steps.find((s) => s.kind === 'read');
   const splits = plan.steps.filter((s) => s.kind === 'split');
@@ -447,7 +451,8 @@ function Facet({ label, value, set, opts }: { label: string; value: string; set:
 }
 
 function accessCmd(t: Table, l: Location): string {
-  if (l.tier === 'da') return `ssh da3 'zcat ${oneShard(l.path)}' | head -20`;
+  // /da?_data mounts are host-specific — read the path from the host that mounts it.
+  if (l.tier === 'da') return `ssh ${l.mount_host || 'da7'} 'zcat ${oneShard(l.path)}' | head -20`;
   if (l.tier === 'isaac') return `zcat ${oneShard(l.path)} | head -20   # on isaac`;
   return t.access || l.path;
 }
@@ -493,8 +498,8 @@ function TableDetail({ t, mode }: { t: Table; mode: 'light' | 'dark' }) {
             <div key={i}>
               <div className="text-primary/50 mb-1 flex items-center gap-2 text-[11px]">
                 <span className="dark:bg-slate-8 rounded bg-slate-100 px-1.5 py-0.5 font-medium">{TIER_LABEL[l.tier]}</span>
-                <span>{l.host}</span>
-                {l.verified && <span className="text-green-600 dark:text-green-400">✓ verified on this host</span>}
+                <span>{l.tier === 'da' ? <>mounts on <span className="font-mono">{l.mount_host}</span></> : l.host}</span>
+                {l.verified && <span className="text-green-600 dark:text-green-400">✓ readable during scan</span>}
               </div>
               <Code>{accessCmd(t, l)}</Code>
             </div>
@@ -594,8 +599,8 @@ export default function CatalogPage() {
           <Browse tables={reg.tables} mode={mode} />
         </Section>
 
-        <Section title="Two things to remember" icon="i-material-symbols:tips-and-updates-outline">
-          <div className="grid w-full max-w-4xl grid-cols-1 gap-3 px-4 sm:grid-cols-2">
+        <Section title="Things to remember" icon="i-material-symbols:tips-and-updates-outline">
+          <div className="grid w-full max-w-4xl grid-cols-1 gap-3 px-4 sm:grid-cols-3">
             <div className="dark:bg-slate-8/50 flex items-start gap-2 rounded-lg bg-slate-100/60 p-3 text-sm">
               <span className="i-material-symbols:visibility-off-outline text-primary/40 mt-0.5 shrink-0" />
               <span className="text-primary/70"><b>Present ≠ valid.</b> {reg.conventions.present_not_valid}</span>
@@ -603,6 +608,10 @@ export default function CatalogPage() {
             <div className="dark:bg-slate-8/50 flex items-start gap-2 rounded-lg bg-slate-100/60 p-3 text-sm">
               <span className="i-material-symbols:bolt-outline text-primary/40 mt-0.5 shrink-0" />
               <span className="text-primary/70"><b>Reuse, don't rebuild.</b> Prefer a dynamic join over materializing a new table; only store a result you will query repeatedly.</span>
+            </div>
+            <div className="dark:bg-slate-8/50 flex items-start gap-2 rounded-lg bg-slate-100/60 p-3 text-sm">
+              <span className="i-material-symbols:dns-outline text-primary/40 mt-0.5 shrink-0" />
+              <span className="text-primary/70"><b>Mounts are host-specific.</b> {reg.conventions.mount_topology}</span>
             </div>
           </div>
           <p className="text-primary/40 mt-2 max-w-2xl px-4 text-center text-xs">
