@@ -94,6 +94,12 @@ export const navItems: NavItem[] = [
     description: 'Impact Explorer — reciprocal impact of software and science'
   },
   {
+    title: 'Catalog',
+    href: '/catalog',
+    icon: 'i-material-symbols:database-outline',
+    description: 'Data Catalog — every WoC table, its schema, and how to read it'
+  },
+  {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
