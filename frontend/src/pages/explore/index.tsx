@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import WaveLayout from '@/layouts/wave-layout';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/providers/theme-provider';
@@ -108,6 +109,45 @@ function normValues(raw: unknown): string[] {
   return out;
 }
 
+/* Suggestions menu rendered in a body portal — escapes every stacking context /
+   overlay so mouse clicks land on the items (an in-flow dropdown was being
+   intercepted by the graph layer). Fixed-positioned under the search input. */
+function SuggestMenu({ sugg, anchorRef, seedType, onPick }: {
+  sugg: { key: string; label: string; sub: string }[];
+  anchorRef: React.RefObject<HTMLDivElement>;
+  seedType: NType;
+  onPick: (key: string) => void;
+}) {
+  const [box, setBox] = useState<{ left: number; top: number; width: number } | null>(null);
+  useLayoutEffect(() => {
+    const place = () => {
+      const el = anchorRef.current; if (!el) return;
+      const r = el.getBoundingClientRect();
+      setBox({ left: r.left, top: r.bottom + 4, width: Math.max(r.width, 352) });
+    };
+    place();
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => { window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); };
+  }, [anchorRef, sugg]);
+  if (!box) return null;
+  return createPortal(
+    <div
+      style={{ position: 'fixed', left: box.left, top: box.top, width: box.width, zIndex: 60 }}
+      className="dark:bg-slate-8 dark:border-slate-700 max-h-72 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white p-1 shadow-xl"
+    >
+      {sugg.map((s) => (
+        <button key={s.key} type="button" onClick={() => onPick(s.key)}
+          className="hover:bg-accent flex w-full cursor-pointer flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-left">
+          <span className="truncate font-mono text-xs font-500">{seedType === 'project' ? s.label.replace(/_/, '/') : s.label}</span>
+          <span className="text-primary/40 text-[10px]">{s.sub}</span>
+        </button>
+      ))}
+    </div>,
+    document.body
+  );
+}
+
 /* ------------------------------------------------------------- page ------- */
 export default function ExplorePage() {
   const { resolvedTheme } = useTheme();
@@ -134,6 +174,7 @@ export default function ExplorePage() {
   const [searching, setSearching] = useState(false);
   const [resolving, setResolving] = useState(false);
   const pickedRef = useRef(false);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
 
   /* ---- seed search (resolve a name / email / project to an exact WoC key) ---- */
   useEffect(() => {
@@ -376,25 +417,14 @@ export default function ExplorePage() {
                     seedType === t ? 'bg-primary text-primary-foreground' : 'text-primary/60 hover:text-primary')}>{t}</button>
               ))}
             </div>
-            <div className="relative flex-1 min-w-[16rem]">
+            <div ref={inputWrapRef} className="relative flex-1 min-w-[16rem]">
               <Input value={seedKey} onChange={(e) => setSeedKey(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') submitSeed(); if (e.key === 'Escape') setSugg([]); }}
                 placeholder={seedType === 'project' ? 'Search a project — e.g. tensorflow or python_cpython' : seedType === 'author' ? 'Search by name or email — e.g. torvalds or linus@…' : 'commit sha1'}
                 className="h-9 w-full pr-8 text-sm" />
               {(searching || resolving) && <span className="i-material-symbols:progress-activity animate-spin text-primary/40 absolute right-2 top-1/2 -translate-y-1/2" />}
-              {sugg.length > 0 && (
-                <div className="dark:bg-slate-8 absolute left-0 top-10 z-50 max-h-72 w-full min-w-[22rem] overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700"
-                  onWheel={(e) => e.stopPropagation()}>
-                  {sugg.map((s) => (
-                    <button key={s.key} type="button" onClick={() => pickSuggestion(s.key)}
-                      className="hover:bg-accent flex w-full flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-left">
-                      <span className="truncate font-mono text-xs font-500">{seedType === 'project' ? s.label.replace(/_/, '/') : s.label}</span>
-                      <span className="text-primary/40 text-[10px]">{s.sub}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
+            {sugg.length > 0 && <SuggestMenu sugg={sugg} anchorRef={inputWrapRef} seedType={seedType} onPick={pickSuggestion} />}
             <Button size="sm" onClick={submitSeed} className="gap-1"><span className="i-material-symbols:travel-explore" />Explore</Button>
           </div>
           <p className="text-primary/40 text-[11px]">
