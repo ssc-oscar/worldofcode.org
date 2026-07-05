@@ -242,7 +242,9 @@ def get_maps(request: Request):
     response_model=WocResponse,
     response_model_exclude_none=True,
 )
-def get_values(request: Request, map_: str, q: List[str] = Query(...)):
+def get_values(
+    request: Request, map_: str, q: List[str] = Query(...), limit: int = 0
+):
     """
     Get the values of a batch of keys from a map.
 
@@ -252,6 +254,10 @@ def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     Check https://github.com/woc-hack/tutorial for the complete list.
 
     :param q: List of object keys to show. There is a limit on the number of items in the list.
+    :param limit: If > 0, return at most this many values per key (truncated after
+        decoding; the cache is unaffected, so it stays limit-agnostic). Lets a
+        latency-sensitive client bound the payload for high-degree keys. Large
+        objects still expose a cursor via the per-key warning to page the rest.
     """
     woc: WocMapsLocal = request.app.state.woc
     ret = {}
@@ -259,11 +265,14 @@ def get_values(request: Request, map_: str, q: List[str] = Query(...)):
     map_name = str(map_)
     for key in q:
         try:
-            ret[key], next_cursor = _use_lookup_cache(
+            values, next_cursor = _use_lookup_cache(
                 request,
                 _map_cache_key(map_name, key, 0),
                 lambda key=key: _get_values_with_cursor(woc, map_name, key),
             )
+            if limit > 0 and isinstance(values, list) and len(values) > limit:
+                values = values[:limit]
+            ret[key] = values
             if next_cursor is not None:
                 errors[key] = _large_object_warning(map_, key, next_cursor)
         except (KeyError, ValueError) as e:
@@ -302,7 +311,7 @@ def count_values(request: Request, map_: str):
     response_model=WocResponse,
     response_model_exclude_none=True,
 )
-def get_value(request: Request, map_: str, key: str, cursor: int = 0):
+def get_value(request: Request, map_: str, key: str, cursor: int = 0, limit: int = 0):
     """
     Get the value of a key from a map.
 
@@ -312,6 +321,8 @@ def get_value(request: Request, map_: str, key: str, cursor: int = 0):
     Check https://github.com/woc-hack/tutorial for the complete list.
 
     :param cursor: Cursor of the large object.
+    :param limit: If > 0, return at most this many values (truncated after decoding;
+        the cache is unaffected). Use nextCursor to page the remainder if needed.
     """
     woc: WocMapsLocal = request.app.state.woc
     map_name = str(map_)
@@ -323,6 +334,8 @@ def get_value(request: Request, map_: str, key: str, cursor: int = 0):
                 woc, map_name, key, cursor
             ),
         )
+        if limit > 0 and isinstance(ret, list) and len(ret) > limit:
+            ret = ret[:limit]
         return WocResponse(data=ret, nextCursor=next_cursor)
     except (KeyError, ValueError) as e:
         raise HTTPException(status_code=404, detail=e.args[0])
