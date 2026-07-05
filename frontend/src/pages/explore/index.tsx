@@ -144,15 +144,22 @@ export default function ExplorePage() {
     const h = setTimeout(async () => {
       try {
         if (seedType === 'project') {
-          const rows = await searchProject(q, 8);
-          if (live) setSugg(rows.map((p) => ({ key: p.ProjectID, label: p.ProjectID, sub: `${p.NumCommits} commits · ${p.NumAuthors} authors` })));
+          const rows = await searchProject(q, 30);
+          rows.sort((a, b) => (b.NumCommits || 0) - (a.NumCommits || 0)); // most active first
+          if (live) setSugg(rows.slice(0, 12).map((p) => ({ key: p.ProjectID, label: p.ProjectID, sub: `${p.NumCommits} commits · ${p.NumAuthors} authors` })));
         } else {
+          // partial-name match over canonical authors (A); fetch wide, then rank by
+          // commit volume so the significant identities surface above 1-commit namesakes.
           const byEmail = q.includes('@');
-          const rows = await searchAuthor(q, 8, byEmail ? 'email' : 'author');
-          if (live) setSugg(rows.map((a) => ({
-            key: a.AuthorID, label: a.AuthorID,
-            sub: `${a.NumCommits} commits · ${a.NumProjects} projects${a.Alias?.length ? ` · ${a.Alias.length} aliases` : ''}`
-          })));
+          const rows = await searchAuthor(q, 30, byEmail ? 'email' : 'author');
+          rows.sort((a, b) => (b.NumCommits || 0) - (a.NumCommits || 0));
+          if (live) setSugg(rows.slice(0, 12).map((a) => {
+            const nAlias = a.NumAlias > 0 ? a.NumAlias : (a.Alias?.length || 0);
+            return {
+              key: a.AuthorID, label: a.AuthorID,
+              sub: `${a.NumCommits} commits · ${a.NumProjects} projects${nAlias ? ` · ${nAlias} aliases` : ''}`
+            };
+          }));
         }
       } catch { if (live) setSugg([]); }
       finally { if (live) setSearching(false); }
@@ -359,8 +366,8 @@ export default function ExplorePage() {
           </p>
         </div>
 
-        {/* seed bar */}
-        <div className="z-1 flex w-full max-w-3xl flex-col gap-2">
+        {/* seed bar — z-30 so the suggestions dropdown overlays the graph below it */}
+        <div className="relative z-30 flex w-full max-w-3xl flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <div className="dark:bg-slate-8 flex rounded-md bg-slate-100 p-0.5">
               {(['project', 'author', 'commit'] as NType[]).map((t) => (
@@ -376,9 +383,10 @@ export default function ExplorePage() {
                 className="h-9 w-full pr-8 text-sm" />
               {(searching || resolving) && <span className="i-material-symbols:progress-activity animate-spin text-primary/40 absolute right-2 top-1/2 -translate-y-1/2" />}
               {sugg.length > 0 && (
-                <div className="dark:bg-slate-8 absolute left-0 top-10 z-20 max-h-72 w-full min-w-[22rem] overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700">
+                <div className="dark:bg-slate-8 absolute left-0 top-10 z-50 max-h-72 w-full min-w-[22rem] overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700"
+                  onWheel={(e) => e.stopPropagation()}>
                   {sugg.map((s) => (
-                    <button key={s.key} onClick={() => pickSuggestion(s.key)}
+                    <button key={s.key} type="button" onClick={() => pickSuggestion(s.key)}
                       className="hover:bg-accent flex w-full flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-left">
                       <span className="truncate font-mono text-xs font-500">{seedType === 'project' ? s.label.replace(/_/, '/') : s.label}</span>
                       <span className="text-primary/40 text-[10px]">{s.sub}</span>
