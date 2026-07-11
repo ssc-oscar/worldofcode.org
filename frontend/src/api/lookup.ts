@@ -113,10 +113,12 @@ export const getValue = async <T>(map: string, key: string): Promise<T> => {
 
 export const getValues = async <T>(
   map: string,
-  keys: string[]
+  keys: string[],
+  limit?: number
 ): Promise<Record<string, T>> => {
   const params = new URLSearchParams();
   keys.forEach((k) => params.append('q', k));
+  if (limit && limit > 0) params.append('limit', String(limit));
   const resp = await request<Record<string, T>>(
     `/lookup/map/${map}`,
     'GET',

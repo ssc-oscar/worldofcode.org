@@ -48,6 +48,8 @@ const MAX_NODES = 260;
 const MAX_EXPAND = 20;
 const FRONTIER_PER_SOURCE = 8; // per-source cap when expanding a whole frontier at once
 const BATCH_CHUNK = 40;        // keys per request (bounds GET URL length; chunks run in parallel)
+const FETCH_LIMIT = 50;        // server-side ?limit= — bounds payload for high-degree keys
+                               // (>= display caps, so nothing shown is starved)
 
 /* Session caches — each (map,key) lookup and each metadata doc is deterministic for a given
    watermark, so we fetch once and reuse. This is what keeps re-expansion / back-and-forth
@@ -58,7 +60,7 @@ async function fetchRel(map: string, key: string): Promise<string[]> {
   const ck = `${map} ${key}`;
   const hit = relCache.get(ck);
   if (hit) return hit;
-  const res = await getValues<unknown>(map, [key]);
+  const res = await getValues<unknown>(map, [key], FETCH_LIMIT);
   const vals = Array.from(new Set(normValues((res as Record<string, unknown>)[key])));
   relCache.set(ck, vals);
   return vals;
@@ -70,7 +72,7 @@ async function fetchRelBatch(map: string, keys: string[]): Promise<Map<string, s
   const chunks: string[][] = [];
   for (let i = 0; i < missing.length; i += BATCH_CHUNK) chunks.push(missing.slice(i, i + BATCH_CHUNK));
   await Promise.all(chunks.map(async (chunk) => {
-    const res = (await getValues<unknown>(map, chunk)) as Record<string, unknown>;
+    const res = (await getValues<unknown>(map, chunk, FETCH_LIMIT)) as Record<string, unknown>;
     for (const k of chunk) relCache.set(`${map} ${k}`, Array.from(new Set(normValues(res[k]))));
   }));
   const out = new Map<string, string[]>();
@@ -298,7 +300,11 @@ export default function ExplorePage() {
       if (!vals.length) { setNotice(`No ${rel.label.toLowerCase()} found for this ${node.type}.`); return; }
       const capped = vals.slice(0, MAX_EXPAND);
       for (const v of capped) { const nn = addNode(rel.to, v); if (nn) addEdge(node.id, nn.id, rel.id); }
-      if (vals.length > capped.length) setNotice(`Showing ${capped.length} of ${vals.length} ${rel.label.toLowerCase()} (capped for legibility).`);
+      if (vals.length > capped.length) {
+        // vals is bounded by the server ?limit=FETCH_LIMIT; a full page means "≥ that, more exist"
+        const total = vals.length >= FETCH_LIMIT ? `${FETCH_LIMIT}+` : `${vals.length}`;
+        setNotice(`Showing ${capped.length} of ${total} ${rel.label.toLowerCase()} (payload capped at ${FETCH_LIMIT}).`);
+      }
       kick(0.9);
     } catch {
       setNotice(`Could not load ${rel.label.toLowerCase()} — the ${node.type} may not be in this map.`);
