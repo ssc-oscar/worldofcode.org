@@ -100,6 +100,12 @@ export const navItems: NavItem[] = [
     description: 'Data Catalog — every WoC table, its schema, and how to read it'
   },
   {
+    title: 'Backports',
+    href: '/mozdemo',
+    icon: 'i-material-symbols:track-changes',
+    description: 'Backport provenance — when a vendored fix landed, who adopted it, who is still exposed'
+  },
+  {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
