@@ -44,8 +44,20 @@ def commit_dt(commit):
     f = gv("c2dat", commit)
     return ts_to_dt(f[0]) if f else None
 
-def projects_of(commit):
-    return sorted({p for p in gv("c2P", commit) if p})
+RAW_CAP = 80  # cap raw-project lists in the JSON (counts are always exact)
+
+def projects_of(commit, deforked=True):
+    return {p for p in gv("c2P" if deforked else "c2p", commit) if p}
+
+def attribution(commits):
+    """Project attribution for a set of commits, both deforked (c2P) and raw (c2p)."""
+    dedf, raw = set(), set()
+    for c in commits:
+        dedf |= projects_of(c, True)
+        raw |= projects_of(c, False)
+    rl = sorted(raw)
+    return {"deforked": sorted(dedf), "deforked_count": len(dedf),
+            "raw": rl[:RAW_CAP], "raw_count": len(raw), "raw_truncated": len(raw) > RAW_CAP}
 
 def commit_meta(commit):
     """author + verbatim first message line via the commit-object API (labeled, not fabricated)."""
@@ -75,25 +87,24 @@ def analyze(commit):
         rev = triples(gv("bb2cf", old))  # (new_blob, fix_commit, path)
         variants = {}
         for nb, fc, _ in rev:
-            v = variants.setdefault(nb, {"new_blob": nb, "commits": set(), "projects": set(), "dates": []})
+            v = variants.setdefault(nb, {"new_blob": nb, "commits": set(), "dates": []})
             v["commits"].add(fc)
         for v in variants.values():
             for fc in v["commits"]:
-                v["projects"].update(projects_of(fc))
                 d = commit_dt(fc)
                 if d:
                     v["dates"].append(d)
+            v["proj"] = attribution(v["commits"])
 
         def vrec(v):
             return {"new_blob": v["new_blob"] or None, "deleted": not v["new_blob"],
-                    "commits": len(v["commits"]), "projects": sorted(v["projects"]),
-                    "project_count": len(v["projects"]),
+                    "commits": len(v["commits"]), "proj": v["proj"],
                     "first_date": min(v["dates"]).date().isoformat() if v["dates"] else None,
                     "is_firefox": v["new_blob"] == new}
+        # rank by deforked count (report-consistent), then raw, then commits
         vlist = sorted((vrec(v) for v in variants.values()),
-                       key=lambda x: (x["project_count"], x["commits"]), reverse=True)
+                       key=lambda x: (x["proj"]["deforked_count"], x["proj"]["raw_count"], x["commits"]), reverse=True)
 
-        # first upstream appearance of Firefox's fix blob
         bf = gv("b2fa", new)
         first = ts_to_dt(bf[0]) if bf else None
         first_author = bf[1].strip() if len(bf) > 1 else None
@@ -102,11 +113,9 @@ def analyze(commit):
         gap_up = (cdt.date() - first.date()).days if (cdt and first) else None
         gap_down = (cdt.date() - datetime.date.fromisoformat(first_downstream)).days if (cdt and first_downstream) else None
 
-        # consensus = most-adopted real (non-deleted, non-firefox) variant
         consensus = next((v for v in vlist if not v["deleted"] and not v["is_firefox"]), None)
-        ff_adopters = ff["projects"] if ff else []
-        other_adopters = sorted({p for v in vlist if not v["is_firefox"] and not v["deleted"] for p in v["projects"]})
-        known_fixed = sorted({p for v in vlist for p in v["projects"]})
+        all_commits = {c for v in variants.values() for c in v["commits"]}
+        other_commits = {c for v in variants.values() if v["new_blob"] and v["new_blob"] != new for c in v["commits"]}
 
         files.append({
             "path": path, "old_blob": old, "firefox_new_blob": new,
@@ -120,17 +129,16 @@ def analyze(commit):
                 "variants": vlist,
             },
             "panel_b": {
-                "known_fixed_count": len(known_fixed),
-                "known_fixed_projects": known_fixed,
+                "known_fixed": attribution(all_commits),
                 "still_exposed_available": False,
                 "note": LIBPIXMAN_NOTE,
             },
             "panel_c": {
                 "firefox_blob": new,
-                "firefox_adopters": ff_adopters,
+                "firefox_adopters": ff["proj"] if ff else attribution(set()),
                 "consensus_blob": consensus["new_blob"] if consensus else None,
-                "consensus_adopters": consensus["projects"] if consensus else [],
-                "other_variant_adopters": other_adopters,
+                "consensus_adopters": consensus["proj"] if consensus else attribution(set()),
+                "other_variant_adopters": attribution(other_commits),
             },
         })
     return {"commit": commit, "commit_date": cdt.isoformat() if cdt else None, **meta, "files": files}
@@ -151,7 +159,8 @@ if __name__ == "__main__":
     e = examples[0]; fl = e["files"][0] if e["files"] else {}
     pa = fl.get("panel_a", {})
     print(f"wrote examples.json ({len(examples)} example) — {os.path.getsize(os.path.join(OUT,'examples.json'))} bytes")
+    kf = fl.get("panel_b", {}).get("known_fixed", {})
     print(f"  {e['commit'][:12]} '{e.get('message_line')}'")
     print(f"  file {fl.get('path','?').split('/')[-1]}: {pa.get('variant_count')} variants, "
-          f"gap {pa.get('gap_days_from_upstream')}d (upstream) / {pa.get('gap_days_from_first_downstream')}d (downstream), "
-          f"known-fixed {fl.get('panel_b',{}).get('known_fixed_count')}")
+          f"gap {pa.get('gap_days_from_upstream')}d/{pa.get('gap_days_from_first_downstream')}d, "
+          f"known-fixed deforked={kf.get('deforked_count')} raw={kf.get('raw_count')}")

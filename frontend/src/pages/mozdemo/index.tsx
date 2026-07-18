@@ -8,9 +8,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import '@/styles/gradient-text.css';
 
 /* ------------------------------------------------------------------ types -- */
+type Mode = 'deforked' | 'raw';
+interface Attr { deforked: string[]; deforked_count: number; raw: string[]; raw_count: number; raw_truncated: boolean }
 interface Variant {
   new_blob: string | null; deleted: boolean; commits: number;
-  projects: string[]; project_count: number; first_date: string | null; is_firefox: boolean;
+  proj: Attr; first_date: string | null; is_firefox: boolean;
 }
 interface FileRec {
   path: string; old_blob: string; firefox_new_blob: string;
@@ -19,9 +21,11 @@ interface FileRec {
     first_downstream_date: string | null; gap_days_from_upstream: number | null;
     gap_days_from_first_downstream: number | null; variant_count: number; variants: Variant[];
   };
-  panel_b: { known_fixed_count: number; known_fixed_projects: string[]; still_exposed_available: boolean; note: string };
-  panel_c: { firefox_blob: string; firefox_adopters: string[]; consensus_blob: string | null; consensus_adopters: string[]; other_variant_adopters: string[] };
+  panel_b: { known_fixed: Attr; still_exposed_available: boolean; note: string };
+  panel_c: { firefox_blob: string; firefox_adopters: Attr; consensus_blob: string | null; consensus_adopters: Attr; other_variant_adopters: Attr };
 }
+const list = (a: Attr, m: Mode) => (m === 'raw' ? a.raw : a.deforked);
+const count = (a: Attr, m: Mode) => (m === 'raw' ? a.raw_count : a.deforked_count);
 interface Example {
   commit: string; commit_date: string | null; author: string | null;
   message_line: string | null; bug: string | null; files: FileRec[];
@@ -45,8 +49,10 @@ function download(name: string, data: unknown) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-function ProjChips({ items }: { items: string[] }) {
+function ProjChips({ attr, mode }: { attr: Attr; mode: Mode }) {
+  const items = list(attr, mode);
   if (!items.length) return <span className="text-primary/40 text-xs">none</span>;
+  const hidden = mode === 'raw' && attr.raw_truncated ? attr.raw_count - items.length : 0;
   return (
     <div className="flex flex-wrap gap-1">
       {items.map((p) => {
@@ -57,6 +63,7 @@ function ProjChips({ items }: { items: string[] }) {
           <span key={p} className="dark:bg-slate-8 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px]">{proj(p)}</span>
         );
       })}
+      {hidden > 0 && <span className="text-primary/40 px-1 py-0.5 text-[11px]">+{hidden} more</span>}
     </div>
   );
 }
@@ -98,7 +105,7 @@ function Stat({ label, value, hint, accent }: { label: string; value: React.Reac
 
 const C = { a: '#2a78d6', b: '#eb6834', c: '#1baf7a' };
 
-function FilePanels({ f }: { f: FileRec }) {
+function FilePanels({ f, mode }: { f: FileRec; mode: Mode }) {
   const a = f.panel_a, b = f.panel_b, c = f.panel_c;
   return (
     <div className="flex flex-col gap-3">
@@ -128,7 +135,7 @@ function FilePanels({ f }: { f: FileRec }) {
               <th className="pb-1 pr-3 font-500">fix variant (new blob)</th>
               <th className="pb-1 pr-3 text-right font-500">first seen</th>
               <th className="pb-1 pr-3 text-right font-500">commits</th>
-              <th className="pb-1 pr-3 text-right font-500">projects</th>
+              <th className="pb-1 pr-3 text-right font-500">{mode === 'raw' ? 'raw repos' : 'projects'}</th>
             </tr></thead>
             <tbody>
               {a.variants.map((v, i) => (
@@ -139,7 +146,7 @@ function FilePanels({ f }: { f: FileRec }) {
                   </td>
                   <td className="py-1.5 pr-3 text-right tabular-nums">{v.first_date || '—'}</td>
                   <td className="py-1.5 pr-3 text-right tabular-nums">{v.commits}</td>
-                  <td className="py-1.5 pr-3 text-right tabular-nums">{v.project_count}</td>
+                  <td className="py-1.5 pr-3 text-right tabular-nums">{count(v.proj, mode)}</td>
                 </tr>
               ))}
             </tbody>
@@ -152,12 +159,12 @@ function FilePanels({ f }: { f: FileRec }) {
         onDownload={() => download(`mozdemo_${sha(f.old_blob, 8)}_adoption.json`, c)}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <div className="text-primary/70 mb-1 text-xs font-medium">Took Firefox's blob <span className="font-mono">{sha(c.firefox_blob)}</span> ({c.firefox_adopters.length})</div>
-            <ProjChips items={c.firefox_adopters} />
+            <div className="text-primary/70 mb-1 text-xs font-medium">Took Firefox's blob <span className="font-mono">{sha(c.firefox_blob)}</span> ({count(c.firefox_adopters, mode)})</div>
+            <ProjChips attr={c.firefox_adopters} mode={mode} />
           </div>
           <div>
-            <div className="text-primary/70 mb-1 text-xs font-medium">Took the consensus blob <span className="font-mono">{sha(c.consensus_blob)}</span> ({c.consensus_adopters.length})</div>
-            <ProjChips items={c.consensus_adopters} />
+            <div className="text-primary/70 mb-1 text-xs font-medium">Took the consensus blob <span className="font-mono">{sha(c.consensus_blob)}</span> ({count(c.consensus_adopters, mode)})</div>
+            <ProjChips attr={c.consensus_adopters} mode={mode} />
           </div>
         </div>
         {c.consensus_blob && (
@@ -171,7 +178,7 @@ function FilePanels({ f }: { f: FileRec }) {
         subtitle="Projects still shipping the pre-fix blob"
         onDownload={() => download(`mozdemo_${sha(f.old_blob, 8)}_exposed.json`, b)}>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Stat label="Known to have carried it" value={b.known_fixed_count} hint="projects that later fixed" accent={C.b} />
+          <Stat label="Known to have carried it" value={count(b.known_fixed, mode)} hint={`${mode} projects that later fixed`} accent={C.b} />
           <Stat label="Still-exposed set" value={b.still_exposed_available ? 'available' : 'blocked'} hint="needs fresh b2P" />
         </div>
         <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
@@ -179,8 +186,8 @@ function FilePanels({ f }: { f: FileRec }) {
           <span>{b.note}</span>
         </div>
         <div className="mt-3">
-          <div className="text-primary/70 mb-1 text-xs font-medium">Projects known to have carried the vulnerable blob ({b.known_fixed_count})</div>
-          <ProjChips items={b.known_fixed_projects} />
+          <div className="text-primary/70 mb-1 text-xs font-medium">Projects known to have carried the vulnerable blob ({count(b.known_fixed, mode)})</div>
+          <ProjChips attr={b.known_fixed} mode={mode} />
         </div>
       </Panel>
     </div>
@@ -193,6 +200,7 @@ export default function MozDemoPage() {
   const [err, setErr] = useState(false);
   const [commit, setCommit] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>('deforked');
 
   useEffect(() => {
     fetch('/mozdemo-data/examples.json').then((r) => r.json())
@@ -275,7 +283,24 @@ export default function MozDemoPage() {
                   <span className="ml-1 italic">(commit message shown verbatim)</span>
                 </p>
               </div>
-              {example.files.map((f, i) => <FilePanels key={i} f={f} />)}
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-primary/50">Project attribution:</span>
+                <div className="dark:bg-slate-8 flex rounded-md bg-slate-100 p-0.5">
+                  {(['deforked', 'raw'] as Mode[]).map((m) => (
+                    <button key={m} onClick={() => setMode(m)}
+                      className={cn('rounded px-2.5 py-1 font-medium capitalize transition-colors',
+                        mode === m ? 'bg-primary text-primary-foreground' : 'text-primary/60 hover:text-primary')}>
+                      {m === 'deforked' ? 'Deforked (canonical)' : 'Raw (every repo)'}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-primary/40">
+                  {mode === 'deforked'
+                    ? 'forks collapsed to one canonical project (matches the batch report)'
+                    : 'every raw repository counted — shows the true ecosystem spread'}
+                </span>
+              </div>
+              {example.files.map((f, i) => <FilePanels key={i} f={f} mode={mode} />)}
             </div>
           )}
         </div>
