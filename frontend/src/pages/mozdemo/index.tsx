@@ -28,7 +28,7 @@ const list = (a: Attr, m: Mode) => (m === 'raw' ? a.raw : a.deforked);
 const count = (a: Attr, m: Mode) => (m === 'raw' ? a.raw_count : a.deforked_count);
 interface Example {
   commit: string; commit_date: string | null; author: string | null;
-  message_line: string | null; bug: string | null; files: FileRec[];
+  message_line: string | null; bug: string | null; label?: string | null; files: FileRec[];
 }
 interface Doc { version: string; generated_on: string; snapshot_note: string; examples: Example[] }
 
@@ -262,10 +262,11 @@ export default function MozDemoPage() {
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-primary/40 text-xs">Worked examples:</span>
               {doc.examples.map((e) => (
-                <button key={e.commit} onClick={() => { setSelected(e.commit); setCommit(''); }}
+                <button key={e.commit} onClick={() => { setSelected(e.commit); setCommit(''); setLiveState('idle'); }}
+                  title={e.bug ? `Bug ${e.bug} · ${sha(e.commit, 12)}` : sha(e.commit, 12)}
                   className={cn('rounded-md px-2 py-0.5 font-mono text-xs transition-colors',
                     selected === e.commit ? 'bg-primary text-primary-foreground' : 'dark:bg-slate-8 dark:hover:bg-slate-7 bg-slate-100 hover:bg-slate-200')}>
-                  {e.bug ? `Bug ${e.bug}` : sha(e.commit, 10)}
+                  {e.label || (e.bug ? `Bug ${e.bug}` : sha(e.commit, 10))}
                 </button>
               ))}
             </div>
