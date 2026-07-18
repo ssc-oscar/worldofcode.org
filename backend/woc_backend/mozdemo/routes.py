@@ -9,7 +9,7 @@ import re
 from fastapi import APIRouter, HTTPException, Request
 
 from ..models import WocResponse
-from .engine import analyze, VER
+from .engine import analyze
 
 api = APIRouter()
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -40,14 +40,14 @@ def analyze_commit(request: Request, commit: str):
         raise HTTPException(status_code=400, detail="commit must be a 40-char lowercase hex sha1")
 
     cache = _cache(request)
-    ckey = f"mozdemo:{VER}:{commit}"
+    ckey = f"mozdemo:{commit}"
     if cache is not None:
         hit = cache.get(ckey)
         if hit is not None:
             return WocResponse(data=hit)
 
     try:
-        data = analyze(commit)
+        data = analyze(commit, request.app.state.woc)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
