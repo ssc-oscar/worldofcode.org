@@ -208,12 +208,25 @@ export default function MozDemoPage() {
       .catch(() => setErr(true));
   }, []);
 
+  const [live, setLive] = useState<Example | null>(null);
+  const [liveState, setLiveState] = useState<'idle' | 'loading' | 'error' | 'notfound' | 'unavailable'>('idle');
   const byCommit = useMemo(() => new Map((doc?.examples || []).map((e) => [e.commit, e])), [doc]);
-  const example = selected ? byCommit.get(selected) : undefined;
-  const submit = () => {
+  const example = selected ? (byCommit.get(selected) ?? (live && live.commit === selected ? live : undefined)) : undefined;
+
+  const submit = async () => {
     const c = commit.trim().toLowerCase();
-    if (byCommit.has(c)) setSelected(c);
-    else setSelected(c || null); // unknown → handled below as "not precomputed"
+    if (!c) return;
+    setLive(null);
+    if (byCommit.has(c)) { setSelected(c); setLiveState('idle'); return; }
+    if (!/^[0-9a-f]{40}$/.test(c)) { setSelected(c); setLiveState('error'); return; }
+    setSelected(c); setLiveState('loading');
+    try {
+      const r = await fetch(`/api/mozdemo/analyze?commit=${c}`);
+      if (r.status === 404) { setLiveState('notfound'); return; }
+      if (!r.ok) { setLiveState(r.status === 400 ? 'error' : 'unavailable'); return; }
+      const j = await r.json();
+      setLive(j.data as Example); setLiveState('idle');
+    } catch { setLiveState('unavailable'); }
   };
 
   return (
@@ -263,11 +276,15 @@ export default function MozDemoPage() {
         <div className="z-1 w-full">
           {err && <div className="rounded-md border-2 border-dashed border-slate-500 p-6 text-sm">Could not load the demo dataset.</div>}
           {!doc && !err && <div className="flex flex-col gap-3"><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-40 w-full rounded-xl" /></div>}
-          {doc && selected && !example && (
+          {liveState === 'loading' && !example && (
+            <div className="flex flex-col gap-3"><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-40 w-full rounded-xl" /></div>
+          )}
+          {doc && selected && !example && liveState !== 'loading' && (
             <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm text-amber-800 dark:text-amber-300">
-              <b className="font-mono">{sha(selected, 16)}</b> isn't one of the precomputed examples. Live analysis of
-              arbitrary commits runs through the WoC API (coming online shortly). For now, click a worked example above —
-              they reproduce the batch prototype's numbers exactly against WoC {doc.version}.
+              {liveState === 'error' && <>“{selected}” is not a 40-character commit SHA-1. Paste a Firefox backport commit hash, or click a worked example.</>}
+              {liveState === 'notfound' && <><b className="font-mono">{sha(selected, 16)}</b> doesn't touch a vendored source file we can trace (or isn't in WoC {doc.version}).</>}
+              {liveState === 'unavailable' && <>Live analysis of arbitrary commits isn't reachable right now. The worked examples above run offline and reproduce the batch prototype exactly against WoC {doc.version}.</>}
+              {liveState === 'idle' && <><b className="font-mono">{sha(selected, 16)}</b> isn't a precomputed example — click one above.</>}
             </div>
           )}
           {example && (
