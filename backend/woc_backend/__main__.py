@@ -17,6 +17,7 @@ from .auth.routes import api as auth_api
 from .clickhouse.routes import api as clickhouse_api
 from .config import settings
 from .lookup.routes import api as lookup_api
+from .mozdemo.routes import api as mozdemo_api
 from .mongo.models import MongoAPI, MongoAuthor, MongoProject
 from .mongo.routes import api as mongo_api
 from .utils.cache import MemoryCache, RedisCache
@@ -123,6 +124,9 @@ app.include_router(
     clickhouse_api,
     prefix="/clickhouse",
     dependencies=[Depends(validate_token_nullable)],
+)
+app.include_router(
+    mozdemo_api, prefix="/mozdemo", dependencies=[Depends(validate_token_nullable)]
 )
 app.include_router(auth_api, prefix="/auth")
 
