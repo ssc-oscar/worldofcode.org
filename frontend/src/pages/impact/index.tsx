@@ -294,11 +294,16 @@ function SearchPanel({ repos, mode }: { repos: Repos | null; mode: 'light' | 'da
   );
 }
 
-function CardStat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: string }) {
+function CardStat({ label, value, hint, accent, warn, title }: {
+  label: string; value: string; hint?: string; accent?: string; warn?: boolean; title?: string;
+}) {
   return (
-    <div className="dark:bg-slate-900/60 flex flex-col gap-0.5 rounded-lg bg-white/60 p-3">
-      <span className="text-2xl font-700 tabular-nums" style={accent ? { color: accent } : undefined}>{value}</span>
-      <span className="text-primary/70 text-xs font-medium">{label}</span>
+    <div className="dark:bg-slate-900/60 flex flex-col gap-0.5 rounded-lg bg-white/60 p-3" title={title}>
+      <span className={cn('text-2xl font-700 tabular-nums', warn && 'text-primary/50')} style={accent && !warn ? { color: accent } : undefined}>{value}</span>
+      <span className="text-primary/70 flex items-center gap-1 text-xs font-medium">
+        {label}
+        {(title || warn) && <span className={cn('shrink-0 text-[11px]', warn ? 'i-material-symbols:warning-outline text-amber-500' : 'i-material-symbols:info-outline text-primary/30')} />}
+      </span>
       {hint && <span className="text-primary/40 text-[10px] leading-tight">{hint}</span>}
     </div>
   );
@@ -326,8 +331,9 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
           <div className="text-primary/60 flex flex-wrap items-center gap-2 text-xs">
             {field && <span>{field}</span>}
             {stars != null && stars > 0 && (
-              <span className="flex items-center gap-0.5">
+              <span className="flex items-center gap-0.5" title="Star count from the SciCat FSE'25 seed dataset (~2023 snapshot) — not live GitHub, and typically lower than the current page.">
                 <span className="i-material-symbols:star text-yellow-500" /> {fmt(stars)}
+                <span className="text-primary/40">★ ~2023 snapshot</span>
               </span>
             )}
           </div>
@@ -336,14 +342,23 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <CardStat label="Ecosystem impact" value={fmt(dep)} hint="projects depending on it" accent={dep > 0 ? accent : undefined} />
-        <CardStat label="Literature grounding" value={fmt(grounding)} hint="distinct papers it cites" />
-        <CardStat label="Scientific uptake" value={fmt(uptake)} hint="papers that name it" />
-        <CardStat label="Publishes package" value={publishes ? 'Yes' : 'No'} hint="on a package registry" />
+        <CardStat label="Ecosystem impact" value={fmt(dep)} accent={dep > 0 ? accent : undefined}
+          hint="WoC dependency-graph in-degree"
+          title="Distinct deforked WoC projects that declare a dependency on this repo. Source: ecosyste.ms package-manifest dependencies resolved to WoC projects — NOT GitHub 'Used by' (which counts every lockfile reference and runs much higher)." />
+        <CardStat label="Literature grounding" value={fmt(grounding)}
+          warn={grounding >= 100}
+          hint={grounding >= 100 ? 'DOIs in its files — likely bibliography-inflated' : 'DOIs found in its committed files'}
+          title="Count of distinct DOIs appearing in the repo's committed files (README/CITATION/.bib). High values usually mean the repo vendors a bibliography or was merged with others by deforking — not curated citations. Not cross-checked against the SciCat repo→paper table." />
+        <CardStat label="Scientific uptake" value={uptake > 0 ? fmt(uptake) : '—'}
+          hint={uptake > 0 ? 'papers naming it (s2orc)' : 'sparse channel · absence ≠ unused'}
+          title="Papers that name this repo, via the paper→software (MENTIONS_REPO) channel — only ~12,310 edges ecosystem-wide (s2orc-derived, ~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-cited tools often show blank. Softcite/CZI mention data is not joined into this channel." />
+        <CardStat label="Publishes package" value={publishes ? 'Yes' : 'No'} hint="on a package registry"
+          title="Publishes to a package registry indexed by ecosyste.ms / CRAN / conda." />
       </div>
       <p className="text-primary/40 mt-3 text-[11px]">
-        All counts are lower bounds. Provenance badges show which independent anchor(s) flagged this
-        as scientific software.
+        These are <b>WoC-derived signals, not live GitHub</b>: dependencies come from ecosyste.ms
+        package manifests (not GitHub's dependency graph), stars are a ~2023 seed snapshot, and all
+        counts are lower bounds. Provenance badges show which independent anchor(s) flagged this repo.
       </p>
     </div>
   );
@@ -410,7 +425,7 @@ function Leaderboards({ s, mode }: { s: Summary; mode: 'light' | 'dark' }) {
       </TabsList>
 
       <TabsContent value="software" className="mt-4">
-        <LbCaption>Science software ranked by <b>ecosystem impact</b> — how many other projects depend on it (reverse <code>DEPENDS_ON</code>).</LbCaption>
+        <LbCaption>Science software ranked by <b>ecosystem impact</b> — distinct WoC projects that declare a dependency on it (reverse <code>DEPENDS_ON</code>, from ecosyste.ms package manifests; not GitHub "Used by").</LbCaption>
         <div className="max-h-[28rem] overflow-y-auto pr-1">
           {lb.software.map((r, i) => (
             <BarRow key={r.name} i={i} name={displayName(r.name)} url={repoUrl(r.name)}

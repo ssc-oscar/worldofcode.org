@@ -237,8 +237,11 @@ summary = {
     },
     "scatter": scatter,
     "caveats": [
-        "All counts are lower bounds: coverage of the cross-corpus links is incomplete.",
-        "Scientific uptake (a paper naming a repo) is sparse everywhere (~2-4%) — the binding limit, not an artifact of any one anchor.",
+        "These are WoC-derived signals, not live GitHub — expect them to differ from a repo's current GitHub page.",
+        "Ecosystem impact is the WoC dependency-graph in-degree, built from ecosyste.ms package-manifest dependencies (not GitHub's dependency graph / 'Used by', which counts every lockfile reference and runs far higher). It is bounded by ecosyste.ms package coverage and the package/repo→WoC name resolution, is deforked to canonical projects, and misses vendored/copied and non-published dependencies.",
+        "Literature grounding counts DOIs found in a repo's committed files (incl. bibliographies), not curated citations — high values usually indicate a vendored bibliography or deforking-merged repos, so treat large numbers as inflated.",
+        "Scientific uptake (a paper naming a repo) is sparse everywhere (~2-4%): the MENTIONS_REPO channel is only ~12,310 edges ecosystem-wide (s2orc-derived), so a blank means 'not captured', not 'unused'. Softcite/CZI mention data is not joined here.",
+        "Star / fork / commit counts are a frozen ~2023 snapshot from the SciCat FSE'25 seed dataset, not live.",
         "\"Scientific software\" is operationalization-dependent: four independent anchors (SciCat, JOSS, Softcite, SciPkg) are triangulated rather than asserting one ground truth.",
         "Reuse vs. citation coupling is weakly positive (Spearman +0.13 to +0.35), not a strong signal.",
     ],
