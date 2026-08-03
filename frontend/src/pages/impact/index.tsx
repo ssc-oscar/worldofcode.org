@@ -76,7 +76,8 @@ interface Summary {
   scatter: ScatterPt[];
   caveats: string[];
 }
-type RepoRow = [string, number, number, number, number, string, string | null, number | null];
+type RepoRow = [string, number, number, number, number, string, string | null, number | null, number | null, number];
+//              name    dep     grnd    uptk    pub     tags    field           stars           forks           stars_fresh
 interface Repos { cols: string[]; rows: RepoRow[] }
 
 /* ---------------------------------------------------------------- palette -- */
@@ -310,7 +311,7 @@ function CardStat({ label, value, hint, accent, warn, title }: {
 }
 
 function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
-  const [name, dep, grounding, uptake, publishes, tags, field, stars] = row;
+  const [name, dep, grounding, uptake, publishes, tags, field, stars, forks, starsFresh] = row;
   const url = repoUrl(name);
   const accent = fieldColor(field, mode);
   return (
@@ -331,9 +332,17 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
           <div className="text-primary/60 flex flex-wrap items-center gap-2 text-xs">
             {field && <span>{field}</span>}
             {stars != null && stars > 0 && (
-              <span className="flex items-center gap-0.5" title="Star count from the SciCat FSE'25 seed dataset (~2023 snapshot) — not live GitHub, and typically lower than the current page.">
+              <span className="flex items-center gap-0.5"
+                title={starsFresh
+                  ? "GitHub stars from GHArchive WatchEvent rollups (~mid-2026), not live-to-the-minute."
+                  : "Star count from the SciCat FSE'25 seed dataset (~2023), no GHArchive match — not live GitHub."}>
                 <span className="i-material-symbols:star text-yellow-500" /> {fmt(stars)}
-                <span className="text-primary/40">★ ~2023 snapshot</span>
+                <span className="text-primary/40">{starsFresh ? '★ GHArchive ~2026' : '★ ~2023 seed'}</span>
+              </span>
+            )}
+            {forks != null && forks > 0 && (
+              <span className="flex items-center gap-0.5" title="Forks from GHArchive ForkEvent rollups (~mid-2026).">
+                <span className="i-material-symbols:fork-right text-primary/50" /> {fmt(forks)}
               </span>
             )}
           </div>
@@ -345,10 +354,9 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
         <CardStat label="Ecosystem impact" value={fmt(dep)} accent={dep > 0 ? accent : undefined}
           hint="WoC dependency-graph in-degree"
           title="Distinct deforked WoC projects that declare a dependency on this repo. Source: ecosyste.ms package-manifest dependencies resolved to WoC projects — NOT GitHub 'Used by' (which counts every lockfile reference and runs much higher)." />
-        <CardStat label="Literature grounding" value={fmt(grounding)}
-          warn={grounding >= 100}
-          hint={grounding >= 100 ? 'DOIs in its files — likely bibliography-inflated' : 'DOIs found in its committed files'}
-          title="Count of distinct DOIs appearing in the repo's committed files (README/CITATION/.bib). High values usually mean the repo vendors a bibliography or was merged with others by deforking — not curated citations. Not cross-checked against the SciCat repo→paper table." />
+        <CardStat label="Papers linked" value={fmt(grounding)}
+          hint="mixes cites + used-by"
+          title="Distinct DOIs linked to this repo, from two mixed directions: (1) papers the repo cites (DOIs in its README/CITATION/.bib), and (2) papers that MENTION the repo (papers.ecosyste.ms). For popular packages, direction (2) dominates — so a high number mostly reflects how much science USES the tool, not how much it cites. Splitting these two directions cleanly is a pending upstream (cite-sw) fix." />
         <CardStat label="Scientific uptake" value={uptake > 0 ? fmt(uptake) : '—'}
           hint={uptake > 0 ? 'papers naming it (s2orc)' : 'sparse channel · absence ≠ unused'}
           title="Papers that name this repo, via the paper→software (MENTIONS_REPO) channel — only ~12,310 edges ecosystem-wide (s2orc-derived, ~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-cited tools often show blank. Softcite/CZI mention data is not joined into this channel." />
@@ -438,7 +446,7 @@ function Leaderboards({ s, mode }: { s: Summary; mode: 'light' | 'dark' }) {
       </TabsContent>
 
       <TabsContent value="grounded" className="mt-4">
-        <LbCaption>Repositories most <b>grounded in literature</b> — distinct papers they cite (giants flagged are bibliography aggregators).</LbCaption>
+        <LbCaption>Repositories with the most <b>linked papers</b> — DOIs the repo cites plus papers that mention it (mixed direction; for popular packages the inbound mentions dominate, so this leans toward usage). Flagged giants are bibliography aggregators.</LbCaption>
         <div className="max-h-[28rem] overflow-y-auto pr-1">
           {lb.grounded.map((r, i) => (
             <BarRow key={r.name} i={i} name={displayName(r.name)} url={repoUrl(r.name)}
