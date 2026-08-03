@@ -62,6 +62,37 @@ for r in tsv("sci/repo_meta.tsv"):
         forks = stars = 0
     meta[name] = {"field": field, "layer": layer, "stars": stars, "forks": forks}
 
+# ---- GHArchive stars/forks (isaac, ~2026-06) — override the stale ~2023 seed ----
+# P2nStar/P2nFork: `project;count`, WoC-project-keyed, published to da8 basemaps.
+# Source: WatchEvent/ForkEvent rollups (coord/isaac/reply-stars-provenance.md).
+STAR_SRC = "gharchive-2026-06"  # provenance label surfaced in the UI
+def _load_counts(path, want):
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with gzip.open(path, "rt", errors="replace") as f:
+        for line in f:
+            i = line.find(";")
+            if i < 0: continue
+            name = line[:i]
+            if name in want:
+                try: out[name] = int(line[i+1:].strip())
+                except ValueError: pass
+    return out
+
+_want = set()  # anchored-repo universe (built below from signals/anchors); load counts for those
+# NOTE: `sig` and `anch` are already populated above; the union is the repo universe.
+_want = set(sig) | set(anch)
+_gha_star = _load_counts("/da8_data/basemaps/gz/P2nStar.gz", _want)
+_gha_fork = _load_counts("/da8_data/basemaps/gz/P2nFork.gz", _want)
+for name in _want:
+    m = meta.setdefault(name, {"field": None, "layer": None, "stars": None, "forks": None})
+    if name in _gha_star:
+        m["stars"] = _gha_star[name]
+        m["stars_src"] = STAR_SRC
+    if name in _gha_fork:
+        m["forks"] = _gha_fork[name]
+
 # ---- repo_paper_cnt: name -> #distinct papers (grounding leaderboard) ---------
 paper_cnt = {}
 for r in tsv("sci/repo_paper_cnt.tsv"):
@@ -129,11 +160,13 @@ for name in names:
     m = meta.get(name)
     field = m["field"] if m else None
     stars = m["stars"] if m else None
-    repos.append([name, d, g, u, p, tag, field, stars])
+    forks = m.get("forks") if m else None
+    fresh = 1 if (m and m.get("stars_src") == STAR_SRC) else 0
+    repos.append([name, d, g, u, p, tag, field, stars, forks, fresh])
 
 # repos.json — compact array-of-arrays for client-side search
 repos_out = {
-    "cols": ["name", "dep_indeg", "grounding", "uptake", "publishes", "tags", "field", "stars"],
+    "cols": ["name", "dep_indeg", "grounding", "uptake", "publishes", "tags", "field", "stars", "forks", "stars_fresh"],
     "rows": repos,
 }
 with open(os.path.join(OUT, "repos.json"), "w") as f:
@@ -217,6 +250,8 @@ scatter = scatter[:400]
 
 summary = {
     "watermark": "V2604",
+    "starSource": {"label": "GitHub stars (GHArchive, ~2026-06)", "matched": len(_gha_star),
+                   "note": "Star/fork counts are GHArchive WatchEvent/ForkEvent rollups (isaac P2nStar/P2nFork, ~mid-2026), replacing the ~2023 SciCat seed."},
     "stats": {
         "edges": 69758902, "anchoredRepos": 50835, "dependsOn": 49207245,
         "mentionsDoi": 2401620, "papers": 1759169, "wocProjects": 4966344,
@@ -239,9 +274,9 @@ summary = {
     "caveats": [
         "These are WoC-derived signals, not live GitHub — expect them to differ from a repo's current GitHub page.",
         "Ecosystem impact is the WoC dependency-graph in-degree, built from ecosyste.ms package-manifest dependencies (not GitHub's dependency graph / 'Used by', which counts every lockfile reference and runs far higher). It is bounded by ecosyste.ms package coverage and the package/repo→WoC name resolution, is deforked to canonical projects, and misses vendored/copied and non-published dependencies.",
-        "Literature grounding counts DOIs found in a repo's committed files (incl. bibliographies), not curated citations — high values usually indicate a vendored bibliography or deforking-merged repos, so treat large numbers as inflated.",
+        "\"Papers linked\" mixes two directions: DOIs the repo cites (from its README/CITATION/.bib) AND papers that mention the repo (papers.ecosyste.ms). For popular packages the inbound-mention direction dominates, so a high value mostly reflects usage, not citation. Cleanly splitting the two is a pending upstream (cite-sw graph) fix.",
         "Scientific uptake (a paper naming a repo) is sparse everywhere (~2-4%): the MENTIONS_REPO channel is only ~12,310 edges ecosystem-wide (s2orc-derived), so a blank means 'not captured', not 'unused'. Softcite/CZI mention data is not joined here.",
-        "Star / fork / commit counts are a frozen ~2023 snapshot from the SciCat FSE'25 seed dataset, not live.",
+        "Star and fork counts are GHArchive WatchEvent/ForkEvent rollups current to ~mid-2026 (not live-to-the-minute); repos with no GHArchive match fall back to the ~2023 SciCat seed.",
         "\"Scientific software\" is operationalization-dependent: four independent anchors (SciCat, JOSS, Softcite, SciPkg) are triangulated rather than asserting one ground truth.",
         "Reuse vs. citation coupling is weakly positive (Spearman +0.13 to +0.35), not a strong signal.",
     ],
