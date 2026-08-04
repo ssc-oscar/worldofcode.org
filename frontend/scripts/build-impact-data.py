@@ -97,7 +97,7 @@ for name in _want:
 # MENTIONS_BIB.gz: P;DOI;bib            -> strict "repo CITES paper" (BibTeX blobs only)
 # P2paper.links.corrected.gz: P;DOI;dir;source  (-u-fixed, deforked P)
 #   dir=sw2paper -> DOI string co-occurs in the repo's content (co-mention, woc_doc)
-#   dir=paper2sw -> a paper names/mentions the repo (used-by; s2orc+OpenAlex)
+#   dir=paper2sw -> a paper names/mentions the repo (used-by; OpenAlex + Semantic Scholar)
 CITE_DIR = "/da8_data/basemaps/cite-study"
 def _distinct_by_project(path, want, dir_filter=None):
     seen = {}  # project -> set(doi)
@@ -310,11 +310,11 @@ summary = {
     },
     "scatter": scatter,
     "caveats": [
-        "These are WoC-derived signals, not live GitHub — expect them to differ from a repo's current GitHub page.",
-        "Ecosystem impact is the WoC dependency-graph in-degree, built from ecosyste.ms package-manifest dependencies (not GitHub's dependency graph / 'Used by', which counts every lockfile reference and runs far higher). It is bounded by ecosyste.ms package coverage and the package/repo→WoC name resolution, is deforked to canonical projects, and misses vendored/copied and non-published dependencies.",
+        "Provenance spans multiple corpora, not GitHub alone: projects come from WoC's 2,000+ git forges, dependencies from ecosyste.ms package manifests, papers from OpenAlex and Semantic Scholar (S2), and only stars/forks from GitHub (GHArchive).",
+        "Ecosystem impact is the WoC dependency-graph in-degree, built from ecosyste.ms package-manifest dependencies (not GitHub's dependency graph / 'Used by', which is GitHub-only and counts every lockfile reference, running far higher). It is bounded by ecosyste.ms package coverage and the package/repo→WoC name resolution, is deforked to canonical projects, and misses vendored/copied and non-published dependencies.",
         "\"Papers co-mentioned\" counts distinct DOI strings appearing in a repo's tracked file content (WoC blob→DOI regex over ALL blobs, not just BibTeX) — co-occurrence, NOT curated citation. It is over-attributed (a data/vignette blob listing downstream studies injects their DOIs) and, in this build, under-attributed (a fixed cite-sw bug dropped some co-holder projects). Strict BibTeX-only 'cites' and origin-de-bleeded variants are being produced upstream.",
-        "Scientific uptake (a paper naming a repo) is sparse everywhere (~2-4%): the MENTIONS_REPO channel is only ~12,310 edges ecosystem-wide (s2orc-derived), so a blank means 'not captured', not 'unused'. Softcite/CZI mention data is not joined here.",
-        "Star and fork counts are GHArchive WatchEvent/ForkEvent rollups current to ~mid-2026 (not live-to-the-minute); repos with no GHArchive match fall back to the ~2023 SciCat seed.",
+        "\"Used by\" (a paper naming a repo) is sparse everywhere (~2-4%): the paper→software channel (OpenAlex + Semantic Scholar) is only ~12,310 edges ecosystem-wide, so a blank means 'not captured', not 'unused'.",
+        "Star and fork counts are GitHub-only (GHArchive WatchEvent/ForkEvent, ~mid-2026, not live-to-the-minute); projects on non-GitHub forges have none, and repos with no GHArchive match fall back to the ~2023 SciCat seed.",
         "\"Scientific software\" is operationalization-dependent: four independent anchors (SciCat, JOSS, Softcite, SciPkg) are triangulated rather than asserting one ground truth.",
         "Reuse vs. citation coupling is weakly positive (Spearman +0.13 to +0.35), not a strong signal.",
     ],

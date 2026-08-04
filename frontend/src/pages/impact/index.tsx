@@ -335,8 +335,8 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
             {stars != null && stars > 0 && (
               <span className="flex items-center gap-0.5"
                 title={starsFresh
-                  ? "GitHub stars from GHArchive WatchEvent rollups (~mid-2026), not live-to-the-minute."
-                  : "Star count from the SciCat FSE'25 seed dataset (~2023), no GHArchive match — not live GitHub."}>
+                  ? "GitHub stars from GHArchive WatchEvent rollups (~mid-2026), not live-to-the-minute. GitHub-only — WoC spans 2,000+ forges, so projects hosted elsewhere have no star count here."
+                  : "Star count from the SciCat FSE'25 seed dataset (~2023), no GHArchive match. GitHub-only signal."}>
                 <span className="i-material-symbols:star text-yellow-500" /> {fmt(stars)}
                 <span className="text-primary/40">{starsFresh ? '★ GHArchive ~2026' : '★ ~2023 seed'}</span>
               </span>
@@ -354,7 +354,7 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <CardStat label="Ecosystem impact" value={fmt(dep)} accent={dep > 0 ? accent : undefined}
           hint="projects depending on it"
-          title="Distinct deforked WoC projects that declare a dependency on this repo. Source: ecosyste.ms package-manifest dependencies resolved to WoC projects — NOT GitHub 'Used by' (which counts every lockfile reference and runs much higher)." />
+          title="Distinct deforked WoC projects (across 2,000+ git forges, not just GitHub) that declare a dependency on this repo. Source: ecosyste.ms package-manifest dependencies resolved to WoC projects — NOT GitHub 'Used by' (which is GitHub-only and counts every lockfile reference, running much higher)." />
         <CardStat label="Cites papers" value={cites > 0 ? fmt(cites) : '—'}
           hint="from committed BibTeX"
           title="Distinct papers this repo CITES, from real BibTeX blobs only (@article/@inproceedings/@book) — bibliography-grade, excludes prose co-mentions. Source: isaac MENTIONS_BIB (cite-sw). A blank means it commits no BibTeX citing papers (common for packages)." />
@@ -363,16 +363,16 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
           title="Distinct DOI strings that appear anywhere in this repo's tracked file content (WoC blob→DOI regex over ALL blobs, not just BibTeX). This is co-occurrence, NOT citation, and is over-attributed (a data/vignette blob listing downstream studies injects their DOIs). An origin-attributed de-bleed (crediting the repo that introduced a DOI-blob) is pending from isaac and will shrink this. Source: corrected P2paper.links (cite-sw)." />
         <CardStat label="Used by papers" value={usedby > 0 ? fmt(usedby) : '—'}
           hint={usedby > 0 ? 'papers naming it' : 'sparse channel · absence ≠ unused'}
-          title="Papers that name/mention this repo, via the paper→software channel (s2orc + OpenAlex) — only ~12K edges ecosystem-wide (~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-used tools often show blank because this channel is sparse." />
+          title="Papers that name/mention this repo, via the paper→software channel from OpenAlex + Semantic Scholar (S2) — only ~12K edges ecosystem-wide (~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-used tools often show blank because this channel is sparse." />
         <CardStat label="Publishes package" value={publishes ? 'Yes' : 'No'} hint="on a package registry"
           title="Publishes to a package registry indexed by ecosyste.ms / CRAN / conda." />
       </div>
       <p className="text-primary/40 mt-3 text-[11px]">
-        These are <b>WoC-derived signals, not live GitHub</b>. Three separate paper signals:
-        <b> cites</b> (curated, from committed BibTeX), <b>co-mentioned</b> (a DOI string appears in the
-        repo's content — co-occurrence, not citation), and <b>used-by</b> (papers that name it, sparse channel).
-        Dependencies come from ecosyste.ms manifests (not GitHub's graph); stars/forks are GHArchive rollups
-        (~mid-2026). All counts are lower bounds.
+        Provenance: <b>projects</b> span WoC's 2,000+ git forges (not just GitHub); <b>dependencies</b>
+        come from ecosyste.ms package manifests; <b>papers</b> from OpenAlex &amp; Semantic Scholar (cites =
+        committed BibTeX, co-mentioned = a DOI string in the repo's content = co-occurrence not citation,
+        used-by = papers naming it, sparse). Only <b>stars/forks</b> are GitHub-specific (GHArchive, ~mid-2026),
+        so projects on other forges may show none. All counts are lower bounds.
       </p>
     </div>
   );
