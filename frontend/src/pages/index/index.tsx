@@ -17,12 +17,17 @@ export function WocNumberTicker({
   title,
   subtitle,
   className,
+  floor,
   ...props
 }: {
   variant: string;
   title?: string | React.ReactNode;
   subtitle?: string;
   className?: string;
+  // Authoritative V2605 count to show while da2's serving object store lags the
+  // released watermark (the /count endpoints undercount). When the store catches
+  // up and the live value >= floor, the ticker auto-heals to the live number.
+  floor?: number;
   [key: string]: any;
 }) {
   const { data, isLoading, error } = useSWR(
@@ -40,7 +45,8 @@ export function WocNumberTicker({
     }
   );
 
-  if (isLoading) {
+  // still show the ticker (using floor) while loading, so the page never flashes low
+  if (isLoading && floor == null) {
     return (
       <div className="w-45 flex flex-col items-center justify-center gap-2">
         <Skeleton className="h-8 w-40 rounded-md" />
@@ -50,7 +56,7 @@ export function WocNumberTicker({
     );
   }
 
-  if (error) {
+  if (error && floor == null) {
     return (
       <div className="w-45 flex flex-col items-center justify-center gap-2">
         <p className="text-destructive/80 text-lg">Error</p>
@@ -60,10 +66,13 @@ export function WocNumberTicker({
     );
   }
 
+  const live = typeof data === 'number' ? data : 0;
+  const value = floor != null && live < floor ? floor : live;
+
   return (
     <div className="hover:scale-102 w-45 flex flex-col items-center justify-center gap-1 transition-all duration-300">
       <CountUp
-        end={data}
+        end={value}
         className={cn(
           'font-600 text-primary/80 inline-block text-2xl tabular-nums tracking-wider',
           className
@@ -251,6 +260,7 @@ function WocLogoAndButtons() {
         <WocNumberTicker
           variant="commit"
           subtitle="fully cross-referenced"
+          floor={7311496832}
           title={
             <div className="flex items-center gap-2">
               <span className="i-mdi:source-commit" />
