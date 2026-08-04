@@ -240,6 +240,7 @@ function WocLogoAndButtons() {
         <WocNumberTicker
           variant="a2c"
           subtitle="across all public repos"
+          floor={123705960}
           title={
             <div className="flex items-center gap-2">
               <span className="i-mdi:account-group" />
@@ -250,6 +251,7 @@ function WocLogoAndButtons() {
         <WocNumberTicker
           variant="p2c"
           subtitle="from every git forge"
+          floor={350683595}
           title={
             <div className="flex items-center gap-2">
               <span className="i-mdi:source-repository" />
