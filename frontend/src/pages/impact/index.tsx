@@ -76,8 +76,8 @@ interface Summary {
   scatter: ScatterPt[];
   caveats: string[];
 }
-type RepoRow = [string, number, number, number, number, string, string | null, number | null, number | null, number];
-//              name    dep     grnd    uptk    pub     tags    field           stars           forks           stars_fresh
+type RepoRow = [string, number, number, number, number, string, string | null, number | null, number | null, number, number, number, number];
+//              name    dep     grnd    uptk    pub     tags    field           stars           forks           fresh   cites   coment  usedby
 interface Repos { cols: string[]; rows: RepoRow[] }
 
 /* ---------------------------------------------------------------- palette -- */
@@ -311,7 +311,8 @@ function CardStat({ label, value, hint, accent, warn, title }: {
 }
 
 function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
-  const [name, dep, grounding, uptake, publishes, tags, field, stars, forks, starsFresh] = row;
+  const [name, dep, grounding, uptake, publishes, tags, field, stars, forks, starsFresh, cites, comention, usedby] = row;
+  void grounding; void uptake; // superseded by cites/comention/usedby from isaac's corrected da8 layers
   const url = repoUrl(name);
   const accent = fieldColor(field, mode);
   return (
@@ -350,24 +351,28 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
         <AnchorBadges tags={tags} mode={mode} />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <CardStat label="Ecosystem impact" value={fmt(dep)} accent={dep > 0 ? accent : undefined}
-          hint="WoC dependency-graph in-degree"
+          hint="projects depending on it"
           title="Distinct deforked WoC projects that declare a dependency on this repo. Source: ecosyste.ms package-manifest dependencies resolved to WoC projects — NOT GitHub 'Used by' (which counts every lockfile reference and runs much higher)." />
-        <CardStat label="Papers co-mentioned" value={fmt(grounding)}
-          hint="DOI appears in repo content"
-          title="Distinct DOI strings that appear anywhere in this repo's tracked file content (WoC blob→DOI extraction, `doi.sh` regex over all blobs — not just BibTeX/CITATION). This is co-occurrence, NOT a curated citation, and it is both over-attributed (a data/vignette blob listing downstream studies injects their DOIs) and, in the current build, under-attributed (a fixed cite-sw bug dropped some co-holder projects). Strict 'cites' (BibTeX-only) and de-bleeded variants are being produced by isaac; separate 'cites' and 'used-by' tiles will replace this." />
-        <CardStat label="Scientific uptake" value={uptake > 0 ? fmt(uptake) : '—'}
-          hint={uptake > 0 ? 'papers naming it' : 'sparse channel · absence ≠ unused'}
-          title="Papers that name this repo, via the paper→software (MENTIONS_REPO) channel — only ~12,310 edges ecosystem-wide (s2orc + OpenAlex, ~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-used tools often show blank because this channel is sparse." />
+        <CardStat label="Cites papers" value={cites > 0 ? fmt(cites) : '—'}
+          hint="from committed BibTeX"
+          title="Distinct papers this repo CITES, from real BibTeX blobs only (@article/@inproceedings/@book) — bibliography-grade, excludes prose co-mentions. Source: isaac MENTIONS_BIB (cite-sw). A blank means it commits no BibTeX citing papers (common for packages)." />
+        <CardStat label="Papers co-mentioned" value={comention > 0 ? fmt(comention) : '—'}
+          hint="DOI appears in its content"
+          title="Distinct DOI strings that appear anywhere in this repo's tracked file content (WoC blob→DOI regex over ALL blobs, not just BibTeX). This is co-occurrence, NOT citation, and is over-attributed (a data/vignette blob listing downstream studies injects their DOIs). An origin-attributed de-bleed (crediting the repo that introduced a DOI-blob) is pending from isaac and will shrink this. Source: corrected P2paper.links (cite-sw)." />
+        <CardStat label="Used by papers" value={usedby > 0 ? fmt(usedby) : '—'}
+          hint={usedby > 0 ? 'papers naming it' : 'sparse channel · absence ≠ unused'}
+          title="Papers that name/mention this repo, via the paper→software channel (s2orc + OpenAlex) — only ~12K edges ecosystem-wide (~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-used tools often show blank because this channel is sparse." />
         <CardStat label="Publishes package" value={publishes ? 'Yes' : 'No'} hint="on a package registry"
           title="Publishes to a package registry indexed by ecosyste.ms / CRAN / conda." />
       </div>
       <p className="text-primary/40 mt-3 text-[11px]">
-        These are <b>WoC-derived signals, not live GitHub</b>: dependencies come from ecosyste.ms
-        package manifests (not GitHub's dependency graph); "papers co-mentioned" is DOI strings found
-        in the repo's content (co-occurrence, not citation); stars/forks are GHArchive rollups (~mid-2026).
-        All counts are lower bounds. Provenance badges show which independent anchor(s) flagged this repo.
+        These are <b>WoC-derived signals, not live GitHub</b>. Three separate paper signals:
+        <b> cites</b> (curated, from committed BibTeX), <b>co-mentioned</b> (a DOI string appears in the
+        repo's content — co-occurrence, not citation), and <b>used-by</b> (papers that name it, sparse channel).
+        Dependencies come from ecosyste.ms manifests (not GitHub's graph); stars/forks are GHArchive rollups
+        (~mid-2026). All counts are lower bounds.
       </p>
     </div>
   );

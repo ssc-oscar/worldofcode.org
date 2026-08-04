@@ -93,6 +93,39 @@ for name in _want:
     if name in _gha_fork:
         m["forks"] = _gha_fork[name]
 
+# ---- isaac's paper-link layers (da8) — three honest, separate signals ----------
+# MENTIONS_BIB.gz: P;DOI;bib            -> strict "repo CITES paper" (BibTeX blobs only)
+# P2paper.links.corrected.gz: P;DOI;dir;source  (-u-fixed, deforked P)
+#   dir=sw2paper -> DOI string co-occurs in the repo's content (co-mention, woc_doc)
+#   dir=paper2sw -> a paper names/mentions the repo (used-by; s2orc+OpenAlex)
+CITE_DIR = "/da8_data/basemaps/cite-study"
+def _distinct_by_project(path, want, dir_filter=None):
+    seen = {}  # project -> set(doi)
+    if not os.path.exists(path):
+        return {}
+    with gzip.open(path, "rt", errors="replace") as f:
+        for line in f:
+            parts = line.rstrip("\n").split(";")
+            if len(parts) < 2:
+                continue
+            p, doi = parts[0], parts[1]
+            if p not in want:
+                continue
+            if dir_filter is not None and (len(parts) < 3 or parts[2] != dir_filter):
+                continue
+            seen.setdefault(p, set()).add(doi)
+    return {p: len(s) for p, s in seen.items()}
+
+_cites = _distinct_by_project(f"{CITE_DIR}/MENTIONS_BIB.gz", _want)                       # strict cites
+_comention = _distinct_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "sw2paper")
+_usedby = _distinct_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "paper2sw")
+PAPER_SRC = "cite-study-2026-08 (corrected; origin de-bleed pending)"
+for name in _want:
+    m = meta[name]
+    m["cites"] = _cites.get(name, 0)
+    m["comention"] = _comention.get(name, 0)
+    m["usedby"] = _usedby.get(name, 0)
+
 # ---- repo_paper_cnt: name -> #distinct papers (grounding leaderboard) ---------
 paper_cnt = {}
 for r in tsv("sci/repo_paper_cnt.tsv"):
@@ -162,11 +195,15 @@ for name in names:
     stars = m["stars"] if m else None
     forks = m.get("forks") if m else None
     fresh = 1 if (m and m.get("stars_src") == STAR_SRC) else 0
-    repos.append([name, d, g, u, p, tag, field, stars, forks, fresh])
+    cites = m.get("cites", 0) if m else 0
+    comention = m.get("comention", 0) if m else 0
+    usedby = m.get("usedby", 0) if m else 0
+    repos.append([name, d, g, u, p, tag, field, stars, forks, fresh, cites, comention, usedby])
 
 # repos.json — compact array-of-arrays for client-side search
 repos_out = {
-    "cols": ["name", "dep_indeg", "grounding", "uptake", "publishes", "tags", "field", "stars", "forks", "stars_fresh"],
+    "cols": ["name", "dep_indeg", "grounding", "uptake", "publishes", "tags", "field",
+             "stars", "forks", "stars_fresh", "cites", "comention", "usedby"],
     "rows": repos,
 }
 with open(os.path.join(OUT, "repos.json"), "w") as f:
@@ -252,6 +289,7 @@ summary = {
     "watermark": "V2604",
     "starSource": {"label": "GitHub stars (GHArchive, ~2026-06)", "matched": len(_gha_star),
                    "note": "Star/fork counts are GHArchive WatchEvent/ForkEvent rollups (isaac P2nStar/P2nFork, ~mid-2026), replacing the ~2023 SciCat seed."},
+    "paperSource": {"label": PAPER_SRC, "cites": len(_cites), "comention": len(_comention), "usedby": len(_usedby)},
     "stats": {
         "edges": 69758902, "anchoredRepos": 50835, "dependsOn": 49207245,
         "mentionsDoi": 2401620, "papers": 1759169, "wocProjects": 4966344,
