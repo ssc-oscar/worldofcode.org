@@ -138,7 +138,7 @@ export const navItems: NavItem[] = [
 ];
 
 export const updateBanner = {
-  text: 'V2604 now available (March 2026 data, 5.9B commits). All servers on RHEL9.',
+  text: 'V2605 now available (7.3B commits). All servers on RHEL9.',
   linkHref: '/docs/#/updates.md',
   linkText: 'Details',
   highlights: [
