@@ -99,27 +99,38 @@ for name in _want:
 #   dir=sw2paper -> DOI string co-occurs in the repo's content (co-mention, woc_doc)
 #   dir=paper2sw -> a paper names/mentions the repo (used-by; OpenAlex + Semantic Scholar)
 CITE_DIR = "/da8_data/basemaps/cite-study"
-def _distinct_by_project(path, want, dir_filter=None):
-    seen = {}  # project -> set(doi)
+def _dois_by_project(path, want, dir_filter=None, key_idx=0, doi_idx=1, into=None):
+    """Accumulate project -> set(doi). key_idx/doi_idx pick the columns
+    (P2paper: P;DOI;dir;source -> key 0, doi 1; CZI doi2P: DOI;P -> key 1, doi 0)."""
+    seen = into if into is not None else {}
     if not os.path.exists(path):
-        return {}
+        return seen
     with gzip.open(path, "rt", errors="replace") as f:
         for line in f:
             parts = line.rstrip("\n").split(";")
-            if len(parts) < 2:
+            if len(parts) <= max(key_idx, doi_idx):
                 continue
-            p, doi = parts[0], parts[1]
+            p = parts[key_idx]
             if p not in want:
                 continue
             if dir_filter is not None and (len(parts) < 3 or parts[2] != dir_filter):
                 continue
-            seen.setdefault(p, set()).add(doi)
-    return {p: len(s) for p, s in seen.items()}
+            seen.setdefault(p, set()).add(parts[doi_idx])
+    return seen
 
-_cites = _distinct_by_project(f"{CITE_DIR}/MENTIONS_BIB.gz", _want)                       # strict cites
-_comention = _distinct_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "sw2paper")
-_usedby = _distinct_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "paper2sw")
-PAPER_SRC = "cite-study-2026-08 (corrected; origin de-bleed pending)"
+def _counts(d):
+    return {p: len(s) for p, s in d.items()}
+
+_cites = _counts(_dois_by_project(f"{CITE_DIR}/MENTIONS_BIB.gz", _want))                       # strict cites (P;DOI)
+_comention = _counts(_dois_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "sw2paper"))
+# used-by = distinct papers naming the repo, UNION of:
+#   (a) paper2sw from P2paper.links.corrected (OpenAlex + Semantic Scholar), and
+#   (b) the CZI full-text software-mention channel (CZ Software Mentions, PMC-OA biomedical).
+# CZI full tier (doi2P.czi.resolved.gz, DOI;P) — automated ~55% coverage, imperfect precision.
+_usedby_dois = _dois_by_project(f"{CITE_DIR}/P2paper.links.corrected.gz", _want, "paper2sw")
+_dois_by_project(f"{CITE_DIR}/czi/doi2P.czi.resolved.gz", _want, key_idx=1, doi_idx=0, into=_usedby_dois)
+_usedby = _counts(_usedby_dois)
+PAPER_SRC = "cite-study-2026-08 (corrected + CZI full-text; origin de-bleed pending)"
 for name in _want:
     m = meta[name]
     m["cites"] = _cites.get(name, 0)
@@ -313,7 +324,7 @@ summary = {
         "Provenance spans multiple corpora, not GitHub alone: projects come from WoC's 2,000+ git forges, dependencies from ecosyste.ms package manifests, papers from OpenAlex and Semantic Scholar (S2), and only stars/forks from GitHub (GHArchive).",
         "Ecosystem impact is the WoC dependency-graph in-degree, built from ecosyste.ms package-manifest dependencies (not GitHub's dependency graph / 'Used by', which is GitHub-only and counts every lockfile reference, running far higher). It is bounded by ecosyste.ms package coverage and the package/repo→WoC name resolution, is deforked to canonical projects, and misses vendored/copied and non-published dependencies.",
         "\"Papers co-mentioned\" counts distinct DOI strings appearing in a repo's tracked file content (WoC blob→DOI regex over ALL blobs, not just BibTeX) — co-occurrence, NOT curated citation. It is over-attributed (a data/vignette blob listing downstream studies injects their DOIs) and, in this build, under-attributed (a fixed cite-sw bug dropped some co-holder projects). Strict BibTeX-only 'cites' and origin-de-bleeded variants are being produced upstream.",
-        "\"Used by\" (a paper naming a repo) is sparse everywhere (~2-4%): the paper→software channel (OpenAlex + Semantic Scholar) is only ~12,310 edges ecosystem-wide, so a blank means 'not captured', not 'unused'.",
+        "\"Used by\" (papers naming a repo) unions OpenAlex + Semantic Scholar with the CZ Software Mentions full-text corpus (~2.4M PMC-OA biomedical papers, automated NER, ~55% coverage, imperfect precision, biomedical-skewed). Broader than abstracts alone, but still a lower bound — a blank means 'not captured', not 'unused'.",
         "Star and fork counts are GitHub-only (GHArchive WatchEvent/ForkEvent, ~mid-2026, not live-to-the-minute); projects on non-GitHub forges have none, and repos with no GHArchive match fall back to the ~2023 SciCat seed.",
         "\"Scientific software\" is operationalization-dependent: four independent anchors (SciCat, JOSS, Softcite, SciPkg) are triangulated rather than asserting one ground truth.",
         "Reuse vs. citation coupling is weakly positive (Spearman +0.13 to +0.35), not a strong signal.",

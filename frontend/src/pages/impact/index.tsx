@@ -363,7 +363,7 @@ function ImpactCard({ row, mode }: { row: RepoRow; mode: 'light' | 'dark' }) {
           title="Distinct DOI strings that appear anywhere in this repo's tracked file content (WoC blob→DOI regex over ALL blobs, not just BibTeX). This is co-occurrence, NOT citation, and is over-attributed (a data/vignette blob listing downstream studies injects their DOIs). An origin-attributed de-bleed (crediting the repo that introduced a DOI-blob) is pending from isaac and will shrink this. Source: corrected P2paper.links (cite-sw)." />
         <CardStat label="Used by papers" value={usedby > 0 ? fmt(usedby) : '—'}
           hint={usedby > 0 ? 'papers naming it' : 'sparse channel · absence ≠ unused'}
-          title="Papers that name/mention this repo, via the paper→software channel from OpenAlex + Semantic Scholar (S2) — only ~12K edges ecosystem-wide (~3.7% coverage). A blank means 'not captured here', NOT 'unused'; heavily-used tools often show blank because this channel is sparse." />
+          title="Distinct papers that name/mention this repo (paper→software), unioned across: OpenAlex + Semantic Scholar, plus the CZ Software Mentions full-text corpus (~2.4M PMC-OA biomedical papers, automated NER). Much broader than abstracts alone, but CZI is automated (~55% coverage, imperfect precision) and biomedical-skewed. A blank still means 'not captured here', NOT 'unused'." />
         <CardStat label="Publishes package" value={publishes ? 'Yes' : 'No'} hint="on a package registry"
           title="Publishes to a package registry indexed by ecosyste.ms / CRAN / conda." />
       </div>
