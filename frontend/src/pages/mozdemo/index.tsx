@@ -42,6 +42,42 @@ const ghUrl = (p: string) => {
 };
 const day = (iso: string | null) => (iso ? iso.slice(0, 10) : '—');
 
+/* Fix 2 (Marco): every hex identifier is type-prefixed so blob != commit is unambiguous. */
+function commitUrl(sha: string, project?: string): string {
+  // mozilla-central / gecko-dev commits resolve on hg-edge; else GitHub gecko-dev mirror.
+  const p = (project || '').toLowerCase();
+  if (p.includes('mozilla') || p.includes('gecko') || !project)
+    return `https://hg-edge.mozilla.org/mozilla-unified/rev/${sha}`;
+  return `https://github.com/mozilla/gecko-dev/commit/${sha}`;
+}
+function Hash({ type, sha: s, project, link = false }: { type: 'blob' | 'commit'; sha: string | null; project?: string; link?: boolean }) {
+  if (!s) return <span className="text-primary/40">—</span>;
+  const label = `${type}:${s.slice(0, 12)}`;
+  const cls = 'font-mono text-primary/70';
+  if (type === 'commit' && link)
+    return <a href={commitUrl(s, project)} target="_blank" title={`${type}:${s}`} className={cn(cls, 'hover:underline underline-offset-2')}>{label}</a>;
+  return <span className={cls} title={`${type}:${s}`}>{label}</span>;
+}
+
+/* Fix 3 (Marco): Firefox-lineage projects are not "external adopters". Curated allowlist
+   (exact deforked names + a few well-known fork substrings) to avoid false positives. */
+const FIREFOX_LINEAGE_EXACT = new Set([
+  'mozilla_gecko-dev', 'mozilla_firefox', 'i3roly_firefox-dynasty', 'aosc-tracking_firefox',
+  'deepin-community_firefox', 'ric2b_vivaldi-browser', 'browserworks_waterfox',
+  'floorp-projects_floorp', 'f3liz-dev_floorp-runtime'
+]);
+const FIREFOX_SUBSTR = ['firefox', 'waterfox', 'librewolf', 'floorp', 'palemoon', 'pale-moon',
+  'basilisk', 'iceweasel', 'gecko-dev', 'thunderbird', 'gecko-dev-for'];
+function isFirefoxFamily(p: string): boolean {
+  const s = p.toLowerCase();
+  return FIREFOX_LINEAGE_EXACT.has(s) || FIREFOX_SUBSTR.some((x) => s.includes(x));
+}
+function splitAdopters(items: string[]): { external: string[]; firefox: string[] } {
+  const external: string[] = [], firefox: string[] = [];
+  for (const p of items) (isFirefoxFamily(p) ? firefox : external).push(p);
+  return { external, firefox };
+}
+
 function download(name: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -49,10 +85,8 @@ function download(name: string, data: unknown) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-function ProjChips({ attr, mode }: { attr: Attr; mode: Mode }) {
-  const items = list(attr, mode);
+function ProjList({ items, extra = 0 }: { items: string[]; extra?: number }) {
   if (!items.length) return <span className="text-primary/40 text-xs">none</span>;
-  const hidden = mode === 'raw' && attr.raw_truncated ? attr.raw_count - items.length : 0;
   return (
     <div className="flex flex-wrap gap-1">
       {items.map((p) => {
@@ -63,7 +97,30 @@ function ProjChips({ attr, mode }: { attr: Attr; mode: Mode }) {
           <span key={p} className="dark:bg-slate-8 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px]">{proj(p)}</span>
         );
       })}
-      {hidden > 0 && <span className="text-primary/40 px-1 py-0.5 text-[11px]">+{hidden} more</span>}
+      {extra > 0 && <span className="text-primary/40 px-1 py-0.5 text-[11px]">+{extra} more</span>}
+    </div>
+  );
+}
+function ProjChips({ attr, mode }: { attr: Attr; mode: Mode }) {
+  const items = list(attr, mode);
+  const hidden = mode === 'raw' && attr.raw_truncated ? attr.raw_count - items.length : 0;
+  return <ProjList items={items} extra={hidden} />;
+}
+// Fix 3: render an adopter set split into external vs Firefox-lineage buckets.
+function AdopterBuckets({ attr, mode }: { attr: Attr; mode: Mode }) {
+  const { external, firefox } = splitAdopters(list(attr, mode));
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <div className="text-primary/60 mb-1 text-[11px] font-medium">External adopters ({external.length})</div>
+        <ProjList items={external} />
+      </div>
+      {firefox.length > 0 && (
+        <div>
+          <div className="text-primary/50 mb-1 text-[11px] font-medium">Firefox-lineage ({firefox.length}) — Firefox itself, forks &amp; rebuilds, not external reach</div>
+          <ProjList items={firefox} />
+        </div>
+      )}
     </div>
   );
 }
@@ -113,8 +170,8 @@ function FilePanels({ f, mode }: { f: FileRec; mode: Mode }) {
         <span className="text-primary/50">File: </span>
         <span className="font-mono">{f.path}</span>
         <div className="text-primary/50 mt-1">
-          vulnerable blob <span className="font-mono text-primary/70">{sha(f.old_blob)}</span> →
-          Firefox's fix <span className="font-mono text-primary/70">{sha(f.firefox_new_blob)}</span>
+          vulnerable <Hash type="blob" sha={f.old_blob} /> →
+          Firefox's fix <Hash type="blob" sha={f.firefox_new_blob} />
         </div>
       </div>
 
@@ -141,7 +198,7 @@ function FilePanels({ f, mode }: { f: FileRec; mode: Mode }) {
               {a.variants.map((v, i) => (
                 <tr key={i} className={cn('border-t border-slate-200/40 dark:border-slate-700/30', v.is_firefox && 'font-600')}>
                   <td className="py-1.5 pr-3 font-mono text-xs">
-                    {v.deleted ? <span className="text-primary/50">file removed / renamed</span> : sha(v.new_blob)}
+                    {v.deleted ? <span className="text-primary/50">file removed / renamed</span> : <Hash type="blob" sha={v.new_blob} />}
                     {v.is_firefox && <span className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ color: C.a, background: C.a + '18' }}>FIREFOX</span>}
                   </td>
                   <td className="py-1.5 pr-3 text-right tabular-nums">{v.first_date || '—'}</td>
@@ -155,21 +212,25 @@ function FilePanels({ f, mode }: { f: FileRec; mode: Mode }) {
       </Panel>
 
       <Panel id="c" title="Did Firefox's fix get adopted — or superseded?" tone={C.c}
-        subtitle="Who took Firefox's exact blob vs a different fix variant"
+        subtitle="Projects that carried each fix at some point (all-time history) — external vs Firefox-lineage"
         onDownload={() => download(`mozdemo_${sha(f.old_blob, 8)}_adoption.json`, c)}>
+        <div className="text-primary/50 mb-3 flex items-start gap-2 rounded-lg bg-slate-100/60 p-2 text-[11px] dark:bg-slate-800/40">
+          <span className="i-material-symbols:history mt-0.5 shrink-0" />
+          <span>Buckets are <b>all-time</b> (a project appears if it <i>ever</i> carried the blob in any commit), so a project that later switched fixes appears under both — they are not disjoint. A "carries today (current tree)" view needs tip-of-default-branch data (requested from the pipeline).</span>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <div className="text-primary/70 mb-1 text-xs font-medium">Took Firefox's blob <span className="font-mono">{sha(c.firefox_blob)}</span> ({count(c.firefox_adopters, mode)})</div>
-            <ProjChips attr={c.firefox_adopters} mode={mode} />
+            <div className="text-primary/70 mb-1 text-xs font-medium">Carried Firefox's fix <Hash type="blob" sha={c.firefox_blob} /> at some point</div>
+            <AdopterBuckets attr={c.firefox_adopters} mode={mode} />
           </div>
           <div>
-            <div className="text-primary/70 mb-1 text-xs font-medium">Took the consensus blob <span className="font-mono">{sha(c.consensus_blob)}</span> ({count(c.consensus_adopters, mode)})</div>
-            <ProjChips attr={c.consensus_adopters} mode={mode} />
+            <div className="text-primary/70 mb-1 text-xs font-medium">Carried the consensus fix <Hash type="blob" sha={c.consensus_blob} /> at some point</div>
+            <AdopterBuckets attr={c.consensus_adopters} mode={mode} />
           </div>
         </div>
         {c.consensus_blob && (
           <p className="text-primary/60 mt-3 text-xs">
-            <b>Signal:</b> a different fix (<span className="font-mono">{sha(c.consensus_blob)}</span>) is more widely adopted than Firefox's — the code Firefox shipped may already be superseded upstream. Exactly the "your fix got superseded" ping updatebot could surface for copy-based reuse.
+            <b>Signal:</b> a different fix (<Hash type="blob" sha={c.consensus_blob} />) is more widely adopted than Firefox's — the code Firefox shipped may already be superseded upstream. Exactly the "your fix got superseded" ping updatebot could surface for copy-based reuse.
           </p>
         )}
       </Panel>
@@ -186,8 +247,8 @@ function FilePanels({ f, mode }: { f: FileRec; mode: Mode }) {
           <span>{b.note}</span>
         </div>
         <div className="mt-3">
-          <div className="text-primary/70 mb-1 text-xs font-medium">Projects known to have carried the vulnerable blob ({count(b.known_fixed, mode)})</div>
-          <ProjChips attr={b.known_fixed} mode={mode} />
+          <div className="text-primary/70 mb-1 text-xs font-medium">Projects known to have carried the vulnerable <Hash type="blob" sha={f.old_blob} /> ({count(b.known_fixed, mode)})</div>
+          <AdopterBuckets attr={b.known_fixed} mode={mode} />
         </div>
       </Panel>
     </div>
@@ -291,8 +352,10 @@ export default function MozDemoPage() {
           {example && (
             <div className="flex flex-col gap-4">
               <div className="dark:bg-slate-8/60 rounded-xl border border-slate-200/60 bg-slate-50/70 p-4 dark:border-slate-700/50">
-                <a href={`https://github.com/mozilla/gecko-dev/commit/${example.commit}`} target="_blank"
-                  className="font-mono text-sm font-600 hover:underline">{sha(example.commit, 16)}</a>
+                <div className="flex flex-wrap items-center gap-2 text-sm font-600">
+                  <a href={commitUrl(example.commit, 'mozilla_gecko-dev')} target="_blank" className="font-mono hover:underline" title={`commit:${example.commit}`}>commit:{sha(example.commit, 16)}</a>
+                  <a href={`https://github.com/mozilla/gecko-dev/commit/${example.commit}`} target="_blank" className="text-primary/40 text-[11px] font-400 hover:underline">github</a>
+                </div>
                 {example.message_line && (
                   <p className="text-primary/70 mt-1 text-sm">{example.message_line}</p>
                 )}
