@@ -302,9 +302,11 @@ summary = {
                    "note": "Star/fork counts are GHArchive WatchEvent/ForkEvent rollups (isaac P2nStar/P2nFork, ~mid-2026), replacing the ~2023 SciCat seed."},
     "paperSource": {"label": PAPER_SRC, "cites": len(_cites), "comention": len(_comention), "usedby": len(_usedby)},
     "stats": {
-        "edges": 69758902, "anchoredRepos": 50835, "dependsOn": 49207245,
-        "mentionsDoi": 2401620, "papers": 1759169, "wocProjects": 4966344,
-        "s2authors": 3088155,
+        # cross-corpus typed graph recomposed 2026-08-09 (isaac): CZI full-text folded into
+        # the MENTIONS_REPO (paper->software) layer — 12,310 -> 1,374,026 edges; total 71.14M.
+        "edges": 71136966, "anchoredRepos": 50835, "dependsOn": 49207245,
+        "mentionsDoi": 2401620, "mentionsRepo": 1374026, "papers": 1759169,
+        "wocProjects": 4966344, "s2authors": 3088155,
     },
     "counts": {
         "depended": sum(1 for v in sig.values() if v[0] > 0),
