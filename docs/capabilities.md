@@ -4,14 +4,19 @@ World of Code (WoC) is the only infrastructure that connects **all public git re
 
 ## Scale
 
+Latest corpus watermark **V2605**:
+
 | What | How Much |
 |------|----------|
-| Commits | ~5.9 billion |
-| Source file versions (blobs) | ~23.8 billion |
-| Repositories | ~269 million |
-| Independent projects (forks resolved) | ~190 million |
+| Commits | ~7.3 billion |
+| Source file versions (blobs) | ~27.0 billion |
+| Trees | ~25.5 billion |
+| Repositories | ~351 million |
+| Independent projects (forks resolved) | ~284 million |
+| Author identities (raw) | ~124 million |
 
-Data is updated quarterly. See [version history and latest counts](https://bitbucket.org/swsc/overview/).
+Data is refreshed regularly (monthly snapshots, with near-real-time ingestion being rolled in).
+The homepage counters show the live totals. See [version history and latest counts](https://bitbucket.org/swsc/overview/).
 
 ## What Makes WoC Unique
 
@@ -23,10 +28,10 @@ No other dataset lets you trace a piece of code, a developer, or a dependency **
 - **Dependency tracking**: for Python, JavaScript, Java, Go, Rust, C/C++, and more — see which modules a project imports, and how adoption spreads over time
 
 ### Author identity resolution
-The same person may appear as dozens of different `Author Name <email>` strings across projects. WoC's aliasing maps (`a2A`, `A2a`) resolve ~89M raw author IDs down to ~59M real people, using machine learning and graph-based techniques.
+The same person may appear as dozens of different `Author Name <email>` strings across projects. WoC's aliasing maps (`a2A`, `A2a`) resolve ~124M raw author IDs down to ~63M real people, using machine learning and graph-based techniques.
 
 ### Fork deduplication
-Of ~235M repositories, many are forks or mirrors. WoC identifies independent projects by detecting shared commits via community detection algorithms, reducing to ~156M truly distinct projects.
+Of ~351M repositories, many are forks or mirrors. WoC identifies independent projects by detecting shared commits via community detection algorithms, reducing to ~284M truly distinct projects.
 
 ### Complete git object access
 Every commit, tree, blob, and tag is stored and retrievable by SHA1. You can inspect the actual content of any file version that ever existed in any public repository.
@@ -97,6 +102,19 @@ Some things only a dataset of this scale can reveal — see [Fun Facts](crazy.md
 - The empty blob (`e69de29bb...`) appears in **153 million** commits
 - `README.md` has been modified in **109 million** commits
 - One author has commits in **277,000** repositories
+
+## Explore in your browser
+
+No setup required — these interactive tools run directly on the site:
+
+- [**Lookup**](https://worldofcode.org/lookup) — query any commit, blob, author, or project interactively.
+- [**Sample**](https://worldofcode.org/sample) — draw stratified random samples from the full OSS population.
+- [**Network Explorer**](https://worldofcode.org/explore) — start from a project, author, or commit and expand the relationship graph outward, node by node.
+- [**Impact Explorer**](https://worldofcode.org/impact) — the reciprocal impact of software and science: what a tool cites, which papers use it, and how far its reuse reaches ([arXiv:2606.28120](https://arxiv.org/abs/2606.28120)).
+- [**Data Catalog**](https://worldofcode.org/catalog) — every WoC table, its schema, and how to read it, with a field-checklist → join/split planner.
+- [**Backport Provenance**](https://worldofcode.org/mozdemo) — for a vendored third-party fix: when the upstream fix landed, who adopted or superseded it, and who is still exposed.
+- [**DRS**](https://worldofcode.org/drs) — LLM pull-request bug-risk scoring.
+- [**Developer Dashboard**](https://worldofcode.org/devdash) — a developer's activity, expertise, and reach.
 
 ## Access
 

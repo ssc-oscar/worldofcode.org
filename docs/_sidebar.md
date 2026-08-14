@@ -19,7 +19,7 @@ Sidebar Structure:
 - [How Maps Generated](scripts.md)
 - [Fun Facts](crazy.md)
 - [WoC Hardware](woc_hardware.md)
-- [2025 Updates](updates.md)
+- [Updates](updates.md)
 - [Terms of Service](terms.md)
 - [License](license.md)
 - **External References**
