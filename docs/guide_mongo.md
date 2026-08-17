@@ -6,7 +6,7 @@ analysis in the past. Mongo provides an excellent place to store
 relatively small data without requiring relational information.
 
 Two collections the WoC database cand be helpful for sampling
-projects and authors A_metadata.V3 and P.metadata.V3 where V3
+projects and authors A_metadata.V2604 and P.metadata.V3 where V3
 represents the version, A stands for aliased author id
 and P for deforked repository name.
 
@@ -19,7 +19,7 @@ Once on the server, you can see all the available databases using the `show dbs`
 Most databases are used for teaching and other tasks, so please use
 WoC database using the `use "database name"` command, E.G. (`use WoC`), and, after switching, you can view the available collections in the database by using the `show collections` command.
 
-Currently, there is an author metadata collection (A_metadata.V3)
+Currently, there is an author metadata collection (A_metadata.V2604)
 that contains basic stats: the total number of projects,
 the total number of blobs created by them (before
 anyone else), the total number
@@ -32,7 +32,7 @@ Furthermore, up to 100 most commonly used API (packages) in author modified file
 also included.
 
 Alongside this, there is a similar collection for projects on WoC
-(P_metadata.V3) that contains the total number of authors on the
+(P_metadata.V2604) that contains the total number of authors on the
 project, the total number of commits, the total number of files, the
 distribution of languages used, the first and last time there was a
 commit to the project in Unix Timestamp based on the version U of
@@ -50,7 +50,7 @@ Finally the collection of APIs or packages contains summary of the first and las
 
 To see data in one of the collections, you can run the `db.collection name.findOne()` command. This will show the first element in the collection and should help clarify what is in the collection.
 
-When the above `findOne()` command is run on the A_metadata.V3
+When the above `findOne()` command is run on the A_metadata.V2604
 collection, the output is as follows:
 
 * Note: For this example, we are only looking for items with more than 200 commits
@@ -61,7 +61,7 @@ collection, the output is as follows:
 [username@da3]~% mongosh
 mongosh> use WoC
 switched to db WoC
-WoC> db.A_metadata.V3.findOne({NumCommits:{$gt:200}})
+WoC> db.A_metadata.V2604.findOne({NumCommits:{$gt:200}})
 {
   _id: ObjectId('6718b9ba33bdaab25dc17557'),
   NumAlias: 2,
@@ -168,7 +168,7 @@ WoC>
 Similarly for projects:
 
 ```
-WoC> db.P_metadata.V3.findOne({NumCommits:{$gt:200}})
+WoC> db.P_metadata.V2604.findOne({NumCommits:{$gt:200}})
 {
   _id: ObjectId('681976c3c7146950d9643c8d'),
   FileInfo: { other: 256, Sql: 21, JavaScript: 10, Java: 60, TypeScript: 104 },
@@ -230,7 +230,7 @@ import pymongo
 client = pymongo.MongoClient("mongodb://da3.eecs.utk.edu/")
 
 db = client["WoC"]
-coll = db["A_metadata.V3"]
+coll = db["A_metadata.V2604"]
 ```
 
 #### Data Retrieval using PyMongo
@@ -244,7 +244,7 @@ The below code illustrates creation and iteration over the collection with a cur
 client = pymongo.MongoClient("mongodb://da3.eecs.utk.edu/")
 
 db = client["WoC"]
-coll = db["A_metadata.V3"]
+coll = db["A_metadata.V2604"]
 
 dataset = col.find({}, cursor_no_timeout=True)
 for data in dataset:
@@ -274,7 +274,7 @@ import bson
 
 client = pymongo.MongoClient("mongodb://da3.eecs.utk.edu/")
 db = client ['WoC']
-coll = db['A_metadata.V3']
+coll = db['A_metadata.V2604']
 
 dataset = coll.find({}, no_cursor_timeout=True)
 for data in dataset:
