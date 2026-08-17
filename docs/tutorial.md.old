@@ -93,7 +93,7 @@ Clone them with `git clone <link>` (without brackets). For example:
 
 ```sh
 git clone https://github.com/ssc-oscar/python-woc.git
-git clone https://bitbucket.org/swsc/lookup.git
+git clone https://bitbucket.org/swsc/lookup/src/master/
 ```
 
 Once they are cloned, it is a good idea to run `git pull` in these repos periodically so your local copies stay in sync with current API changes.
@@ -179,7 +179,7 @@ Longer prefixes such as `Pkg`, `tk`, `def`, `call`, `dat`, and similar derived f
 
 A fuller inventory of relationship families is maintained in [map-types.md](./map-types.md), which is a better reference than a partial inline list.
 
-When using `python-woc` or related lookup scripts, the `PATHS` dictionary or shell wrapper can point at either a fast-storage copy under `/da[345]_fast/` or a basemap copy under `/da[0-8]_data/basemaps/`, depending on which server has the version you need.
+When using `oscar.py` or related lookup scripts, the `PATHS` dictionary or shell wrapper can point at either a fast-storage copy under `/da[345]_fast/` or a basemap copy under `/da[0-8]_data/basemaps/`, depending on which server has the version you need.
 
 ### Scratch space on a da server
 
@@ -523,165 +523,142 @@ This is the common split -> sort -> sort-per-shard -> merge pattern behind large
 
 ## Part D -- Python use from a streaming perspective
 
-### Current Python package: `python-woc`
+### In the tutorial, Python should wrap `getValues` and `showCnt`
 
-The current Python package is `python-woc`, and the import namespace is `woc`, not `oscar`. Use it for random access to `.tch` maps and stacked `.bin` object stores.
+For tutorial-scale Python work on WoC servers, the simplest stable approach is to call the existing CLI tools from Python:
 
-Install it from PyPI with:
+* `~/lookup/getValues` for relationship maps **when a `.tch` map exists**
+* `~/lookup/showCnt` for commit, tree, and blob content
+
+If the relationship you need exists only as flat `.s` / `.gz` files, do **not** force it through `getValues`: use the flat files directly with `zcat`, `awk`, `join`, and `~/lookup/lsort`, and then let Python consume the reduced stream if needed.
+
+This keeps Python aligned with the shell workflow from Part C. It also avoids rebuilding WoC access logic in Python when the main need is to script a small sequence of lookups.
+
+### Minimal helper wrappers
+
+```python
+import subprocess
+
+
+def get_values(map_name: str, key: str) -> list[str]:
+    result = subprocess.run(
+        ["~/lookup/getValues", map_name],
+        input=key + "\n",
+        text=True,
+        capture_output=True,
+        check=True,
+        shell=False,
+    )
+    line = result.stdout.strip()
+    if not line:
+        return []
+    fields = line.split(";")
+    return fields[1:]
+
+
+def show_cnt(obj_name: str, key: str, fmt: str | None = None) -> str:
+    cmd = ["~/lookup/showCnt", obj_name]
+    if fmt is not None:
+        cmd.append(fmt)
+    result = subprocess.run(
+        cmd,
+        input=key + "\n",
+        text=True,
+        capture_output=True,
+        check=True,
+        shell=False,
+    )
+    return result.stdout.strip()
+```
+
+If `~` is not expanded in your environment, replace it with `$HOME` before building the command or hard-code the full path to the script.
+
+### Example: get the parent author of a commit
+
+The shell walkthrough in Part C can be turned into a short Python script without changing the underlying lookup logic:
+
+```python
+commit = "009d7b6da9c4419fe96ffd1fffb2ee61fa61532a"
+
+parent = show_cnt("commit", commit, "5").split(";")[1]
+parent_meta = show_cnt("commit", parent, "1").split(";")
+
+parent_time = parent_meta[1]
+parent_author = parent_meta[2]
+
+print(parent, parent_time, parent_author)
+```
+
+Here:
+
+* `showCnt commit 5` gives the parent commit(s)
+* `showCnt commit 1` gives `commit;time;author`
+
+### Example: move from a commit to projects and changed files
+
+```python
+commit = "e4af89166a17785c1d741b8b1d5775f3223f510f"
+
+projects = get_values("c2p", commit)
+files = get_values("c2f", commit)
+blobs = get_values("c2b", commit)
+
+print("projects:", projects[:3])
+print("files:", files[:5])
+print("blobs:", blobs[:5])
+```
+
+This is often enough for tutorial tasks: start with one commit, follow it to files, blobs, or projects, and then aggregate the results in Python.
+
+### Example: use `.s` files directly when no `.tch` map is available
+
+For larger tasks, or whenever a map exists only as `.s` / `.gz`, do the expensive filtering in the shell first and let Python consume only the reduced stream:
 
 ```sh
-pip3 install python-woc
+zcat /da0_data/basemaps/gz/c2pFullV.0.s | awk -F';' '$2 ~ /^tensorflow_/' | head
 ```
-
-Or install it from source:
-
-```sh
-git clone https://github.com/ssc-oscar/python-woc.git
-cd python-woc
-python3 -m pip install poetry
-python3 -m poetry install
-```
-
-On some UTK servers, installing Poetry may fail with `urllib3 v2 only supports OpenSSL 1.1.1+`. The current workaround in `python-woc` is:
-
-```sh
-python3 -m pip install 'urllib3<2.0'
-```
-
-On UTK / PKU WoC servers, profiles are already available at `/home/wocprofile.json` or `/etc/wocprofile.json`, so you usually do not need to generate one yourself. Otherwise, generate a profile with:
-
-```sh
-python3 woc.detect /path/to/woc/1 /path/to/woc/2 ... > wocprofile.json
-```
-
-By default, `python-woc` looks for `wocprofile.json`, `~/.wocprofile.json`, `/home/wocprofile.json`, and `/etc/wocprofile.json`.
-
-### CLI compatibility
-
-`python-woc` also provides drop-in CLI replacements for the Perl scripts:
-
-```sh
-alias getValues='python3 -m woc.get_values'
-alias showCnt='python3 -m woc.show_content'
-```
-
-The usage is the same as the original scripts, so existing shell examples continue to apply.
-
-### Low-level Python API: `WocMapsLocal`
-
-The low-level Python API is centered on `WocMapsLocal`:
 
 ```python
-from woc.local import WocMapsLocal
+import subprocess
 
-woc = WocMapsLocal()  # or WocMapsLocal(version="R")
+
+producer = subprocess.Popen(
+    "zcat /da0_data/basemaps/gz/c2pFullV.0.s | awk -F';' '$2 ~ /^tensorflow_/' | head",
+    shell=True,
+    text=True,
+    stdout=subprocess.PIPE,
+)
+
+for line in producer.stdout:
+    row = line.strip()
+    if not row:
+        continue
+    commit, project = row.split(";", 1)
+    print(commit, project)
 ```
 
-The three most important methods are:
+That pattern is the main point of the "streaming perspective": use `getValues` for random lookup on available `.tch` maps, but fall back to `.s` / `.gz` files directly when no `.tch` map exists.
 
-* `woc.get_values(map_name, key)` - Python equivalent of `getValues`
-* `woc.show_content(obj_name, key)` - Python equivalent of `showCnt`
-* `woc.count(map_or_object)` - count keys in a map or object family
+### When to stay in the shell
 
-Examples:
+Do **not** move a full flat-file scan into Python just because the next step is scripted. If the job starts with `.s` or `.gz` files, or if the `.tch` version of the map is absent, keep the first stage in the shell with `zcat`, `grep`, `awk`, `join`, and `~/lookup/lsort`, then pass a much smaller stream into Python.
 
-```python
->>> woc.get_values("b2fa", "05fe634ca4c8386349ac519f899145c75fff4169")
-('1410029988', 'Audris Mockus <audris@utk.edu>', 'e4af89166a17785c1d741b8b1d5775f3223f510f')
->>> woc.get_values("c2b", "e4af89166a17785c1d741b8b1d5775f3223f510f")
-['05fe634ca4c8386349ac519f899145c75fff4169']
->>> woc.show_content("tree", "f1b66dcca490b5c4455af319bc961a34f69c72c2")
-[('100644', 'README.md', '05fe634ca4c8386349ac519f899145c75fff4169'), ('100644', 'course.pdf', 'dfcd0359bfb5140b096f69d5fad3c7066f101389')]
->>> woc.count("blob")
-17334020520
-```
+### When Python helps
 
-### Object API from `woc.objects`
+Python is useful when you need one or more of these:
 
-The object API provides cached wrappers around common WoC entities. It is closer in spirit to `oscar.py`, but it is **not** a drop-in replacement: many names and signatures have been cleaned up to be more consistent and more explicit.
+1. orchestrating many small `getValues` / `showCnt` calls
+2. combining several lookup steps into one reusable function
+3. aggregating counts, sets, or timelines in memory after shell-side reduction
+4. emitting CSV, JSON, or figures from already filtered WoC records
 
-Initialize it like this:
+The tutorial path is therefore:
 
-```python
-from woc.local import WocMapsLocal
-from woc.objects import init_woc_objects
-
-woc = WocMapsLocal()
-init_woc_objects(woc)
-```
-
-The main classes are:
-
-1. `Author('Name <email>')`
-   - `.name`, `.email`
-   - `.commits`, `.projects`, `.files`, `.blobs`
-   - `.unique_authors`, `.first_blobs`
-2. `UniqueAuthor('...')`
-   - `.authors`
-3. `Blob('sha1')`
-   - `.data`, `.commits`, `.files`
-   - `.first_author`, `.time_author_commits`
-   - `.projects_unique`
-   - `.changed_from`, `.changed_to`
-4. `Commit('sha1')`
-   - `.author`, `.authored_at`, `.committer`, `.committed_at`
-   - `.message`, `.full_message`
-   - `.tree`, `.parents`, `.children`
-   - `.projects`, `.root_projects`
-   - `.files`, `.blobs`
-   - `.time_author`, `.root`, `.changeset`
-   - `.compare(parent)`
-5. `File('path/name')`
-   - `.path`, `.name`
-   - `.authors`, `.blobs`, `.commits`
-6. `Tree('sha1')`
-   - `.files`, `.blobs`
-   - `.traverse()`
-7. `Project('owner_repo')`
-   - `.url`
-   - `.authors`, `.commits`, `.root_projects`
-   - `.head`, `.tail`, `.earliest_commit`, `.latest_commit`
-   - `.commits_fp()`
-8. `RootProject('...')`
-   - `.projects`, `.commits`, `.unique_authors`
-
-In the current API, project URLs are exposed as `Project.url`, and commit metadata that used to live in a separate `Commit_info` object is now part of `Commit`.
-
-### Simple Python examples
-
-Get the commits of an author:
-
-```python
-from woc.local import WocMapsLocal
-from woc.objects import init_woc_objects, Author
-
-woc = WocMapsLocal()
-init_woc_objects(woc)
-
-[c.hash for c in Author('"Albert Krawczyk" <pro-logic@optusnet.com.au>').commits[:3]]
-```
-
-Get a project URL:
-
-```python
-from woc.objects import Project
-
-Project('notcake_gcad').url
-```
-
-Move from a commit to its tree and then to the containing project:
-
-```python
-from woc.objects import Commit
-
-c = Commit("91f4da4c173e41ffbf0d9ecbe2f07f3a3296933c")
-c.tree
-c.projects[0].url
-```
-
-### Streaming perspective
-
-`python-woc` focuses on random access to `.tch` and `.bin` data. It does **not** natively support flat `.s` / `.gz` files such as thruMaps. For those workloads, keep the first stage in the shell with `zcat`, `grep`, `join`, and related tools, and then hand filtered records to Python only when you need Python-side aggregation or object logic.
+1. identify whether the data is in a `.tch` map or only in `.s` / `.gz`
+2. use `getValues` or `showCnt` only for the `.tch` / object case
+3. use shell pipelines directly for the flat-file case
+4. wrap the exact lookup or stream in a small Python helper
+5. keep large scans and joins in the shell
 
 -------
 
@@ -726,7 +703,7 @@ db.P_metadata.U.findOne({NumCommits: {$gt: 200}})
 db.API_metadata.U.findOne({$and: [{NumCommits: {$gt: 200}}, {NumProjects: {$gt: 200}}, {NumAuthors: {$gt: 200}}]})
 ```
 
-The summary of these collections is:
+The newer tutorial's summary of these collections is still the right mental model:
 
 * `A_metadata.<version>` stores project, commit, file, and originating-blob counts, language distribution, first/last commit times, aliases, and top APIs used by the author
 * `P_metadata.<version>` stores author, commit, file, and blob counts, language distribution, first/last commit times, community size, core authors, stars, and forks
@@ -759,7 +736,7 @@ for data in dataset:
 dataset.close()
 ```
 
-You can also print specific fields directly:
+You can also print specific fields directly, following the pattern from the newer tutorial:
 
 ```python
 dataset = coll.find({}, {"AuthorID": 1, "NumCommits": 1, "_id": 0}, no_cursor_timeout=True)
@@ -772,16 +749,16 @@ dataset.close()
 
 To access collections indexed by time, use ClickHouse. The current ClickHouse service runs on `da3`.
 
-The current deployment detail that matters for users is:
+The newer tutorial explains the original cluster-oriented layout; the current deployment detail that matters for users is:
 
 * use `da3` as the ClickHouse host
-* use `commit_v2604` as the current commit table
+* use `commit_v2510` as the current commit table
 * `api_all` remains the convenient API summary table
 
 Typical queries:
 
 ```sh
-clickhouse-client --host=da3 --query 'select count(*) from commit_v2604'
+clickhouse-client --host=da3 --query 'select count(*) from commit_v2510'
 ```
 
 ```sh
@@ -790,24 +767,24 @@ echo "select api,ncmt, nauth, nproj from api_all where match(api, 'stdio') and n
 ```
 
 ```sh
-clickhouse-client --host=da3 --query 'select author,comment from commit_v2604 where time=1568656268'
+clickhouse-client --host=da3 --query 'select author,comment from commit_v2510 where time=1568656268'
 ```
 
 ```sh
-echo "select lower(hex(sha1)),author,project,comment from commit_v2604 where match(comment, 'CVE-2021') limit 3 FORMAT CSV" \
+echo "select lower(hex(sha1)),author,project,comment from commit_v2510 where match(comment, 'CVE-2021') limit 3 FORMAT CSV" \
   | clickhouse-client --host=da3 --format_csv_delimiter=";"
 ```
 
 Commit SHA-1s are stored as binary `FixedString(20)`, so either convert them in the query:
 
 ```sh
-clickhouse-client --host=da3 --query "select lower(hex(sha1)),author,comment from commit_v2604 where match(comment, '^(CVE-(1999|2\\d{3})-(0\\d{2}[0-9]|[1-9]\\d{3,}))$') limit 2 format CSV"
+clickhouse-client --host=da3 --query "select lower(hex(sha1)),author,comment from commit_v2510 where match(comment, '^(CVE-(1999|2\\d{3})-(0\\d{2}[0-9]|[1-9]\\d{3,}))$') limit 2 format CSV"
 ```
 
 or unpack the raw bytes:
 
 ```sh
-clickhouse-client --host=da3 --query 'select sha1,author,comment from commit_v2604 where time=1568656268 limit 1 format RowBinary' \
+clickhouse-client --host=da3 --query 'select sha1,author,comment from commit_v2510 where time=1568656268 limit 1 format RowBinary' \
   | perl -ane '$sha1=substr($_, 0, 20); $o=unpack "H*", $sha1; $rest=substr($_,21,length($_)-21); print "$o;$rest\n";'
 ```
 
@@ -815,7 +792,7 @@ ClickHouse is most useful when you query a specific time or a narrow interval. T
 
 ### Web API
 
-If you do not have local WoC data mounted, use `python-woc`'s remote client:
+The newer tutorial does not cover the current HTTP API in this section, so it is worth documenting it here. If you do not have local WoC data mounted, use `python-woc`'s remote client:
 
 ```python
 from woc.remote import WocMapsRemote

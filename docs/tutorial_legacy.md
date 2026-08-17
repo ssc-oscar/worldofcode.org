@@ -1126,7 +1126,7 @@ do echo "CREATE TABLE api_$v (api String, from Int32, to Int32, ncmt Int32, naut
    echo "CREATE TABLE api_all AS api_$v ENGINE = Distributed(da, default, api_$v, rand())" | clickhouse-client --host=$h
 
   echo "CREATE TABLE commit_$v (sha1 FixedString(20), time Int32, tc Int32, tree FixedString(20), parent String, taz String, tcz String, author String, commiter String, project String, comment String) ENGINE = MergeTree() ORDER BY time" |clickhouse-client --host=$h
-  echo "CREATE TABLE commit_all AS commit_$v ENGINE = Distributed(da, default, commit_$v, rand())" | clickhouse-client --host=$h
+  echo "CREATE TABLE commit_v2604 AS commit_$v ENGINE = Distributed(da, default, commit_$v, rand())" | clickhouse-client --host=$h
 done
 ```
 
@@ -1150,7 +1150,7 @@ done
 Once the data is in there we can query commits
 
 ```bash
-clickhouse-client --host=da3 --query 'select count (*) from commits_all'
+clickhouse-client --host=da3 --query 'select count (*) from commit_v2604'
 2061780191
 ```
 
@@ -1166,7 +1166,7 @@ echo "select api,ncmt, nauth, nproj from api_all where match(api, 'stdio') and n
 It works fast if we specify specific time or an interval:
 
 ```bash
-clickhouse-client --host=da3 --query 'select author,comment from commits_all where time=1568656268'
+clickhouse-client --host=da3 --query 'select author,comment from commit_v2604 where time=1568656268'
 Matt Davis <mw.davis@hotmail.co.uk>     Made some SEO improvements and also added comments outlining what is contained in each section.\n
 Jessie 1307 <295101171@qq.com>  First Commit\n
 �
@@ -1181,7 +1181,7 @@ AnnaLub <yaskrava@gmail.com>    get all tickets command impl\n
 We may want to match on commit comment
 
 ```bash
-echo "select lower(hex(sha1)),author, project, comment from commit_all where match(comment, 'CVE-2021') limit 3 FORMAT CSV" |clickhouse-client --host=da3 --format_csv_delimiter=";"
+echo "select lower(hex(sha1)),author, project, comment from commit_v2604 where match(comment, 'CVE-2021') limit 3 FORMAT CSV" |clickhouse-client --host=da3 --format_csv_delimiter=";"
 "Florian Westphal <fw@strlen.de>";"Jackeagle_kernel_msm-3.18";"netfilter: x_tables: make xt_replace_table wait until old rules are not used anymore\nxt_replace_table relies on table replacement counter retrieval (which__NEWLINE__uses xt_recseq to synchronize pcpu counters).\nThis is fine, however with large rule
 set get_counters() can take__NEWLINE__a very long time -- it needs to synchronize all counters because__NEWLINE__it has to assume concurrent modifications can occur.\nMake xt_replace_table synchronize by itself by waiting until all cpus__NEWLINE__had an even seqcount.\nThis allows a followup patch to copy the cou
 nters of the old ruleset__NEWLINE__without any synchonization after xt_replace_table has completed.\nCc: Dan Williams <dcbw@redhat.com>__NEWLINE__Reviewed-by: Eric Dumazet <edumazet@google.com>__NEWLINE__Signed-off-by: Florian Westphal <fw@strlen.de>__NEWLINE__Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org
@@ -1198,14 +1198,14 @@ ndaram.krishnasamy@oracle.com>"
 commit sha1's are binary, so to print them we need to process, e.g.,
 
 ```bash
-clickhouse-client --host=da1 --query 'select sha1, author,comment from commits_all where time=1568656268 limit 1 format RowBinary' | perl -ane '$sha1=substr($_, 0, 20); $o=unpack "H*", $sha1; $rest=substr($_,21,length($_)-21); print "$o;$rest\n";'
+clickhouse-client --host=da1 --query 'select sha1, author,comment from commit_v2604 where time=1568656268 limit 1 format RowBinary' | perl -ane '$sha1=substr($_, 0, 20); $o=unpack "H*", $sha1; $rest=substr($_,21,length($_)-21); print "$o;$rest\n";'
 fbb7add2a58b733a797d97a1e63cb8661702d0a3;zzzz1313 <zaki56@rambler.ru>Initial commit
 ```
 
 Alternatively, we can hex them in the select statement:
 
 ```bash
-clickhouse-client --host=da1 --query "select lower(hex(sha1)),author,comment from commits_all where match(comment, '^(CVE-(1999|2\d{3})-(0\d{2}[0-9]|[1-9]\d{3,}))$') limit 2 format CSV"
+clickhouse-client --host=da1 --query "select lower(hex(sha1)),author,comment from commit_v2604 where match(comment, '^(CVE-(1999|2\d{3})-(0\d{2}[0-9]|[1-9]\d{3,}))$') limit 2 format CSV"
 "024fbd8de50c1269d178c3ee6b8664f5eee7f57b","nickmx1896 <nickmx1896@Hotmail.com>","CVE-2016-2355"
 "209446bab86e996d58c233abee0376cb26dcd4c4","jonathanliem94 <jonathanliem94@gmail.com>","CVE-2017-4963"
 ```
@@ -1224,7 +1224,7 @@ separate module - see draft in lookup/oscarch.py)
 
 There are classes in oscar.py that allow for querying the clickhouse database:
 
-1. `Time_commit_info(tb_name='commits_all', db_host='localhost')` - commits
+1. `Time_commit_info(tb_name='commit_v2604', db_host='localhost')` - commits
    - `.commit_counts(start, end=None)` - get the count of the commits given a time interval
    - `.commits_iter(start, end=None)` - get the commits as 'Commit' objects in a generator
    - `.commits_shas(start, end=None)` - get the sha1 of the commits in a list
@@ -1237,7 +1237,7 @@ There are classes in oscar.py that allow for querying the clickhouse database:
 \*note that the _b2cPtaPkgR_all_ table currently does not contain projects that uses the following programming languages: php, Lisp, Sql, Fml, Swift, Lua, Cob, Erlang, Clojure, Markdown, CSS
 
 The structures of the databases are listed below:
-**commits_all:**
+**commit_v2604:**
 |**name\_**|**\_\_**type**\_\_\_**|
 | sha1 | FixedString(20) |
 | time | Int32 |

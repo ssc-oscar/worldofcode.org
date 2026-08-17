@@ -82,7 +82,7 @@ echo 'imp <imp@bsdimp.com>' | ~/lookup/getValues A2a
 
 **Search commits for CVEs:**
 ```sh
-echo "select lower(hex(sha1)),author,comment from commit_v2510 \
+echo "select lower(hex(sha1)),author,comment from commit_v2604 \
   where match(comment, 'CVE-2021') limit 3 FORMAT CSV" \
   | clickhouse-client --host=da3 --format_csv_delimiter=";"
 ```
