@@ -18,6 +18,7 @@ export function WocNumberTicker({
   subtitle,
   className,
   floor,
+  staticValue,
   ...props
 }: {
   variant: string;
@@ -28,10 +29,13 @@ export function WocNumberTicker({
   // released watermark (the /count endpoints undercount). When the store catches
   // up and the live value >= floor, the ticker auto-heals to the live number.
   floor?: number;
+  // A count with no live map to auto-heal against (e.g. the deforked "Projects"
+  // total — p2c is raw repositories). Rendered as-is, no fetch.
+  staticValue?: number;
   [key: string]: any;
 }) {
   const { data, isLoading, error } = useSWR(
-    `/lookup/object/${variant}/count`,
+    staticValue != null ? null : `/lookup/object/${variant}/count`,
     () => {
       if (['commit', 'tree', 'blob'].includes(variant)) {
         return getObjectCount(variant as ObjectName);
@@ -46,7 +50,7 @@ export function WocNumberTicker({
   );
 
   // still show the ticker (using floor) while loading, so the page never flashes low
-  if (isLoading && floor == null) {
+  if (isLoading && floor == null && staticValue == null) {
     return (
       <div className="w-45 flex flex-col items-center justify-center gap-2">
         <Skeleton className="h-8 w-40 rounded-md" />
@@ -56,7 +60,7 @@ export function WocNumberTicker({
     );
   }
 
-  if (error && floor == null) {
+  if (error && floor == null && staticValue == null) {
     return (
       <div className="w-45 flex flex-col items-center justify-center gap-2">
         <p className="text-destructive/80 text-lg">Error</p>
@@ -67,7 +71,7 @@ export function WocNumberTicker({
   }
 
   const live = typeof data === 'number' ? data : 0;
-  const value = floor != null && live < floor ? floor : live;
+  const value = staticValue != null ? staticValue : floor != null && live < floor ? floor : live;
 
   return (
     <div className="hover:scale-102 w-45 flex flex-col items-center justify-center gap-1 transition-all duration-300">
@@ -250,11 +254,21 @@ function WocLogoAndButtons() {
         />
         <WocNumberTicker
           variant="p2c"
-          subtitle="from every git forge"
+          subtitle="raw, every git forge"
           floor={350683595}
           title={
             <div className="flex items-center gap-2">
               <span className="i-mdi:source-repository" />
+              Repositories
+            </div>
+          }
+        />
+        <WocNumberTicker
+          staticValue={283623473}
+          subtitle="forks resolved"
+          title={
+            <div className="flex items-center gap-2">
+              <span className="i-mdi:sitemap-outline" />
               Projects
             </div>
           }
