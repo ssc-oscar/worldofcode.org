@@ -11,8 +11,8 @@ Latest corpus watermark **V2605**:
 | Commits | ~7.3 billion |
 | Source file versions (blobs) | ~27.0 billion |
 | Trees | ~25.5 billion |
-| Repositories | ~351 million |
-| Independent projects (forks resolved) | ~284 million |
+| Repositories (raw) | ~351 million |
+| Projects (deforked, forks resolved) | ~284 million |
 | Author identities (raw) | ~124 million |
 
 Data is refreshed regularly (monthly snapshots, with near-real-time ingestion being rolled in).
