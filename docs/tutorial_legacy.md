@@ -1,6 +1,6 @@
 # Legacy Shell Tutorial
 
-> This archived page preserves the older website tutorial and supplemental examples that are not part of the current unified tutorial. For the current tutorial flow, start with [Tutorial basics for the Hackathon](tutorial.md).
+> This archived page preserves the older website tutorial and supplemental examples that are not part of the current unified tutorial. For the current tutorial flow, start with [World of Code Tutorial Basics](tutorial.md).
 
 ---
 

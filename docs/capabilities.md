@@ -122,7 +122,7 @@ No setup required — these interactive tools run directly on the site:
 - **API**: [API docs](https://wocapi-preview.osslab-pku.org/docs) — HTTP API with OpenAI-style API keys
 - **Python**: `pip install python-woc` — [documentation](https://ssc-oscar.github.io/python-woc/)
 - **Shell**: direct access on `da` servers via `getValues` and `showCnt` commands
-- **Registration**: [sign up here](https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link)
+- **Registration**: [sign up here](https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/viewform)
 
 ## Learn More
 

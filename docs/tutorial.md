@@ -1,4 +1,4 @@
-# Tutorial basics for the Hackathon
+# World of Code Tutorial Basics
 
 -------
 
@@ -14,7 +14,7 @@ Work through this part in order:
 4. submit the registration form with your account information and public key
 5. wait until you are granted access to the servers and repositories
 6. log in to a `da` server
-7. clone the repositories you will use during the Hackathon
+7. clone the repositories you will use
 
 You will need to provide the following in the registration form:
 
@@ -27,7 +27,7 @@ GitHub: https://github.com/
 
 BitBucket: https://bitbucket.org/account/signup/
 
-Registration Form: https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/edit
+Registration Form: https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/viewform
 
 --------
 

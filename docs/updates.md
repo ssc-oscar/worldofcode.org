@@ -12,7 +12,7 @@
 
 # Major updates in May, 2026
 
-- The docs now include a new unified hackathon tutorial that brings together setup, architecture, shell lookup workflows, Python usage, MongoDB, ClickHouse, and web API access. Start with [Current Tutorial](tutorial.md).
+- The docs now include a new unified tutorial that brings together setup, architecture, shell lookup workflows, Python usage, MongoDB, ClickHouse, and web API access. Start with [Current Tutorial](tutorial.md).
 
 # Major updates in Sep, 2025
 

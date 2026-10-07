@@ -106,6 +106,12 @@ export const navItems: NavItem[] = [
     description: 'Backport provenance — when a vendored fix landed, who adopted it, who is still exposed'
   },
   {
+    title: 'Prioritize',
+    href: '/prioritize',
+    icon: 'i-material-symbols:shield-lock-outline',
+    description: 'Vulnerability prioritization — copied vulnerable code ranked by reach × severity'
+  },
+  {
     title: 'Lookup',
     href: '/lookup',
     icon: 'i-material-symbols:category-search',
@@ -242,7 +248,7 @@ export const learnMoreItems: HomePageItem[] = [
     description: 'Request access to WoC servers for direct data access.',
     icon: 'i-fluent-emoji-flat:calendar',
     linkHref:
-      'https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link',
+      'https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/viewform',
     linkText: 'Sign Up'
   },
   {

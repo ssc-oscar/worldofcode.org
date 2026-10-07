@@ -30,8 +30,8 @@ studies of the entire FLOSS.
   - Hackathons help determine the community needs
   - [Hackathon Schedule](https://github.com/woc-hack/schedule)
 - How to participate?
-  - [Hackathon Registration Form](http://bit.ly/WoCSignup)
-  - If you can not attend the hackathon but just want to try out WoC, please fill the hackathon form but indicate in the topic section is that you do not plan to attend the hackathon.
+  - [WoC Registration Form](https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/viewform)
+  - Access is open to anyone — you do not need to attend a hackathon. Researchers and developers can request access year-round; just fill the registration form and note your intended use in the topic section.
 
 ## Architecture
 
