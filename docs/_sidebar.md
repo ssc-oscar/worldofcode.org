@@ -15,6 +15,7 @@ Sidebar Structure:
 - [Guide (Mongo)](guide_mongo.md)
 - [Guide (Remote)](guide_remote.md)
 - [Legacy Shell Tutorial](tutorial_legacy.md)
+- [Real-Time Security Flagging](rt-security.md)
 - [Mappings and Objects](maps.md)
 - [How Maps Generated](scripts.md)
 - [Fun Facts](crazy.md)

@@ -5,7 +5,7 @@ Start with the [current tutorial](tutorial.md) for the maintained setup and walk
 ## Important Links
 
 1. [Current Tutorial](tutorial.md)
-2. [WoC Registration Form](https://docs.google.com/forms/d/e/1FAIpQLSd4vA5Exr-pgySRHX_NWqLz9VTV2DB6XMlR-gue_CQm51qLOQ/viewform?vc=0&c=0&w=1&flr=0&usp=mail_form_link): Request access to the servers
+2. [WoC Registration Form](https://docs.google.com/forms/d/1quBIozLEP-ApaTaREr5FIu0HhOKAc4A4WkQngmW8L2g/viewform): Request access to the servers
 3. [WoC Structure and Its Elements Video](https://youtu.be/c0uFPwT5SZI)
 4. [Tutorial Recording from 2022-10-27](https://drive.google.com/file/d/1ytzOiOSgMpqOUm2XQJhhOUAxu0AAF_OH/view?usp=sharing) and [Older Tutorial Recording from 2019-10-15](https://drive.google.com/file/d/14tAx2GQamR4GIxOc3EzUXl7eyPKRx2oU/view?usp=sharing)
 5. [WoC Discord](https://discord.gg/fKPFxzWqZX): Get updates or ask questions related to WoC
@@ -28,7 +28,7 @@ The current access, SSH, and repository setup steps are maintained in [Part A of
 
 ## Tutorial Objectives
 
-Prepare for the hackathon or perform research, make sure connections work, get familiar with the basic functionality and potential of WoC, and start thinking about how to investigate global relationships in open source.
+Get set up for research or exploration, make sure connections work, get familiar with the basic functionality and potential of WoC, and start thinking about how to investigate global relationships in open source.
 
 ## Supplemental and Legacy Pages
 
