@@ -46,6 +46,29 @@ table of flagged commits: `sha · categories · subject · date · [view fix dif
   woc.get_values("c2P", "e4af89166a17785c1d741b8b1d5775f3223f510f")  # -> deforked project(s)
   ```
 
+**Raw real-time flag stream (read it directly on `/da8_data`):** the hourly flagger drains its output
+to `da8`, which any WoC user can read — **never query clone0** (it has no user access and is the
+throttled RT ingest box). Two files, both kept current:
+
+- **Flagged commits** — `/da8_data/update/clone0_vuln_flagged/flagged.dedup.jsonl.gz`
+  — ~12M unique flagged commits, **auto-refreshed daily**. One JSON per line:
+  `{sha, tree, parents, match:[categories], subject}`.
+- **Commit → project (`c2r`)** — `/da8_data/basemaps/gz/rt_commits/<YYYY-MM-DD>/<HH>/c2r.edges.gz`
+  — `sha40<TAB>woc_project`, **current to the live hour** (one dir per ingested hour).
+
+```sh
+# flagged commits for one project, entirely off /da8_data (no clone0):
+REPO=torvalds_linux
+zcat /da8_data/update/clone0_vuln_flagged/flagged.dedup.jsonl.gz \
+ | python3 -c 'import sys,json
+for l in sys.stdin:
+  d=json.loads(l); print(d["sha"]+"\t"+",".join(d["match"])+"\t"+d["subject"])' \
+ | LC_ALL=C sort > /tmp/flagged.tsv
+zcat /da8_data/basemaps/gz/rt_commits/*/*/c2r.edges.gz | grep -P "\t$REPO$" | cut -f1 \
+ | LC_ALL=C sort | LC_ALL=C join -t$'\t' - /tmp/flagged.tsv   # sha  categories  subject
+```
+For whole-history (not just the RT window) use the base maps `c2P`/`P2c` above instead of `c2r`.
+
 ## 3. Read the categories
 
 A commit is flagged if its message matches any of these **19 categories** (case-insensitive). The
@@ -123,6 +146,13 @@ The flag is a **starting point**, not a verdict:
 | blob → projects (exposure) | `b2P` |
 | commit message search | ClickHouse `commit_v2605` `match(comment, …)` on `da3` |
 | blob content | `show_content("blob", sha)` |
+| RT flagged commits | `/da8_data/update/clone0_vuln_flagged/flagged.dedup.jsonl.gz` (daily refresh) |
+| RT commit → project (`c2r`) | `/da8_data/basemaps/gz/rt_commits/<date>/<hh>/c2r.edges.gz` (live hour) |
+
+> **Always read `/da8_data/`, never clone0.** clone0 is the RT ingest box (no user access, throttled);
+> it drains both files above to da8. Raw RT commit *content* is landing in a ClickHouse `commit_rt`
+> store (on da4, still being built) — not a user-facing path yet, so for now use the flagged + `c2r`
+> files on da8.
 
 - **Python:** `pip install python-woc` → [docs](https://ssc-oscar.github.io/python-woc/)
 - **HTTP API:** [worldofcode.org/api](https://worldofcode.org/api)
@@ -138,5 +168,10 @@ The flag is a **starting point**, not a verdict:
   blobs (needed for the diff and the still-exposed check) arrive shortly after via backfill.
 - **A flagged commit with no recorded date shows "unknown"** (the flag stream is joined to commit
   dates separately).
+- **A project may span two ingest lanes.** Actively-pushed repos arrive via the fast real-time lane,
+  while large historical mirrors come through the slower mirror lane. Firefox, for example, is split:
+  the live `mozilla-firefox`/`firefox` repos in the RT lane plus the `gecko-dev` history mirror — so
+  "all of Firefox" means **both** lanes. When scoping a project, union its RT-lane and mirror-lane
+  names rather than assuming one covers everything.
 
 *See also: [What WoC Can Do](capabilities.md) · [Prioritization demo](https://worldofcode.org/prioritize) · [Backport Provenance](https://worldofcode.org/mozdemo)*
