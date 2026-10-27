@@ -16,6 +16,7 @@ from .auth.models import OneTimeCode, Token, User
 from .auth.routes import api as auth_api
 from .clickhouse.routes import api as clickhouse_api
 from .config import settings
+from .dmca import dmca_gate
 from .lookup.routes import api as lookup_api
 from .mozdemo.routes import api as mozdemo_api
 from .mongo.models import MongoAPI, MongoAuthor, MongoProject
@@ -115,7 +116,9 @@ if settings.cors.get("enabled", False):
 
 
 app.include_router(
-    lookup_api, prefix="/lookup", dependencies=[Depends(validate_token_nullable)]
+    lookup_api,
+    prefix="/lookup",
+    dependencies=[Depends(dmca_gate), Depends(validate_token_nullable)],
 )
 app.include_router(
     mongo_api, prefix="/mongo", dependencies=[Depends(validate_token_nullable)]
@@ -126,7 +129,9 @@ app.include_router(
     dependencies=[Depends(validate_token_nullable)],
 )
 app.include_router(
-    mozdemo_api, prefix="/mozdemo", dependencies=[Depends(validate_token_nullable)]
+    mozdemo_api,
+    prefix="/mozdemo",
+    dependencies=[Depends(dmca_gate), Depends(validate_token_nullable)],
 )
 app.include_router(auth_api, prefix="/auth")
 
