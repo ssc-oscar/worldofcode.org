@@ -168,10 +168,13 @@ The flag is a **starting point**, not a verdict:
   blobs (needed for the diff and the still-exposed check) arrive shortly after via backfill.
 - **A flagged commit with no recorded date shows "unknown"** (the flag stream is joined to commit
   dates separately).
-- **A project may span two ingest lanes.** Actively-pushed repos arrive via the fast real-time lane,
-  while large historical mirrors come through the slower mirror lane. Firefox, for example, is split:
-  the live `mozilla-firefox`/`firefox` repos in the RT lane plus the `gecko-dev` history mirror — so
-  "all of Firefox" means **both** lanes. When scoping a project, union its RT-lane and mirror-lane
-  names rather than assuming one covers everything.
+- **A project may arrive through more than one ingest path.** Real-time ingestion is **not
+  GitHub-only**: it covers GitHub (hourly GH-Archive push events) **and other forges — GitLab and the
+  rest — via their own real-time forge updates**. Separately, a mirror lane pulls large/full histories
+  (e.g. full clones) that don't come through the per-event feeds. So a single project can show up under
+  several names/paths across these. Firefox, for example, is split: the live `mozilla-firefox`/`firefox`
+  repos (real-time forge updates) plus the `gecko-dev` history mirror — "all of Firefox" means **all**
+  of them. When scoping a project, union its names across the forge-update and mirror paths rather than
+  assuming one covers everything.
 
 *See also: [What WoC Can Do](capabilities.md) · [Prioritization demo](https://worldofcode.org/prioritize) · [Backport Provenance](https://worldofcode.org/mozdemo)*
