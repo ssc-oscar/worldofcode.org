@@ -24,6 +24,8 @@ services:
       # - ./wocprofile.json:/etc/wocprofile.json
       # - /woc:/woc:ro
       - /home/wocprofile.json:/etc/wocprofile.json:ro
+      - /home/woc-dmca/blocklist.txt:/etc/woc-dmca/blocklist.txt:ro
+      - /home/woc-dmca/log:/etc/woc-dmca/log:rw
       - /da3_fast:/da3_fast:ro
       - /da8_data:/da8_data:ro
       - /da3_data:/da3_data:ro
