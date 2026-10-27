@@ -26,30 +26,49 @@ BLOCKLIST_PATH = os.environ.get("WOC_DMCA_BLOCKLIST", "/etc/woc-dmca/blocklist.t
 LOG_PATH = os.environ.get("WOC_DMCA_LOG", "/etc/woc-dmca/log/blocklog.jsonl")
 
 _HEX = frozenset("0123456789abcdef")
-_DETAIL = "retrieval disabled by DMCA takedown"
+# Fallback 410 body if the blocklist file has no "# message:" header line.
+# "<sha>" is replaced with the blocked SHA(s) at response time.
+_DEFAULT_MSG = (
+    "Object <sha> is no longer served: removed in response to a DMCA takedown "
+    "notice. To dispute, contact audris@utk.edu."
+)
 
 
 def _is_sha(tok: str) -> bool:
     return len(tok) == 40 and all(c in _HEX for c in tok)
 
 
-def _load_blocklist() -> "set[str]":
-    """Read the blocklist fresh each call (tiny file). Missing file => empty set."""
-    out: "set[str]" = set()
+def _load_config() -> "tuple[set[str], str]":
+    """Read the blocklist fresh each call (tiny file). Returns (shas, message).
+
+    A line ``# message: <text>`` sets the 410 body template; ``<sha>`` in it is
+    substituted with the blocked SHA(s) at response time. This lets the wording be
+    reworded live (no rebuild/restart). Other ``#`` lines are plain comments.
+    Missing file => (empty set, default message).
+    """
+    shas: "set[str]" = set()
+    msg = _DEFAULT_MSG
     try:
         with open(BLOCKLIST_PATH, "r") as f:
             for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
+                raw = line.strip()
+                if not raw:
                     continue
-                tok = line.split()[0].lower()
+                if raw.startswith("#"):
+                    body = raw[1:].strip()
+                    if body.lower().startswith("message:"):
+                        text = body[len("message:"):].strip()
+                        if text:
+                            msg = text
+                    continue
+                tok = raw.split()[0].lower()
                 if _is_sha(tok):
-                    out.add(tok)
+                    shas.add(tok)
     except FileNotFoundError:
         pass
     except Exception as e:  # never let blocklist IO errors 500 a normal request
         logger.error(f"DMCA blocklist read failed ({BLOCKLIST_PATH}): {e}")
-    return out
+    return shas, msg
 
 
 def _candidate_shas(request: Request) -> "set[str]":
@@ -97,11 +116,13 @@ def _log_block(request: Request, sha: str) -> None:
 
 async def dmca_gate(request: Request) -> None:
     """Router dependency: 410 if the request targets a blocklisted SHA."""
-    blocklist = _load_blocklist()
+    blocklist, msg_template = _load_config()
     if not blocklist:
         return
     hits = _candidate_shas(request) & blocklist
     if hits:
-        for sha in sorted(hits):
+        ordered = sorted(hits)
+        for sha in ordered:
             _log_block(request, sha)
-        raise HTTPException(status_code=410, detail=_DETAIL)
+        detail = msg_template.replace("<sha>", ", ".join(ordered))
+        raise HTTPException(status_code=410, detail=detail)
